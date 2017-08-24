@@ -1,7 +1,10 @@
 To run R code:
 
-Download and unzip hiC_data.zip from the /data directory, store files in a new directory called HiC_bezier
-Download hiC_bezier_curves_plot.r from the /r directory and store in directory HiC_bezier
-Download testHiC.sh from this directory and store in directory HiC_bezier
-NOTE: All data files, .r and .sh scripts must be in the same directory (HiC_bezier)
+Download and unzip hiC_data.zip from the /data directory, store files in a new directory called /HiC_bezier
+Download hiC_bezier_curves_plot.r from the /r directory and store in directory /HiC_bezier
+Download testHiC.sh from this directory and store in directory /HiC_bezier
+NOTE: All data files, .r and .sh scripts must be in the same directory (/HiC_bezier)
+
 Run testHiC.sh from the command line
+
+Plot will be written to a PNG file in the /HiC_bezier directory
