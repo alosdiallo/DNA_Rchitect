@@ -1,3 +1,7 @@
+#You will need these packages going forward for shiny to work. -Alos
+#install.packages("htmlwidgets")
+#install.packages("devtools")
+
 ##test example with these coordinates
 ##Produces all interactions from both datasets
 ##Code_1
