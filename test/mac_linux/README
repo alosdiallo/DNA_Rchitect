@@ -1,4 +1,5 @@
 To run R code:
 
-Download and unzip data file
-Run bashscript
+Download and unzip hiC_data.zip from the /data directory
+Download testHiC.sh to the same directory where you saved hiC_data.zip
+Run testHiC.sh from the command line
