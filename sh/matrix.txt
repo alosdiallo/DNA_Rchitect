@@ -1,0 +1,7 @@
+node1	node2	strength
+a	b	10
+a	c	5
+b	d	15
+c	e	20
+a	e	2
+e	f	200
