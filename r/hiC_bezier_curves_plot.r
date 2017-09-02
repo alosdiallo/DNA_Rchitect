@@ -1,4 +1,7 @@
 ## General script for 2 sample bezier curve plot with gene features
+#source("https://bioconductor.org/biocLite.R")
+if (!require("Sushi")) biocLite("Sushi")
+
 library(Sushi)
 
 ##Command line arguments must be given as: > Rscript Sushi_Long_rangePlots_Rscript.R matrixFileName.txt chrom chromstart chromend samplenumber1_Id samplenumber2_Id samplenumber1_color samplenumber2_color Genecode.chr#.txt
