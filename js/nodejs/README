@@ -1,1 +1,4 @@
 Dev files for uploading files with node.js
+
+Required packages: formidable
+    install by: npm install formidable
