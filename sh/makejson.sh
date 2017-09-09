@@ -25,7 +25,7 @@ json="$json${OUTPUT}"
 done < sanitizedFile.txt
 
 #Write JSON object to object.json file. NOTE: output.json has a terminal newline $
-#echo $json | sed -e 's/.$//' -e 's/$/}/' > output.json
+echo $json | sed -e 's/.$//' -e 's/$/}/' > output.json
 
 #If jq is installed do the following instead: write JSON object to object.json file. NOTE: output.json has a terminal newline. Then, beautifying output.json with jq
-echo $json | sed -e 's/.$//' -e 's/$/}/' | jq '.' > output.json
+#echo $json | sed -e 's/.$//' -e 's/$/}/' | jq '.' > output.json
