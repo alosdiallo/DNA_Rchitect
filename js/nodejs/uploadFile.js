@@ -16,6 +16,19 @@ http.createServer(function (req, res) {
                                        res.end();
                                        });
                              });
+                  
+                  form.on('end', function() {
+                          
+                          // Pass uploadedFile as option, here uploaded file is called 'matrix.txt'
+                          const { execFile } = require('child_process');
+                          const child = execFile('./makejson.sh', ['matrix.txt'], (error, stdout, stderr) => {
+                                                 if (error) {
+                                                 throw error;
+                                                 }
+                                                 console.log(stdout);
+                                                 });
+                          
+                          });
 
 // This code works, but doesn't do what we want to pause until file exists...
 //                  if (fs.existsSync('/Users/simongray/Desktop/HMS_Bioinformatics/Visualization_HiC/upload_file_js/matrix.txt')) {
