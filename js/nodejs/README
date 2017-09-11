@@ -11,4 +11,4 @@ To test script:
     Open in web browser: http://localhost:8080
     Upload the matrix.txt file and submit query
     The uploaded file will be saved in the path you specified (line 12 of uploadFile.js) and makejson.sh will be executed on the uploaded file
-    output.json is generated and saved in your working directory
+    output2.json is generated and saved in your working directory
