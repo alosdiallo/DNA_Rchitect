@@ -1,0 +1,6 @@
+To test beta version of app, download all files in this directory to your working directory, then:
+  1. at command line run $: npm install
+     this will install all dependencies from package.json manifest
+  2. start node server $: node uploadFile.js
+  3. visit http://localhost:3000 in web browser
+  4. upload matrix.txt file from local drive or url and cytoscape network will display in div
