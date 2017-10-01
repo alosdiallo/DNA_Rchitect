@@ -1,0 +1,18 @@
+{
+  "name": "upload_file_js",
+  "version": "1.0.0",
+  "description": "Formidable upload file server",
+  "main": "uploadFile.js",
+  "scripts": {
+    "test": "http://localhost:8080"
+  },
+  "author": "Simon Gray",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.4",
+    "formidable": "^1.1.1",
+    "request": "^2.83.0",
+    "socket.io": "^2.0.3",
+    "socket.io-client": "^2.0.3"
+  }
+}

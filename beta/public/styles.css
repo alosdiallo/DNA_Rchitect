@@ -1,0 +1,125 @@
+* {
+    box-sizing: border-box;
+}
+
+.introdiv {
+    position: relative;
+    height: 15vh;
+}
+
+.displaydiv {
+    position: relative;
+    height: 83vh;
+}
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.column {
+    float: left;
+    padding: 10px;
+}
+
+.leftdiv {
+    position: relative;
+    width: 50%;
+    height: 100%;
+}
+
+.rightdiv {
+    position: relative;
+    width: 50%;
+    height: 100%;
+}
+
+.indexdiv {
+    position: absolute;
+    width: 98%;
+    height: 98%;
+    border-style: solid;
+    border-color: green;
+    border-width: 2px;
+}
+
+.loadingdiv {
+    position: absolute;
+    width: 98%;
+    height: 98%;
+}
+
+.loadingmessagediv {
+    position: absolute;
+    width: 98%;
+    height: 19%;
+    text-align: center;
+}
+
+.loadinganimation {
+    position: absolute;
+    width: 98%;
+    height: 98%;
+    left: 50%;
+    top: 50%;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.outputdiv {
+    position: absolute;
+    width: 98%;
+    height: 98%;
+    border-style: dashed;
+    border-color: yellow;
+    border-width: 2px;
+}
+
+div {
+    border-style: solid;
+    border-color: red;
+    border-width: 2px;
+}
+
+#rIndex {
+    visibility: visible;
+}
+
+#rLoading {
+    visibility: hidden;
+}
+
+#shinyServer {
+    visibility: hidden;
+}
+
+#cyIndex {
+    visibility: visible;
+}
+
+#cyLoading {
+    visibility: hidden;
+}
+
+#cy {
+    visibility: hidden;
+    top: 0px;
+    left: 0px;
+}
