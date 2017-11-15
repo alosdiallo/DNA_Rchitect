@@ -4,4 +4,4 @@ hicVizAppBETA.R is legacy (fully functional) code that is not modularized and Da
 
 modHicVizApp1.R is modularized code (stuff is put into functions) so that data is read only once per upload of matrix file. 
 
-***USE modHicVizApp1.R for any further development
+***USE modHicVizAppBETA.R for any further development
