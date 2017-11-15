@@ -6,6 +6,8 @@ library(rcytoscapejs)
 library(Sushi)
 #Load DataTables
 library(DT)
+# Load RColorBrewer
+library(RColorBrewer)
 
 #FUNCTION: Define function to read uploaded file, only after it has been uploaded
 reqRead <- function(input){
@@ -83,6 +85,85 @@ plotBezierCurves <- function(data,input){
     incProgress(0.8)
   })
   
+}
+
+#FUNCTION: Define function to plot ATAC-seq data
+plotAtacCurves <- function(Treg_ATAC, input){
+  
+  withProgress(message = 'Making Atac-seq plot', value = 0, {
+    
+    #Increment progress
+    incProgress(0.6)
+    
+    chrom = input$chromNumber;
+    chromstart = as.numeric(input$cStart); #Note that commandArgs makes everything a string, so must convert to numeric
+    chromend = as.numeric(input$cStop);
+    
+    # Links for googleStorage files
+    # https://storage.googleapis.com/gencode_ch_data/Tcon_Immgen_3.bg
+    # https://storage.googleapis.com/gencode_ch_data/Treg_Immgen_3.bg
+    # https://storage.googleapis.com/gencode_ch_data/FoxP3_5047_Peaks.txt
+
+    # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+    geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
+    genCode <- paste(geneCChNumber_generic,"Gencode.",chrom,".txt",sep = "")
+    genes <- read.delim(genCode,header=TRUE);
+    
+    # Atac curve plot
+    par(fig=c(0,1,0.3,1), mar=c(0,4,4,2)); #define area for Bezier curve plot
+    #Plot Atac-seq plot
+    color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    plotBedgraph(Treg_ATAC,chrom,chromstart,chromend,colorbycol= color_select)
+    labelgenome(chrom, chromstart,chromend,n=3,scale="Mb")
+    mtext("ATAC-seq Read Depth",side=2,line=1.75,cex=0.75,font=2)
+    axis(side=2,las=2,tcl=.2)
+    
+    # Genes features plot
+    par(fig=c(0,1,0,0.25), mar=c(0,4,0,2), new=TRUE); #This allows genes to be plotted below the BEDPE plot
+    pg = plotGenes(genes,chrom,chromstart,chromend,types=genes$type,plotgenetype="arrow",maxrows=2,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "middle",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+    
+    #Increment progress
+    incProgress(0.8)
+  })
+}
+
+#FUNCTION: Define function to plot ChIP-seq data
+plotChipCurves <- function(FoxP3_peaks, input){
+  
+  withProgress(message = 'Making ChIP-seq plot', value = 0, {
+    
+    #Increment progress
+    incProgress(0.6)
+    
+    chrom = input$chromNumber;
+    chromstart = as.numeric(input$cStart); #Note that commandArgs makes everything a string, so must convert to numeric
+    chromend = as.numeric(input$cStop);
+    
+    # Links for googleStorage files
+    # https://storage.googleapis.com/gencode_ch_data/Tcon_Immgen_3.bg
+    # https://storage.googleapis.com/gencode_ch_data/Treg_Immgen_3.bg
+    # https://storage.googleapis.com/gencode_ch_data/FoxP3_5047_Peaks.txt
+    
+    # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+    geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
+    genCode <- paste(geneCChNumber_generic,"Gencode.",chrom,".txt",sep = "")
+    genes <- read.delim(genCode,header=TRUE);
+    
+    # ChIP curve plot
+    par(fig=c(0,1,0.3,1), mar=c(0,4,4,2)); #define area for Bezier curve plot
+    #Plot ChIP-seq plot
+    plotBed(beddata = FoxP3_peaks,chrom = chrom, chromstart = chromstart,chromend =chromend, rownumber = FoxP3_peaks$row, type = "region", color=FoxP3_peaks$color,row="given",rowlabels=unique(FoxP3_peaks$name), rowlabelcol=unique(FoxP3_peaks$color),rowlabelcex=0.75)
+    labelgenome(chrom,chromstart,chromend,n=3,scale="Mb")
+    mtext("FoxP3 ChIP Peaks",side=2,line=1.75,cex=0.75,font=2)
+    axis(side=2,las=2,tcl=.2)
+    
+    # Genes features plot
+    par(fig=c(0,1,0,0.25), mar=c(0,4,0,2), new=TRUE); #This allows genes to be plotted below the BEDPE plot
+    pg = plotGenes(genes,chrom,chromstart,chromend,types=genes$type,plotgenetype="arrow",maxrows=2,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "middle",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+    
+    #Increment progress
+    incProgress(0.8)
+  })
 }
 
 # UI for Shiny
@@ -203,7 +284,14 @@ ui <- fluidPage(title = "HiC Visualization App",
                            ),
                            fluidRow(tags$hr()),
                            fluidRow(
-                             column(12,
+                             column(6,
+                                    wellPanel(
+                                      downloadButton("downloadDataAtac", "Download Plot"),
+                                      tags$hr(),
+                                      plotOutput("atacPlot")
+                                    )
+                             ),
+                             column(6,
                                     wellPanel(
                                       h4("Clicked Node"),
                                       verbatimTextOutput("clickedNode"),
@@ -211,7 +299,34 @@ ui <- fluidPage(title = "HiC Visualization App",
                                       verbatimTextOutput("connectedNodes")
                                     )
                              )
+                           ),
+                           fluidRow(tags$hr()),
+                           fluidRow(
+                             column(6,
+                                    wellPanel(
+                                      downloadButton("downloadDataChip", "Download Plot"),
+                                      tags$hr(),
+                                      plotOutput("chipPlot")
+                                    )
+                             ),
+                             column(6,
+                                    wellPanel(
+                                      h4("Some other plots?")
+                                    )
+                             )
                            )
+
+                           # fluidRow(tags$hr()),
+                           # fluidRow(
+                           #   column(12,
+                           #          wellPanel(
+                           #            h4("Clicked Node"),
+                           #            verbatimTextOutput("clickedNode"),
+                           #            h4("Connected Nodes"),
+                           #            verbatimTextOutput("connectedNodes")
+                           #          )
+                           #   )
+                           # )
                            # ,
                            # fluidRow(tags$hr()),
                            # fluidRow(
@@ -236,6 +351,30 @@ server <- function(input, output, session) {
     
     # Store matrix to variable data for use later. (Read data once)
     data <- reqRead(input)
+    
+    ### Retrieve ATAC data from googleCloud
+    withProgress(message = 'Loading Data', value = 0, {
+      
+      #Increment progress
+      incProgress(0.4)
+      
+      # Read bedgraph file from googleCloud
+      Treg_ATAC <-read.delim("https://storage.googleapis.com/gencode_ch_data/Treg_Immgen_3.bg",header=TRUE)
+      
+      incProgress(0.8)
+    })
+    
+    ### Retrieve ChIP data from googleCloud
+    withProgress(message = 'Loading Data', value = 0, {
+      
+      #Increment progress
+      incProgress(0.4)
+      
+      # Read bedgraph file from googleCloud
+      FoxP3_peaks <-read.delim("https://storage.googleapis.com/gencode_ch_data/FoxP3_5047_Peaks.txt",header=TRUE)
+      
+      incProgress(0.8)
+    })
     
     ###### Render uploaded file (head or tail)
     output$contents <- renderTable({
@@ -334,6 +473,44 @@ server <- function(input, output, session) {
       
       #Wait until input$file1 exists before proceeding...
       req(input$file1)
+      
+      #Wait until Treg_ATAC exists before proceeding...
+      req(Treg_ATAC)
+      
+      #Wait until FoxP3_peaks exists before proceeding...
+      req(FoxP3_peaks)
+      
+      ######## ATAC Plot Output:
+      output$atacPlot <- renderPlot({
+        isolate({ plotAtacCurves(Treg_ATAC, input) })
+      })
+      
+      output$downloadDataAtac <- downloadHandler(
+        filename = function() {
+          "atac_plot.svg"
+        },
+        content = function(file) {
+          svg(file)
+          plotAtacCurves(Treg_ATAC, input)
+          dev.off()
+        }
+      )
+      
+      ######## ChIP Plot Output:
+      output$chipPlot <- renderPlot({
+        isolate({ plotChipCurves(FoxP3_peaks, input) })
+      })
+      
+      output$downloadDataChip <- downloadHandler(
+        filename = function() {
+          "atac_plot.svg"
+        },
+        content = function(file) {
+          svg(file)
+          plotChipCurves(FoxP3_peaks, input)
+          dev.off()
+        }
+      )
       
       ####### Cytoscape Network Output:
       output$cyplot <- renderRcytoscapejs({
