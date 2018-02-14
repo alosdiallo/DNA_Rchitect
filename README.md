@@ -4,14 +4,12 @@
 Start using the web version of this application 
 
 ## Table of Contents
-[Introduction](#intro)
-[File format requirements](#fileFormat)
-[Tutorial](#tutorial)
-[References](#references)
+[Introduction](#intro)<br>
+[File format requirements](#fileFormat)<br>
+[Tutorial](#tutorial)<br>
+[References](#references)<br>
 
-<a name="intro"/>
 ### Introduction
 [Shiny Apps](https://shiny.rstudio.com/) are interactive web applications built with R using the `shiny` R package. Shiny apps are built with R wrappers for HTML, CSS, and JS to run R code in a web browser through a dynamic and reactive user interface that is powered by an underlying NodeJS engine. These apps can be locally hosted from a R session or hosted in the cloud through a [ShinyServer](http://www.shinyapps.io/).
 
-<a name="fileFormat"/>
 ### File format requirements
