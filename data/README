@@ -1,3 +1,0 @@
-Directory containing zipped data files for R code that generate Bezier curves
-
-matrix.txt is the full HiC dataset, for use with uploadFile.js
