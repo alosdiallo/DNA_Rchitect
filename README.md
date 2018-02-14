@@ -20,12 +20,12 @@ There is an interactive tutorial accessible through the help button on the app.
 
 ### References
 This application utilizes the following packages and libraries:
-...[IntroJS](https://introjs.com/)..
-...[Cytoscape.js](http://js.cytoscape.org/)..
-...[`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)..
-...[`shiny`](https://cran.r-project.org/web/packages/shiny/index.html)..
-...[`shinyBS`](https://cran.r-project.org/web/packages/shinyBS/index.html)..
-...[`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/index.html)..
-...[`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)..
-...[`DT`](https://cran.r-project.org/web/packages/DT/index.html)..
-...[`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
+[IntroJS](https://introjs.com/)<br>
+[Cytoscape.js](http://js.cytoscape.org/)<br>
+[`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)<br>
+[`shiny`](https://cran.r-project.org/web/packages/shiny/index.html)<br>
+[`shinyBS`](https://cran.r-project.org/web/packages/shinyBS/index.html)<br>
+[`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/index.html)<br>
+[`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)<br>
+[`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
+[`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
