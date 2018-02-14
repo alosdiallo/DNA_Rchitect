@@ -1,0 +1,27 @@
+step,element,intro,position
+1,NA,During the tutorial: please do not click the App buttons/dialogs. Doing so will change the App conditions to settings other than default tutorial settings and the explanation boxes may not display properly. If the explanation boxes start to display in the top left corner: simply restart the tutorial (and avoid clicking on app components next time!),auto
+2,#dataTypeWellPanel,First select the type of data to analyze,auto
+3,#fileTypesDiv,Click to add or remove data types,auto
+4,#atacFormatPanelDiv,Specify whether ATAC/ChIP data is Bed or Bedgraph format,auto
+5,#HiCFileDiv,"Browse for each file (size limit 500mb). If a data type has been selected above, a file must be chosen before the program will proceed",auto
+6,#HiCHeaderDiv,Your file must have a standard header and be formatted as described in the <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github documentation</a>,auto
+7,#HiCSepDiv,Choose the appropriate delimiter for your data file,auto
+8,#HiCQuoteDiv,Choose the appropriate quote style for your data file,auto
+9,#processWellPanel,"Once all your data files are chosen, click <b>Process Data</b> to process the data for visualization. This will take some time, so please be patient",auto
+10,#HiCMainPanelDiv,A preview of your data will be displayed here and should appear as a well formatted table (see <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github documentation</a> for an example). If you selected the wrong separator or quote for your data file - the data will not be formatted in a table but rather smashed together. If this happens - select the correct separator and click <b>Process Data</b> again,auto
+11,#HiCDispDiv,You can choose to view the head or tail of your data file at any time,auto
+12,#goToPlotWellPanel,Proceed to visualize your data by clicking on the <b>Plots</b> tab or the <b>Go to Plots</b> button,auto
+13,NA,All visualization is completed in the <b>Plots</b> tab.,auto
+14,#numOfSamplesDiv,Select the number of samples (up to a maximum of 9 samples) in your HiC data file. This will uniquely color each sample.,auto
+15,#sampleNamesDiv,Appropriately name your samples in agreement with your dataset. See <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github documentation</a> for an example ,auto
+16,NA,"To generate plots centered around a gene of interest, use the default plot settings",auto
+17,#geneIdDiv,Type and choose the appropriate gene. The gene's chromosome and coordinates are shown next to the gene name,auto
+18,#genomicIntervalDiv,Specify the genomic interval you wish to visualize to the left and right of the gene. This defines the window size for the plots,auto
+19,#submitByGene,Click the <b>Submit Parameters</b> button to generate the plots,auto
+20,#byCoordinates,To manually define the genomic region you wish to plot - click the <b>Search by Coordinates</b> checkbox,auto
+21,NA,The plots will take time to be generated - please be patient,auto
+22,#hicPlotPanel,The HiC bezier curve plot will display in this panel - note that this plot is static,auto
+23,#cyNetworkPanel,The cytoscape network for the HiC data will display in this panel - note that this plot is interactive. Clicking a node in this network will highlight connected nodes and list them in the table below,auto
+24,#cyClickedNodesPanel,The most recently clicked node and its connected nodes will display in this panel,auto
+25,NA,You may generate plots for a different gene or genomic window by changing the parameters and clicking <b>Submit Parameters</b> again,auto
+26,NA,This concludes the tutorial. To view source code and documentation visit our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>,auto
