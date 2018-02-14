@@ -1,9 +1,0 @@
-Dev files for uploading files with node.js
-
-Required packages: download package.json to working directory, install all packages by: npm install
-
-To test script: 
-    Download uploadFile.js and makejson.sh to your working directory.
-    Run at the command line: node uploadFile.js
-    Open in web browser: http://localhost:3000
-    Upload the matrix.txt file and submit query
