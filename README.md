@@ -19,7 +19,7 @@ Files must have standard headers.
 There is an interactive tutorial accessible through the help button on the app.
 
 ### References
-This application utilizes the following packages and libraries:
+This application utilizes the following packages and libraries:<br>
 [IntroJS](https://introjs.com/)<br>
 [Cytoscape.js](http://js.cytoscape.org/)<br>
 [`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)<br>
