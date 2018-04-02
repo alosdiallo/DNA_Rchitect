@@ -29,3 +29,5 @@ This application utilizes the following packages and libraries:<br>
 [`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
+
+[`MIT Licence`](https://opensource.org/licenses/MIT)<br>
