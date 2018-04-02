@@ -1,0 +1,32 @@
+************ Installation instructions for DNA Architect on a local machine ************
+Requirements
+PC running Windows 7 or newer
+MAC running El Capitan or newer
+R Studio running  1.1.442 or newer
+Tested on CentOS 7
+
+****************************************************************************************
+****                           R packages required                                  ****
+****************************************************************************************
+RColorBrewer
+DT
+Sushi
+rcytoscapejs
+jsonlite
+shinyBS
+shiny
+bioconductor
+****************************************************************************************
+****                           Installtion                                          ****
+****                           Windows, OSX                                         ****
+****************************************************************************************
+
+Install R studio
+Download the app folder:https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/App
+
+****************************************************************************************
+****                           How to run the app                                   ****
+****************************************************************************************
+Open Rstudio load the file:hicVizAppBETA.R
+In Rstudio click on Run App.  
+
