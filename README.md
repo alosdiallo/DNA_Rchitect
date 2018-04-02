@@ -30,4 +30,4 @@ This application utilizes the following packages and libraries:<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
 
-[`MIT Licence`](https://opensource.org/licenses/MIT)
+[MIT Licence](https://opensource.org/licenses/MIT)
