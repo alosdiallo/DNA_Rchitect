@@ -16,7 +16,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 Files must have standard headers.
 
 ### Tutorial
-There is an interactive tutorial accessible through the help button on the app.
+There is an interactive tutorial accessible through the help button on the app. Access a [PDF version](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Tutorial.pdf) of the tutorial here.
 
 ### References
 This application utilizes the following packages and libraries:<br>
