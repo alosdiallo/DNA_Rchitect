@@ -67,7 +67,7 @@ See the [PDF tutorial](#tutorial) for more information, including examples of ea
 If the page 'grays out' with this error message, the App has disconnected from the server. This may occur because you left the App idle for >15 minutes (at which time the active instance is shut down), your internet connection was disrupted, or you exceeded the **hard maximum of 8 GB of RAM** per instance (which causes the web version of the app to die -- see [Web version](#web-version) for more details). See the Shiny docs for more information on [grey screens](http://docs.rstudio.com/shinyapps.io/Troubleshooting.html#grey-screen).
 
 ### Sample data
-Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data).
+Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data). You can download this entire github repository (including the **sample_data** folder) by clicking on the green **Clone or Download** button at the top of this page.
 
 ### References
 This application utilizes the following packages and libraries:<br>
