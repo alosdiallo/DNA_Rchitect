@@ -53,6 +53,9 @@ This error indicates that the selected genomic window does not contain any HiC a
 See the [PDF tutorial](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Tutorial.pdf) for more information, including examples of each error in the App.
 
 #### Grayed out page
+`Disconnected from server`
+`Reload`
+If the page 'grays out' with this error message, the App has disconnected from the server. This may occur because you left the App idle for >15 minutes (at which time the active instance is shut down), your internet connection was disrupted, or you exceeded the **hard maximum of 8 GB of RAM** per instance (which causes the web version of the app to die -- see [Web version](#web-version) for more details).
 
 ### References
 This application utilizes the following packages and libraries:<br>
