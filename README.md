@@ -12,9 +12,8 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 [Errors and Troubleshooting](#errors-and-troubleshooting)<br>
 1. [Incorrect headers](#incorrect-headers)<br>
 2. [HiC Plotting Error](#hic-plotting-error)<br>
-3. [Cytoscape network graph error](#cytoscape-network-graph-error)
+3. [Cytoscape network graph error](#cytoscape-network-graph-error)<br>
 4. [Grayed out page](#grayed-out-page)<br>
-
 [References](#references)<br>
 
 ### Introduction
