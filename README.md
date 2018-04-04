@@ -10,7 +10,11 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 [Header requirements](#header-requirements)<br>
 [Tutorial](#tutorial)<br>
 [Errors and Troubleshooting](#errors-and-troubleshooting)<br>
-1. [HiC Error](#hic-error)<br>
+1. [Incorrect headers](#incorrect-headers)<br>
+2. [HiC Plotting Error](#hic-plotting-error)<br>
+3. [Cytoscape network graph error](#cytoscape-network-graph-error)
+4. [Grayed out page](#grayed-out-page)<br>
+
 [References](#references)<br>
 
 ### Introduction
@@ -44,6 +48,7 @@ This error indicates that the current genomic window (as defined by the genomic 
 `Error: The genomic window does not contain any nodes` <br>
 This error indicates that the selected genomic window does not contain any HiC anchors (ie nodes). Enlarge the genomic window until it contatins HiC anchors. <br>
 See the [PDF tutorial](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Tutorial.pdf) for more information, including examples of each error in the App.
+4. Grayed out page: <br> 
 
 ### References
 This application utilizes the following packages and libraries:<br>
