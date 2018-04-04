@@ -16,6 +16,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 4. [Grayed out page](#grayed-out-page)<br>
 
 [References](#references)<br>
+[MIT License](#mit-license)<br>
 
 ### Introduction
 [Shiny Apps](https://shiny.rstudio.com/) are interactive web applications built with R using the `shiny` R package. Shiny apps are built with R wrappers for HTML, CSS, and JS to run R code in a web browser through a dynamic and reactive user interface that is powered by an underlying NodeJS engine. These apps can be locally hosted from an R session or hosted in the cloud through a [ShinyServer](http://www.shinyapps.io/).
@@ -69,4 +70,4 @@ This application utilizes the following packages and libraries:<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
 
-[MIT Licence](https://opensource.org/licenses/MIT)
+### [MIT License](https://opensource.org/licenses/MIT)
