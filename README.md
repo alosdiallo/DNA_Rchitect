@@ -1,6 +1,6 @@
 # DNA Rchitect
 
-## Welcome to the github repository for the Genomic Data Browser, a Shiny App. 
+## Welcome to the github repository for DNA Rchitect, a Shiny App for visualizing genomic data. 
 Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of this application, or download the source code and run locally. 
 
 ## Table of Contents
