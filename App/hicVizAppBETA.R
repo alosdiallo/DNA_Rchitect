@@ -1,9 +1,4 @@
-#finalModViz
-
-############ ISSUES:
-## 5. Refresh/clear selected Cy nodes button
-## 6. Pause sequential modalDialog for wrong headers
-## 7. Add human genome gencode option (and ability to upload own genome)
+# DNARchitect
 
 ## Check for and install required packages from CRAN
 #Packages from CRAN
