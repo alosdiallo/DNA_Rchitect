@@ -30,7 +30,7 @@ There is an interactive tutorial accessible through the help button on the app. 
 1. Incorrect headers: If you upload a file with the wrong headers, a dialog box will appear after pressing the **Process Data** button indicating that the file does not contain the appropriate headers. Adjust your file's headers appropriately and re-upload then re-process the file.
 2. HiC plotting error: <br>
 `Error: Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit` <br>
-This error indicates that the current genomic window (as defined by the genomic intervale to left and right of gene or by the selected coordinates) contains a HiC anchor on the plot boundary. Adjust your window and click **Submit Parameters** again. Repeat until your window plots properly (ie until your boundary coordinates do not intersect anchors).
+This error indicates that the current genomic window (as defined by the genomic interval to left and right of gene or by the selected coordinates) contains a HiC anchor on the plot boundary. Adjust your window and click **Submit Parameters** again. Repeat until your window plots properly (ie until your boundary coordinates do not intersect anchors).
 3. Cytoscape network graph error <br>
 `Error: The genomic window does not contain any nodes` <br>
 This error indicates that the selected genomic window does not contain any HiC anchors (ie nodes). Enlarge the genomic window until it contatins HiC anchors. <br>
