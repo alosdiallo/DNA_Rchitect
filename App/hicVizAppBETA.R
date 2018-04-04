@@ -1,11 +1,32 @@
 #finalModViz
 
+############ ISSUES:
+## 5. Refresh/clear selected Cy nodes button
+## 6. Pause sequential modalDialog for wrong headers
+## 7. Add human genome gencode option (and ability to upload own genome)
+
+## Check for and install required packages from CRAN
+#Packages from CRAN
+requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+for(p in requiredPackages){
+  if(!require(p,character.only = TRUE)) install.packages(p)
+  library(p,character.only = TRUE)
+}
+
+# Packages from bioconductor
+source("https://bioconductor.org/biocLite.R")
+biocLite() # Install bioconductor core packages
+if (!require("Sushi")) biocLite("Sushi")
+
+# Packages from github
+library("devtools");
+if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+
 ## Load libraries
 library(shiny)
-library(shinyBS) # Load shinyBS for tooltips
 library(jsonlite) # Load jsonlite for JSON communication in IntroJS
-library(rcytoscapejs) # Load rcytoscapejs to generate network
-library(Sushi) #Load sushi for plot functions
+library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
+library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(DT) #Load DataTables for data-table functions
 library(RColorBrewer) # Load RColorBrewer for color palettes
 
@@ -107,6 +128,94 @@ displayUploadedFile <- function(data, input, dataFileType){
     return(tail(data))
   }
 }
+
+############### THIS SHOULD REALLY BE IMPROVED!! ################
+#FUNCTION: Check if uploaded file contains required column headers
+checkHeader <- function(data, dataFileType, input){
+
+  # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
+  # Possible formats: "Bedpe","Bed","Bedgraph"
+  
+  #Header requirements
+  bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
+  bedHeader <- c("chrom","start","stop")
+  bedgraphHeader <- c("chrom","start","stop","value")
+  
+  
+  if(dataFileType=="HiC"){
+    
+    if(!all(bedpeHeader %in% colnames(data))){
+      showModal(modalDialog(
+        title = "Bedpe Input File Header Incorrect",
+        tags$p(HTML("The uploaded Bedpe file does not have the correct header. The required header contains: <b>'chrom1','start1','end1','chrom2','start2','end2','score','samplenumber'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+        easyClose = TRUE
+      ))
+    }
+    
+  } else if(dataFileType=="ATAC"){
+    
+    if(input$atacFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
+        showModal(modalDialog(
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+        
+      }
+    } else if (input$atacFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+  } else if(dataFileType=="ChIP"){
+    
+    if(input$chipFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
+        showModal(modalDialog(
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    } else if (input$chipFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+  } else if(dataFileType=="mRNA"){
+    
+    if(input$mrnaFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
+        showModal(modalDialog(
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    } else if (input$mrnaFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    }
+  }
+  
+}
+
 
 #FUNCTION: to read gene annotation data from Ensembl.biomart.chr file
 readGenes <- function(geneWindow){
@@ -321,10 +430,10 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 ##
                 fluidRow(
                   column(width = 6,
-                         tags$h1("Genomic Data Browser")),
-                  column(width = 2,
+                         img(src="DNARchitect_Logo.png",align="left",height="75px")),
+                  column(width = 1,
                          tags$p("")),
-                  column(width = 2,
+                  column(width = 3,
                          selectInput(inputId = "genome",label = "Genome", choices = c("Mouse (mus musculus)"),selected = "Mouse (mus musculus)")),
                   column(width = 2,
                          tags$br(),
@@ -342,7 +451,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                       tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze, then browse for your files")),
                                       #Select data types
                                       div(id="fileTypesDiv", selectizeInput(inputId="fileTypes","Select Data Types",choices=dataTypes,multiple=TRUE,selected=dataTypes[1])),
-                                      bsTooltip(id="fileTypes",title="Select the types of data you want to analyze, then browse for your files", placement="right",trigger="hover"),
                                       style = "height:150px"
                                       )
                                     ),
@@ -352,7 +460,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                       tags$p(HTML("<b>Step 2:</b> After browsing for your files, click the button to process the data for plotting")),
                                       tags$br(),
                                       actionButton("processDataBtn","Process Data"),
-                                      bsTooltip(id="processDataBtn",title="After browsing for your files click to process the data for plotting", placement="right",trigger="hover"),
                                       style = "height:150px"
                                       )
                                     ),
@@ -361,7 +468,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                     wellPanel(id="goToPlotWellPanel",
                                       tags$p(HTML("<b>Step 3:</b> Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")),
                                       actionButton(inputId="goToPlots","Go to Plots"),
-                                      bsTooltip(id="goToPlots",title="Click to visualize your data", placement="right",trigger="hover"),
                                       style = "height:150px"
                                       )  
                                     )
@@ -535,13 +641,6 @@ server <- function(input, output, session) {
     session$reload()
   })
   
-  ## Tooltips
-  addTooltip(session,id="fileTypes",title="Select the types of data you want to analyze, then browse for your files", placement="top",trigger="hover")
-  
-  addTooltip(session,id="processDataBtn",title="After browsing for your files, click to process the data for plotting", placement="right",trigger="hover")
-  
-  addTooltip(session,id="goToPlots",title="Click to visualize your data", placement="right",trigger="hover")
-  
   ## Go to the "Plots" tab when click "goToPlots" button
   observeEvent(input$goToPlots, {
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
@@ -700,6 +799,9 @@ server <- function(input, output, session) {
         output$HiCTable <- renderTable({
           displayUploadedFile(data=HiCdata, input, dataFileType="HiC")
         })
+        
+        checkHeader(data=HiCdata, dataFileType="HiC", input)
+ 
       }
       
       #Increment progress
@@ -711,6 +813,9 @@ server <- function(input, output, session) {
         output$ATACTable <- renderTable({
           displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
         })
+        
+        checkHeader(data=ATACdata, dataFileType="ATAC", input)
+        
       }
       
       #Increment progress
@@ -722,6 +827,9 @@ server <- function(input, output, session) {
         output$ChIPTable <- renderTable({
           displayUploadedFile(data=ChIPdata, input, dataFileType="ChIP")
         })
+        
+        checkHeader(data=ChIPdata, dataFileType="ChIP", input)
+        
       }
       
       #Increment progress
@@ -733,6 +841,9 @@ server <- function(input, output, session) {
         output$mRNATable <- renderTable({
           displayUploadedFile(data=mRNAdata, input, dataFileType="mRNA")
         })
+        
+        checkHeader(data=mRNAdata, dataFileType="mRNA", input)
+        
       }
       
       #Increment progress
@@ -941,12 +1052,34 @@ server <- function(input, output, session) {
       
       ####### Cytoscape Network Output:
       output$cyplot <- renderRcytoscapejs({
-        isolate({ plotCyNetwork() })
+        isolate({ 
+          
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          tryCatch(
+            {
+              plotCyNetwork()
+            },
+            error=function(e) {
+              stop("The genomic window does not contain any nodes")
+            })
+          
+          })
       })
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
-        isolate({ plotBezierCurves(data=HiCdata, input, genes, geneWindow) })
+        isolate({
+          
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          tryCatch(
+            {
+              plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+            },
+            error=function(e) {
+              stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
+            })
+          
+          })
       })
       
       output$downloadDataBezier <- downloadHandler(
