@@ -24,7 +24,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 Instructions for locally installing and running this app through RStudio are provided [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Installation_setup.txt). <br>
 
 ### Web version
-A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be killed by the server. If you are analyzing large data files (total uploaded file sizes add to > 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions). See the Shiny docs for more information on [grey screens](http://docs.rstudio.com/shinyapps.io/Troubleshooting.html#grey-screen).
+A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be shutdown by the server. If you are analyzing large data files (total uploaded file sizes add to > 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions). The web version of the App will shutdown after 15 minutes of inactivity and all uploaded data and analysis will be deleted. The web version does not store your data for use at a later time -- you must upload your files each time you analyze using the web version of the App. Running a locally installed version allows you to keep the App open indefinitely and the maximum RAM per instance is limited only by your computers hardware.
 
 ### Header requirements
 All files must have the following standard headers. Missing or misspelled headers will lead to processing errors. Non-required headers will be ignored<br>
@@ -55,7 +55,7 @@ See the [PDF tutorial](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/m
 #### Grayed out page
 `Disconnected from server`
 `Reload`
-If the page 'grays out' with this error message, the App has disconnected from the server. This may occur because you left the App idle for >15 minutes (at which time the active instance is shut down), your internet connection was disrupted, or you exceeded the **hard maximum of 8 GB of RAM** per instance (which causes the web version of the app to die -- see [Web version](#web-version) for more details).
+If the page 'grays out' with this error message, the App has disconnected from the server. This may occur because you left the App idle for >15 minutes (at which time the active instance is shut down), your internet connection was disrupted, or you exceeded the **hard maximum of 8 GB of RAM** per instance (which causes the web version of the app to die -- see [Web version](#web-version) for more details). See the Shiny docs for more information on [grey screens](http://docs.rstudio.com/shinyapps.io/Troubleshooting.html#grey-screen).
 
 ### References
 This application utilizes the following packages and libraries:<br>
