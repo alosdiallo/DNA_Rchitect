@@ -5,6 +5,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 
 ## Table of Contents
 [Introduction](#introduction)<br>
+[Installation instructions](#installation-instructions)<br>
 [Header requirements](#header-requirements)<br>
 [Tutorial](#tutorial)<br>
 [Errors and Troubleshooting](#errors-and-troubleshooting)<br>
@@ -12,6 +13,9 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 
 ### Introduction
 [Shiny Apps](https://shiny.rstudio.com/) are interactive web applications built with R using the `shiny` R package. Shiny apps are built with R wrappers for HTML, CSS, and JS to run R code in a web browser through a dynamic and reactive user interface that is powered by an underlying NodeJS engine. These apps can be locally hosted from an R session or hosted in the cloud through a [ShinyServer](http://www.shinyapps.io/).
+
+### Installation instructions
+Instructions for locally installing and running this app are provided [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Installation_setup.txt).
 
 ### Header requirements
 All files must have the following standard headers. Missing or misspelled headers will lead to processing errors. Non-required headers will be ignored<br>
