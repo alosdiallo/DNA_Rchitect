@@ -24,7 +24,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 Instructions for locally installing and running this app through RStudio are provided [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Installation_setup.txt). <br>
 
 ### Web version
-A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be killed by the server. If you are analyzing large data files (total uploaded file sizes add to > 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions)
+A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be killed by the server. If you are analyzing large data files (total uploaded file sizes add to > 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions). See the Shiny docs for more information on [grey screens](http://docs.rstudio.com/shinyapps.io/Troubleshooting.html#grey-screen).
 
 ### Header requirements
 All files must have the following standard headers. Missing or misspelled headers will lead to processing errors. Non-required headers will be ignored<br>
