@@ -16,7 +16,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 [Shiny Apps](https://shiny.rstudio.com/) are interactive web applications built with R using the `shiny` R package. Shiny apps are built with R wrappers for HTML, CSS, and JS to run R code in a web browser through a dynamic and reactive user interface that is powered by an underlying NodeJS engine. These apps can be locally hosted from an R session or hosted in the cloud through a [ShinyServer](http://www.shinyapps.io/).
 
 ### Installation instructions
-Instructions for locally installing and running this app are provided [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Installation_setup.txt). <br>
+Instructions for locally installing and running this app through RStudio are provided [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Installation_setup.txt). <br>
 
 ### Web version
 A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be killed by the server. If you are analyzing large data files (total uploaded file sizes add to > 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions)
