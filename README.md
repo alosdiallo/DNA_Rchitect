@@ -10,6 +10,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 [Header requirements](#header-requirements)<br>
 [Tutorial](#tutorial)<br>
 [Errors and Troubleshooting](#errors-and-troubleshooting)<br>
+... [HiC Error](#hic-error)<br>
 [References](#references)<br>
 
 ### Introduction
