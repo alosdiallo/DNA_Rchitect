@@ -16,6 +16,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 3. [Cytoscape network graph error](#cytoscape-network-graph-error)<br>
 4. [Grayed out page](#grayed-out-page)<br>
 
+[Sample data](#sample-data)<br>
 [References](#references)<br>
 [MIT License](#mit-license)<br>
 
@@ -64,6 +65,9 @@ See the [PDF tutorial](#tutorial) for more information, including examples of ea
 `Disconnected from server`<br>
 `Reload`<br>
 If the page 'grays out' with this error message, the App has disconnected from the server. This may occur because you left the App idle for >15 minutes (at which time the active instance is shut down), your internet connection was disrupted, or you exceeded the **hard maximum of 8 GB of RAM** per instance (which causes the web version of the app to die -- see [Web version](#web-version) for more details). See the Shiny docs for more information on [grey screens](http://docs.rstudio.com/shinyapps.io/Troubleshooting.html#grey-screen).
+
+### Sample data
+Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data).
 
 ### References
 This application utilizes the following packages and libraries:<br>
