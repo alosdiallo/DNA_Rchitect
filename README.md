@@ -51,7 +51,7 @@ This error indicates that the current genomic window (as defined by the genomic 
 #### Cytoscape network graph error
 `Error: The genomic window does not contain any nodes` <br>
 This error indicates that the selected genomic window does not contain any HiC anchors (ie nodes). Enlarge the genomic window until it contatins HiC anchors. <br>
-See the [PDF tutorial](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Tutorial.pdf) for more information, including examples of each error in the App.
+See the [PDF tutorial](#tutorial) for more information, including examples of each error in the App.
 
 #### Grayed out page
 `Disconnected from server`<br>
