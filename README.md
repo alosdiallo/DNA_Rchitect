@@ -70,4 +70,4 @@ This application utilizes the following packages and libraries:<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
 
-### [MIT License](https://opensource.org/licenses/MIT)
+### [MIT License](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Licence.txt)
