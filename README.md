@@ -1,6 +1,4 @@
- 
-![DNA Rchitect](https://storage.googleapis.com/gencode_ch_data/logo.png) 
-
+![DNA Rchitect](https://storage.googleapis.com/gencode_ch_data/logo.png)  
 ## Welcome to the github repository for DNA Rchitect, a Shiny App for visualizing genomic data. 
 Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of this application, or download the [source code](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/App) and run locally. 
 
