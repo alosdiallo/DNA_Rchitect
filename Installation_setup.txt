@@ -23,12 +23,11 @@ bioconductor
 
 Install R studio
 Download the app folder:https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/App
-To increase maximum file size adjust the following line of code:
-  options(shiny.maxRequestSize = 1000*1024^2)
 
 ****************************************************************************************
 ****                           How to run the app                                   ****
 ****************************************************************************************
 Open Rstudio load the file:hicVizAppBETA.R
-In Rstudio click on Run App.  
-
+In Rstudio click on Run App. 
+To increase maximum file size adjust the following line of code:
+  options(shiny.maxRequestSize = 1000*1024^2)
