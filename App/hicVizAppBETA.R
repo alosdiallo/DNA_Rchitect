@@ -1,21 +1,24 @@
-# DNARchitect
+# DNA Rchitect
 
-## Check for and install required packages from CRAN
-#Packages from CRAN
-requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
-for(p in requiredPackages){
-  if(!require(p,character.only = TRUE)) install.packages(p)
-  library(p,character.only = TRUE)
-}
+############ ISSUES:
+## 7. Add human genome gencode option (and ability to upload own genome)
 
-# Packages from bioconductor
-source("https://bioconductor.org/biocLite.R")
-biocLite() # Install bioconductor core packages
-if (!require("Sushi")) biocLite("Sushi")
-
-# Packages from github
-library("devtools");
-if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+# ## Check for and install required packages from CRAN
+# #Packages from CRAN
+# requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+# for(p in requiredPackages){
+#   if(!require(p,character.only = TRUE)) install.packages(p)
+#   library(p,character.only = TRUE)
+# }
+# 
+# # Packages from bioconductor
+# source("https://bioconductor.org/biocLite.R")
+# biocLite() # Install bioconductor core packages
+# if (!require("Sushi")) biocLite("Sushi")
+# 
+# # Packages from github
+# library("devtools");
+# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
 ## Load libraries
 library(shiny)
@@ -28,8 +31,8 @@ library(RColorBrewer) # Load RColorBrewer for color palettes
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
 
-#Set maximum upload size to 500 mb
-options(shiny.maxRequestSize = 500*1024^2)
+#Set maximum upload size to 1000 mb
+options(shiny.maxRequestSize = 1000*1024^2)
 
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
@@ -124,7 +127,7 @@ displayUploadedFile <- function(data, input, dataFileType){
   }
 }
 
-############### THIS SHOULD REALLY BE IMPROVED!! ################
+############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
 #FUNCTION: Check if uploaded file contains required column headers
 checkHeader <- function(data, dataFileType, input){
 
@@ -533,7 +536,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                             column(3,
                                    div(id="geneIdDiv",
                                        selectizeInput(
-                                         'geneId', label = 'Type gene name:', choices = geneNames$cat,
+                                         'geneId', label = 'Type gene name: (backspace to clear)', choices = geneNames$cat,
                                          options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                        )),
                                    actionButton("submitByGene", "Submit Parameters")
@@ -569,6 +572,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                               condition = "input.fileTypes.includes('HiC')",
                                               wellPanel(
                                                 actionButton("saveImage", "Download as PNG"),
+                                                actionButton("refreshCytoBtn", "Refresh cytoscape plot"),
                                                 tags$hr(),
                                                 rcytoscapejsOutput("cyplot", height="400px")
                                                 )
@@ -852,7 +856,6 @@ server <- function(input, output, session) {
       
       withProgress(message = 'Making cytoscape plot', value = 0, {
         
-        ##### WHY DOES THIS NEED TO BE DUPLICATED???
         #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
         if( submitBy$method == "ByCoord" ){
           geneWindow <- defineGeneWindowByCoord(input);
@@ -1091,10 +1094,39 @@ server <- function(input, output, session) {
     })
     
     
+    ###### REACTIVE FUNCTION: Define reactive function to refresh cytoscape plot by creating a dependency on only input$refreshCytoBtn
+    refreshCytoscape <- reactive({
+      
+      ## Create dependency on input$refreshCytoBtn
+      input$refreshCytoBtn
+      
+      ####### Cytoscape Network Output:
+      output$cyplot <- renderRcytoscapejs({
+        isolate({ 
+          
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          tryCatch(
+            {
+              plotCyNetwork()
+            },
+            error=function(e) {
+              stop("The genomic window does not contain any nodes")
+            })
+          
+        })
+      })
+    })
+    
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
     observeEvent(input$submitByCoordinates, {
       submitBy$method = "ByCoord"
       generatePlots()
+      
+      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
+      observeEvent(input$refreshCytoBtn, {
+        refreshCytoscape()
+      })
+      
     })
     
     
@@ -1102,6 +1134,12 @@ server <- function(input, output, session) {
     observeEvent(input$submitByGene, {
       submitBy$method = "ByGene"
       generatePlots()
+      
+      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
+      observeEvent(input$refreshCytoBtn, {
+        refreshCytoscape()
+      })
+      
     })
     
     

@@ -8,7 +8,7 @@ step,element,intro,position
 7,#HiCSepDiv,Choose the appropriate delimiter for your data file,auto
 8,#HiCQuoteDiv,Choose the appropriate quote style for your data file,auto
 9,#processWellPanel,"Once all your data files are chosen, click <b>Process Data</b> to process the data for visualization. This will take some time, so please be patient",auto
-10,#HiCMainPanelDiv,A preview of your data will be displayed here and should appear as a well formatted table (see <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github documentation</a> for an example). If you selected the wrong separator or quote for your data file - the data will not be formatted in a table but rather smashed together. If this happens - select the correct separator and click <b>Process Data</b> again,auto
+10,#HiCMainPanelDiv,A preview of your data will be displayed here and should appear as a well formatted table (see <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github documentation</a> for an example). If you selected the wrong separator or quote for your data file - the data will not be formatted in a table. If this happens - select the correct separator and click <b>Process Data</b> again,auto
 11,#HiCDispDiv,You can choose to view the head or tail of your data file at any time,auto
 12,#goToPlotWellPanel,Proceed to visualize your data by clicking on the <b>Plots</b> tab or the <b>Go to Plots</b> button,auto
 13,NA,All visualization is completed in the <b>Plots</b> tab.,auto
