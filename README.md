@@ -83,14 +83,14 @@ For example, to increase maximum file size to 2000 MB adjust the code as follows
 `options(shiny.maxRequestSize = 2000*1024^2)`<br>
 
 #### Shiny Deploy Error
-`Unable to determine package source for Bioconductor package BiocGenerics: Repository must be specified`
-The above error may occur while trying to deploy the App to ShinyApps.io or a private ShinyServer. The error appears to occur because the Bioconductor repository is not locally configured. To address this issue run the following code in your R console: <br>
+`Unable to determine package source for Bioconductor package BiocGenerics: Repository must be specified` <br>
+The above error may occur while trying to deploy the App to ShinyApps.io or a private ShinyServer. The error seems to occur because the Bioconductor repository is not locally configured. See this [discussion](https://groups.google.com/forum/#!topic/shinyapps-users/zaUay_lM-lY) and check the repository configurations with `getOption("repos")`. Run the following code in your R console to configure the Bioconductor respository: <br>
 `options(repos = BiocInstaller::biocinstallRepos())` <br>
-If this does not resolve the issue close the App file and try the following:
+If this does not resolve the issue, close the App file and try the following (or some combination):
 1. Delete the **rsconnect** folder from the source directory for the App
 2. Go to Session... and click **Clear Workspace...**
 3. Go to Session... and click **Restart R...**
-4. Open the App file and set workding directory to App source file location
+4. Open the App file and set working directory to App source file location (you may need to also **Run App**)
 5. Run in the R console: `options(repos = BiocInstaller::biocinstallRepos())`
 6. Try to deploy/publish the App
 
