@@ -16,6 +16,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 3. [Cytoscape network graph error](#cytoscape-network-graph-error)<br>
 4. [Grayed out page](#grayed-out-page)<br>
 5. [Maximum upload size exceeded](#maximum-upload-size-exceeded)<br>
+6. [Shiny deploy error](#shiny-deploy-error)
 
 [Sample data](#sample-data)<br>
 [References](#references)<br>
@@ -80,6 +81,18 @@ The above warning will displayed if you attempt to upload a file exceeding 1000 
 `options(shiny.maxRequestSize = 1000*1024^2)`<br>
 For example, to increase maximum file size to 2000 MB adjust the code as follows:<br>
 `options(shiny.maxRequestSize = 2000*1024^2)`<br>
+
+#### Shiny Deploy Error
+`Unable to determine package source for Bioconductor package BiocGenerics: Repository must be specified`
+The above error may occur while trying to deploy the App to ShinyApps.io or a private ShinyServer. The error appears to occur because the Bioconductor repository is not locally configured. To address this issue run the following code in your R console: <br>
+`options(repos = BiocInstaller::biocinstallRepos())` <br>
+If this does not resolve the issue close the App file and try the following:
+1. Delete the **rsconnect** folder from the source directory for the App
+2. Go to Session... and click **Clear Workspace...**
+3. Go to Session... and click **Restart R...**
+4. Open the App file and set workding directory to App source file location
+5. Run in the R console: `options(repos = BiocInstaller::biocinstallRepos())`
+6. Try to deploy/publish the App
 
 ### Sample data
 Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data). You can download this entire github repository (including the **sample_data** folder) by clicking on the green **Clone or Download** button at the top of this page.
