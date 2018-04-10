@@ -18,11 +18,13 @@ shiny
 bioconductor
 ****************************************************************************************
 ****                           Installtion                                          ****
-****                           Windows, OSX                                         ****
+****                           Windows, macOS                                       ****
 ****************************************************************************************
 
 Install R studio
 Download the app folder:https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/App
+To increase maximum file size adjust the following line of code:
+  options(shiny.maxRequestSize = 1000*1024^2)
 
 ****************************************************************************************
 ****                           How to run the app                                   ****
