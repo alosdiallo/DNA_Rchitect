@@ -3,7 +3,7 @@ Installation instructions for R and Rstudio may be found [here](https://courses.
 # macOS
 
 ## To Install R
-1. Open an internet browser and go to www.r-project.org.
+1. Open an internet browser and go to [www.r-project.org](www.r-project.org).
 2. Click the "download R" link in the middle of the page under "Getting Started."
 3. Select a CRAN location (a mirror site) and click the corresponding link.
 4. Click on the "Download R for (Mac) OS X" link at the top of the page.
@@ -12,14 +12,14 @@ Installation instructions for R and Rstudio may be found [here](https://courses.
 7. Now that R is installed, you need to download and install RStudio.
 
 ## To Install RStudio
-1. Go to www.rstudio.com and click on the "Download RStudio" button.
+1. Go to [www.rstudio.com](www.rstudio.com) and click on the "Download RStudio" button.
 2. Click on "Download RStudio Desktop."
 3. Click on the version recommended for your system, or the latest Mac version, save the .dmg file on your computer, double-click it to open, and then drag and drop it to your applications folder.
 
 # Windows
 
 ## To Install R:
-1. Open an internet browser and go to www.r-project.org.
+1. Open an internet browser and go to [www.r-project.org](www.r-project.org).
 2. Click the "download R" link in the middle of the page under "Getting Started."
 3. Select a CRAN location (a mirror site) and click the corresponding link.  
 4. Click on the "Download R for Windows" link at the top of the page.  
@@ -28,6 +28,6 @@ Installation instructions for R and Rstudio may be found [here](https://courses.
 7. Now that R is installed, you need to download and install RStudio. 
 
 ## To Install RStudio
-1. Go to www.rstudio.com and click on the "Download RStudio" button.
+1. Go to [www.rstudio.com](www.rstudio.com) and click on the "Download RStudio" button.
 2. Click on "Download RStudio Desktop."
 3. Click on the version recommended for your system, or the latest Windows version, and save the executable file.  Run the .exe file and follow the installation instructions.     
