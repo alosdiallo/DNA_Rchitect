@@ -3,22 +3,22 @@
 ############ ISSUES:
 ## 7. Add human genome gencode option (and ability to upload own genome)
 
-## Check for and install required packages from CRAN
-#Packages from CRAN
-requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
-for(p in requiredPackages){
-  if(!require(p,character.only = TRUE)) install.packages(p)
-  library(p,character.only = TRUE)
-}
-
-# Packages from bioconductor
-source("https://bioconductor.org/biocLite.R")
-biocLite() # Install bioconductor core packages
-if (!require("Sushi")) biocLite("Sushi")
-
-# Packages from github
-library("devtools");
-if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+# ## Check for and install required packages from CRAN
+# #Packages from CRAN
+# requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+# for(p in requiredPackages){
+#   if(!require(p,character.only = TRUE)) install.packages(p)
+#   library(p,character.only = TRUE)
+# }
+# 
+# # Packages from bioconductor
+# source("https://bioconductor.org/biocLite.R")
+# biocLite() # Install bioconductor core packages
+# if (!require("Sushi")) biocLite("Sushi")
+# 
+# # Packages from github
+# library("devtools");
+# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
 ## Load libraries
 library(shiny)
@@ -322,14 +322,25 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   #Call plot layout
   plotLayout()
   
-  #Bezier curve plot
+
+  ##Bezier curve plots
   parPlot()
-  pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
+  
+  #Sushi colorby and colorbycol requires >= 2 samples, therefore the following conditional tests if the dataset has 1 or >=2 samples in data$samplenumber. If only 1 sample in data$samplenumber, then coloring is by `color="blue`; else coloring is by `colorby=data$samplenumber,colorbycol=color_select`
+  if(max(data$samplenumber) == 1){
+    #for only 1 sample in data$samplenumber
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",color="blue");
+  }else{
+    #for >= 2 samples in data$samplenumber
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
+  }
+  
   makeGenomeLabel(geneWindow);
   bezierLegend(input);
   plotTitles(yAxis="Interaction intensity",topTitle="HiC")
   
-  # Genes features plot
+  
+  ## Genes features plot
   parGenes()
   subPlotGenes(genes,geneWindow)
 }
@@ -1066,8 +1077,9 @@ server <- function(input, output, session) {
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
+        
         isolate({
-          
+
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
@@ -1076,7 +1088,7 @@ server <- function(input, output, session) {
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
             })
-          
+
           })
       })
       
