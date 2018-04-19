@@ -3,22 +3,22 @@
 ############ ISSUES:
 ## 7. Add human genome gencode option (and ability to upload own genome)
 
-# ## Check for and install required packages from CRAN
-# #Packages from CRAN
-# requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
-# for(p in requiredPackages){
-#   if(!require(p,character.only = TRUE)) install.packages(p)
-#   library(p,character.only = TRUE)
-# }
-# 
-# # Packages from bioconductor
-# source("https://bioconductor.org/biocLite.R")
-# biocLite() # Install bioconductor core packages
-# if (!require("Sushi")) biocLite("Sushi")
-# 
-# # Packages from github
-# library("devtools");
-# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+## Check for and install required packages from CRAN
+#Packages from CRAN
+requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+for(p in requiredPackages){
+  if(!require(p,character.only = TRUE)) install.packages(p)
+  library(p,character.only = TRUE)
+}
+
+# Packages from bioconductor
+source("https://bioconductor.org/biocLite.R")
+biocLite() # Install bioconductor core packages
+if (!require("Sushi")) biocLite("Sushi")
+
+# Packages from github
+library("devtools");
+if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
 ## Load libraries
 library(shiny)
