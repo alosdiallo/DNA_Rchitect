@@ -103,7 +103,6 @@ This application utilizes the following packages and libraries:<br>
 [Cytoscape.js](http://js.cytoscape.org/)<br>
 [`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)<br>
 [`shiny`](https://cran.r-project.org/web/packages/shiny/index.html)<br>
-[`shinyBS`](https://cran.r-project.org/web/packages/shinyBS/index.html)<br>
 [`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/index.html)<br>
 [`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
