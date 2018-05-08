@@ -1,6 +1,7 @@
 # Species Gencode Tool
 
 Purpose: To generate appropriate files for adding a new species to the DNARchitect App from a raw gtf file <br>
+
 Output files: <br>
 1) species_searchNames.txt == a list of unique gene names with coordinates for the searchByGene function <br>
 2) Gencode.chr*.txt == a Gencode annotation file for each chromosome
