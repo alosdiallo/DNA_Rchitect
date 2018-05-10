@@ -19,7 +19,7 @@ Start using the [web version](https://simongray.shinyapps.io/DNARchitect/) of th
 6. [Shiny deploy error](#shiny-deploy-error)
 
 [Sample data](#sample-data)<br>
-[Adding annotation for a new species](#adding-annotation-for-a-new-species)
+[Adding annotation for a new species](#adding-annotation-for-a-new-species)<br>
 [References](#references)<br>
 [MIT License](#mit-license)<br>
 
