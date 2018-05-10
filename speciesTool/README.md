@@ -11,8 +11,9 @@ Output files: <br>
 2. Download Species_GenCode_Tool.R file and in the RStudio program
 3. Run the code between the #*** and #*** to load the required libraries and create the function `speciesTool`
 4. Set working directory to the directory where you wish all files to be written <br>
-For example, if your files are in the `/Users/user1/Downloads` directory the code would be as follows: <br>
+For example, if your files are in the `/Users/user1/Downloads` directory, the code would be as follows: <br>
 `setwd("/Users/user1/Downloads")` !!! NOTE: This is example code, you must modify it for your situation <br>
 5. Run the speciesTool function in RStudio, specifying the species name and path for the GTF source file <br>
+For example, if you have a human gtf file at `/Users/user1/Downloads/human_gencode.gtf` path, the code would be as follows: <br>
 `speciesTool(species="human",gtf_source="/Users/user1/Downloads/human_gencode.gtf")` !!! NOTE: This is example code, you must modify it for your situation <br>
 6. The files that are generated will be written to the working directory
