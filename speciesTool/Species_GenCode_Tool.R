@@ -10,6 +10,9 @@
 # ftp://ftp.ensembl.org/../pub/release-92/gtf/
 # Just find the directory with your species and download the gtf
 
+### RUN THE CODE BETWEEN #*** and #*** TO LOAD LIBRARIES AND CREATE THE SPECIESTOOL FUNCTION:
+
+#***
 ### Load required library packages
 library(data.table) #For data.table functions
 library(dplyr) #Load dplyr for filter function
@@ -94,18 +97,28 @@ speciesTool <- function(species="human",gtf_source="human_gencode.gtf"){
   } 
   
 }
+#***
 
 
 #####################
 #####################
-#Using the speciesTool function:
+# Example instructions for using the speciesTool function:
 
-#1 Download gtf file from ensEMBL: ftp://ftp.ensembl.org/../pub/release-92/gtf/
+#1 Download gtf file for your species of interest  from ensEMBL: 
+# ftp://ftp.ensembl.org/../pub/release-92/gtf/
+# The gtf file will need to be unzipped and saved in your working directory
 
-#2 Run the above code to load the required libraries and create the function speciesTool
+#2 Run the above code between the #*** and #*** to load the required libraries 
+# and create the function speciesTool
 
-#3 set working directory to the directory where you wish all files to be written
-setwd("/Users/user1/Downloads")
+#3 Set working directory to the directory where you wish all files to be written
+# For example, if your files are in the /Users/user1/Downloads directory the code 
+# would be as follows
+setwd("/Users/user1/Downloads") # !!! This is example code, you must modify it
 
-#4 run the speciesTool function specifying the species name and path for the GTF source file
-speciesTool(species="human",gtf_source="/Users/user1/Downloads/human_gencode.gtf")
+#4 Run the speciesTool function specifying the species name and path for the GTF source file
+# For example, for human data with the gtf file at 
+# /Users/user1/Downloads/human_gencode.gtf path, the code would be as follows
+speciesTool(species="human",gtf_source="/Users/user1/Downloads/human_gencode.gtf") # !!! This is example code, you must modify it
+
+#5 The files that are generated will be written to the working directory
