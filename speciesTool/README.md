@@ -7,7 +7,7 @@ Output files: <br>
 2) Gencode.chr*.txt == a Gencode annotation file for each chromosome where chr* indicates any chromosome in the gtf
 
 ## Directions for use
-1. Download gtf file for your species of interest. GTF files can be found at [ensEMBL](http://www.ensembl.org) or the [UCSC genome browser](http://hgdownload.soe.ucsc.edu/downloads.html), among other repositories. Note that the gtf file will need to be unzipped and saved in your working directory after download from the repository.
+1. Download gtf file for your species of interest. GTF files can be found at [ensEMBL](http://www.ensembl.org) (release-92 FTP from ftp://ftp.ensembl.org/../pub/release-92/gtf/) or the [UCSC genome browser](http://hgdownload.soe.ucsc.edu/downloads.html), among other repositories. Note that the gtf file will need to be unzipped and saved in your working directory after download from the repository.
 2. Download Species_GenCode_Tool.R file and in the RStudio program
 3. Run the code between the #*** and #*** to load the required libraries and create the function `speciesTool`
 4. Set working directory to the directory where you wish all files to be written <br>
