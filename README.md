@@ -99,7 +99,7 @@ If this does not resolve the issue, close the App file and try the following (or
 Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data). You can download this entire github repository (including the **sample_data** folder) by clicking on the green **Clone or Download** button at the top of this page.
 
 ### Adding gene annotation for a new species
-Use the [speciesTool](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/speciesTool) to generate the required files for adding annotation for a new species to the DNARchitect app. The files for each species must be stored using the following convention at the google storage bucket: <br>
+Use the [speciesTool](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/speciesTool) to generate the required files for adding gene annotation for a new species to the DNARchitect app. The files for each species must be stored using the following convention at the google storage bucket: <br>
 `https://storage.googleapis.com/gencode_ch_data/speciesName/fileName`<br>
 For example, for the Gencode.chr1.txt gene annotation file for the mouse chr1, the file would be stored at: <br>
 `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`<br>
