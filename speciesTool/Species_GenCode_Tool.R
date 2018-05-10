@@ -1,11 +1,23 @@
 # Species Gencode Tool
-# Purpose: To generate appropriate files for adding a new species to the DNARchitect App from gtf file
-# Output files: 1) species_searchNames.txt == a list of unique gene names with coordinates for the searchByGene function, 2) Gencode.chr*.txt == a Gencode annotation file for each chromosome
+# Purpose: To generate appropriate files for adding a new species to the DNARchitect 
+# App from gtf file
+# Output files: 1) species_searchNames.txt == a list of unique gene names with 
+# coordinates for the searchByGene function, 2) Gencode.chr*.txt == a Gencode 
+# annotation file for each chromosome
 
+### WHERE TO GET GTF FILES:
+# You can get gtf files from ensEMBLE.org from the following ftp
+# ftp://ftp.ensembl.org/../pub/release-92/gtf/
+# Just find the directory with your species and download the gtf
+
+### Load required library packages
 library(data.table) #For data.table functions
 library(dplyr) #Load dplyr for filter function
 library(stringr) #For str_extract function
 
+### FUNCTION: Define speciesTool function to generate searchNames.txt and 
+# Gencode.chr*.txt files. Required inputs are species="speciesNameHere"
+# and gtf_source="pathToGtfFileHere"
 speciesTool <- function(species="human",gtf_source="human_gencode.gtf"){
   
   #####################
@@ -38,7 +50,8 @@ speciesTool <- function(species="human",gtf_source="human_gencode.gtf"){
   
   #####################
   #####################
-  # Code to generate list of all unique gene names with their coordinates from gencode data for the search function in DNARchitect and export as .txt file
+  # Code to generate list of all unique gene names with their coordinates from gencode 
+  # data for the search function in DNARchitect and export as .txt file
   #####################
   #####################
   
@@ -87,10 +100,12 @@ speciesTool <- function(species="human",gtf_source="human_gencode.gtf"){
 #####################
 #Using the speciesTool function:
 
-#1 Run the above code to load the required libraries and create the function speciesTool
+#1 Download gtf file from ensEMBL: ftp://ftp.ensembl.org/../pub/release-92/gtf/
 
-#2 set working directory to the directory where you wish all files to be written
+#2 Run the above code to load the required libraries and create the function speciesTool
+
+#3 set working directory to the directory where you wish all files to be written
 setwd("/Users/user1/Downloads")
 
-#3 run the speciesTool function specifying the species name and path for the GTF source file
+#4 run the speciesTool function specifying the species name and path for the GTF source file
 speciesTool(species="human",gtf_source="/Users/user1/Downloads/human_gencode.gtf")
