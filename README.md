@@ -108,7 +108,7 @@ There are two types of files that must be included in the new species storage.go
 Example: `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`<br>
 2. The searchNames file for the species: <br>
 Example: `https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt`<br>
-The searchNames file is used by the App to generate options when typing a gene name in the plotting panel. <br>
+The searchNames file is used by the App to generate options when typing a gene name in the plotting panel for use in the searchByGene function. <br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
