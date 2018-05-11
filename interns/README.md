@@ -1,7 +1,7 @@
 # Resources for Summer Interns
 
 ## Table of Contents
-[Getting started](#Getting-started-with-R-ShinyApps-and-genomic-data-visualization)<br>
+[Getting started with R ShinyApps and Genomic data visualization](#Getting-started-with-R-ShinyApps-and-genomic-data-visualization)<br>
 [DNARchitect Development](#dnarchitect-development)<br>
 [Help](#help)<br>
 
