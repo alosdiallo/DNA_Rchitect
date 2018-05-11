@@ -6,7 +6,7 @@
 [Help](#help)<br>
 
 ## Getting started
-# Getting started with R, ShinyApps, and Genomic data visualization
+### Getting started with R, ShinyApps, and Genomic data visualization
 
 If you've never used R, read about it then download R and RStudio. You'll need to understand CRAN and Bioconductor too: <br>
 https://en.wikipedia.org/wiki/R_(programming_language) <br>
