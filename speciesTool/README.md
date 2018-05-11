@@ -17,3 +17,4 @@ For example, if your files are in the `/Users/user1/Downloads` directory, the co
 For example, if you have a human gtf file at `/Users/user1/Downloads/human_gencode.gtf` path, the code would be as follows: <br>
 `speciesTool(species="human",gtf_source="/Users/user1/Downloads/human_gencode.gtf")` !!! NOTE: This is example code, you must modify it for your situation <br>
 6. The files that are generated will be written to the working directory
+7. Save the files in the storage.googleapis.com bucket using the conventions specified in [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/README.md#adding-gene-annotation-for-a-new-species)
