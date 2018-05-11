@@ -48,3 +48,7 @@ Comments starting with `# ###-----------` demarcate areas of code that would ben
 6. Make a generalized data_read function that overloads the dataFileType specific functions depending on the type of data (This would create a single function from reqRead and the *dataRead [ie HiCdataRead, etc] functions)
 7. Improve the checkHeader function
 8. Consider adding mirrors for the files pulled from storage.googleapis.com
+
+## Help:
+The most comprehensive and detailed explanations of Shiny capabilities, troubleshooting, debugging, and features can be found in this collection of articles: <br>
+https://shiny.rstudio.com/articles/
