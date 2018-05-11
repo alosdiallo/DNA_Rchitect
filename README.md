@@ -31,7 +31,7 @@ System requirements and instructions for locally installing and running this app
 1. You must have RStudio and R installed on your computer. Instructions for installing R and Rstuio can be found [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/R_Rstudio_Installation.md)
 2. Download this github repository by clicking on the green **Clone or Download** button on the right side of the main [repository page](https://github.com/alosdiallo/HiC_Network_Viz_tool). The downloaded folder will include the App, a folder with sample data, and a PDF tutorial for using the App. More help on how to clone or download a github repository is provided [here](
 https://help.github.com/articles/which-remote-url-should-i-use/).
-2. Navigate to the App folder on your computer and open the file:hicVizAppBETA.R in RStudio
+2. Navigate to the App folder on your computer and open the file:DNARchitect.R in RStudio
 3. Click 'Run App'
 4. If your data files are >1000 MB, increase the default maximum file size as explained in [Maximum upload size exceeded](#maximum-upload-size-exceeded)
 
