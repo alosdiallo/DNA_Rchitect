@@ -6,6 +6,8 @@ Output files: <br>
 1) species_searchNames.txt == a list of unique gene names with coordinates for the searchByGene function <br>
 2) Gencode.chr*.txt == a Gencode annotation file for each chromosome where chr* indicates any chromosome in the gtf
 
+Go back to [Adding gene annotation for a new species](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/README.md#adding-gene-annotation-for-a-new-species)
+
 ## Directions for use
 1. Download gtf file for your species of interest. GTF files can be found at [ensEMBL](https://www.ensembl.org/info/data/ftp/index.html) (release-92 FTP from ftp://ftp.ensembl.org/../pub/release-92/gtf/) or the [UCSC genome browser](http://hgdownload.soe.ucsc.edu/downloads.html), among other repositories. Note that the gtf file will need to be unzipped and saved in your working directory after download from the repository.
 2. Download Species_GenCode_Tool.R file and in the RStudio program
