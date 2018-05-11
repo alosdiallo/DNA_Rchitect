@@ -1,48 +1,73 @@
-# DNA Rchitect
-# DEV release
+# DNARchitect
+# See our github for documentation: https://github.com/alosdiallo/HiC_Network_Viz_tool
 
-############ ISSUES:
-## 7. Add human genome gencode option (and ability to upload own genome)
 
-## Check for and install required packages from CRAN
-#Packages from CRAN
-requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
-for(p in requiredPackages){
-  if(!require(p,character.only = TRUE)) install.packages(p)
-  library(p,character.only = TRUE)
-}
+# Code structure:
+# #****************************      --> this comment line separates
+# major section of the code
 
-# Packages from bioconductor
-source("https://bioconductor.org/biocLite.R")
-biocLite() # Install bioconductor core packages
-if (!require("Sushi")) biocLite("Sushi")
+# ###-----------      --> this comment line indicates a section requiring
+# futher improvement by the developer
 
-# Packages from github
-library("devtools");
-if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
-## Load libraries
-library(shiny)
-library(jsonlite) # Load jsonlite for JSON communication in IntroJS
-library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
+
+#****************************
+# The following code checks for and installs (if missing) required packages from
+# CRAN, bioconductor, or github. If deploying app to ShinyApps.io, this section
+# can be commented out.
+
+# #Packages from CRAN
+# requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+# for(p in requiredPackages){
+#   if(!require(p,character.only = TRUE)) install.packages(p)
+#   library(p,character.only = TRUE)
+# }
+# 
+# # Packages from bioconductor
+# source("https://bioconductor.org/biocLite.R")
+# biocLite() # Install bioconductor core packages
+# if (!require("Sushi")) biocLite("Sushi")
+# 
+# # Packages from github
+# library("devtools");
+# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+
+#****************************
+# The following code loads the packages required for the App.
+# Package purpose and (source) are specified.
+
+library(shiny) # Load shiny for shiny app functionality (CRAN)
+library(jsonlite) # Load jsonlite for JSON communication in IntroJS (CRAN)
+library(rcytoscapejs) # Load rcytoscapejs to generate HiC network (Github)
 library(Sushi) #Load sushi for plot functions (BioconductoR)
-library(DT) #Load DataTables for data-table functions
-library(RColorBrewer) # Load RColorBrewer for color palettes
+library(DT) #Load DataTables for data-table functions (CRAN)
+library(RColorBrewer) # Load RColorBrewer for color palettes (CRAN)
+
+
+#****************************
+# The following code sets initialization parameters and creates global 
+# objects for the app
 
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
 
-#Set maximum upload size to 1000 mb
+# Set maximum file upload size to 1000 mb
 options(shiny.maxRequestSize = 1000*1024^2)
 
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
 
-#Download geneNames file for search function
+# Download geneNames file for search function
 geneNames <- NULL
 geneNames$cat <- read.delim("https://storage.googleapis.com/gencode_ch_data/searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
 
-#FUNCTION: Define function to read uploaded file, only after it has been uploaded
+#****************************
+# The following code creates FUNCTIONS used in the App.
+
+# FUNCTION: Define function to read uploaded file to a data object that is returned.
+# The function requires the file to exist (have been uploaded) to proceed.
+# This function is called by the *dataRead (eg HiCdataRead) functions specific to a 
+# dataFileType.
 reqRead <- function(input, dataFileType){
   
   #Wait until input$HiCFile exists before proceeding...
@@ -57,7 +82,14 @@ reqRead <- function(input, dataFileType){
   return(data)
 }
 
-#FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+###-----------
+# The following section of *dataRead functions (HiCdataRead, ATACdataRead,
+# ChIPdataRead, mRNAdataRead) should be generalized to a single function
+# in future development.
+
+# FUNCTION: Define function to handle HiC data reading. Note dataFileType
+# must be specified because the reqRead function is general and requires
+# specification of dataFileType
 HiCdataRead <- function(input){
   if("HiC" %in% input$fileTypes){
     dataFileType <- "HiC"
@@ -71,7 +103,9 @@ HiCdataRead <- function(input){
   }
 }
 
-#FUNCTION: Define function to handle ATAC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+# FUNCTION: Define function to handle ATAC data reading. Note dataFileType
+# must be specified because the reqRead function is general and requires
+# specification of dataFileType
 ATACdataRead <- function(input){
   if("ATAC" %in% input$fileTypes){
     dataFileType <- "ATAC"
@@ -85,7 +119,9 @@ ATACdataRead <- function(input){
   }
 }
 
-#FUNCTION: Define function to handle ChIP data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+# FUNCTION: Define function to handle ChIP data reading. Note dataFileType
+# must be specified because the reqRead function is general and requires
+# specification of dataFileType
 ChIPdataRead <- function(input){
   if("ChIP" %in% input$fileTypes){
     dataFileType <- "ChIP"
@@ -99,7 +135,9 @@ ChIPdataRead <- function(input){
   }
 }
 
-#FUNCTION: Define function to handle mRNA data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+# FUNCTION: Define function to handle mRNA data reading. Note dataFileType
+# must be specified because the reqRead function is general and requires
+# specification of dataFileType
 mRNAdataRead <- function(input){
   if("mRNA" %in% input$fileTypes){
     dataFileType <- "mRNA"
@@ -113,9 +151,11 @@ mRNAdataRead <- function(input){
   }
 }
 
-#FUNCTION: Define function to display head or tail or uploaded file
+# FUNCTION: Define function to display head or tail of uploaded file
 displayUploadedFile <- function(data, input, dataFileType){
-  # input$HiCFile will be NULL initially. After the user selects and uploads a file, head of that data file by default, or tail if selected, will be shown
+  # input$HiCFile will be NULL initially. After the user selects and
+  # uploads a file, head of that data file by default, or tail if
+  # selected, will be shown
   
   # Wait until input$HiCFile exists before proceeding...
   req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
@@ -128,14 +168,18 @@ displayUploadedFile <- function(data, input, dataFileType){
   }
 }
 
-############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
-#FUNCTION: Check if uploaded file contains required column headers
+###-----------
+# The following checkHeader function should be improved using case-switch
+# to simplify the repeating if-else statement structure
+
+# FUNCTION: Define function to check if uploaded file contains required column headers
+# If the column headers are wrong, display a warning using the showModal function
 checkHeader <- function(data, dataFileType, input){
 
   # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
   # Possible formats: "Bedpe","Bed","Bedgraph"
   
-  #Header requirements
+  # Header requirements
   bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
   bedHeader <- c("chrom","start","stop")
   bedgraphHeader <- c("chrom","start","stop","value")
@@ -146,7 +190,7 @@ checkHeader <- function(data, dataFileType, input){
     if(!all(bedpeHeader %in% colnames(data))){
       showModal(modalDialog(
         title = "Bedpe Input File Header Incorrect",
-        tags$p(HTML("The uploaded Bedpe file does not have the correct header. The required header contains: <b>'chrom1','start1','end1','chrom2','start2','end2','score','samplenumber'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+        tags$p(HTML("The uploaded Bedpe file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom1','start1','end1','chrom2','start2','end2','score','samplenumber'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
         easyClose = TRUE
       ))
     }
@@ -157,7 +201,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
         showModal(modalDialog(
           title = "Bed Input File Header Incorrect",
-          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bed file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
         
@@ -166,7 +210,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedgraphHeader %in% colnames(data))){
         showModal(modalDialog(
           title = "Bedgraph Input File Headers Incorrect",
-          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
@@ -178,7 +222,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
         showModal(modalDialog(
           title = "Bed Input File Header Incorrect",
-          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bed file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
@@ -186,7 +230,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedgraphHeader %in% colnames(data))){
         showModal(modalDialog(
           title = "Bedgraph Input File Headers Incorrect",
-          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header  or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
@@ -198,7 +242,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
         showModal(modalDialog(
           title = "Bed Input File Header Incorrect",
-          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bed file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
@@ -206,7 +250,7 @@ checkHeader <- function(data, dataFileType, input){
       if(!all(bedgraphHeader %in% colnames(data))){
         showModal(modalDialog(
           title = "Bedgraph Input File Headers Incorrect",
-          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header or the wrong separator was chosen when uploading. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
@@ -216,53 +260,62 @@ checkHeader <- function(data, dataFileType, input){
 }
 
 
-#FUNCTION: to read gene annotation data from Ensembl.biomart.chr file
+# FUNCTION: define function to upload and read gene annotation data file from the
+# storage.googleapis.com bucket
 readGenes <- function(geneWindow){
-  # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+  # Read processed Ensembl.biomart.chr file from googleStorage public URL to plot 
+  # gene coordinates.
   geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
   genCode <- paste(geneCChNumber_generic,"Gencode.",geneWindow$chrom,".txt",sep = "")
   genes <- read.delim(genCode,header=TRUE);
   return(genes)
 }
 
-#FUNCTION: define spatial layout for plots
+# FUNCTION: define function to set spatial layout for plots
 plotLayout <- function(){
   nf <- layout(matrix(c(1,2),2,1,byrow = TRUE), width=c(4), height=c(2,1), respect=TRUE)
   layout.show(nf)
 }
 
-#FUNCTION: define margina parameters for data subplot
+# FUNCTION: define function to set margin parameters for data subplot
 parPlot <- function(){
   par(mar=c(2,4,4,2));
 }
 
-#FUNCTION: define margin parameters for genes subplot
+# FUNCTION: define function to set margin parameters for genes subplot
 parGenes <- function(){
   par(mar=c(2,4,0,2));
 }
 
-#FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
+# FUNCTION: define function to generate the gene annotations subplot using the plotGenes 
+# call from Sushi. Change this function to alter the gene annotation appearance
+# The stacking of genes in the plot is controlled by packrow and maxrows. packrow=FALSE 
+# will give each gene its own row. packrow=TRUE, maxrows=2 will display all genes on 2 rows
+# This function calls the Sushi package
 subPlotGenes <- function(genes,geneWindow){
+  ## USING SUSHI PACKAGE
   plotGenes(genes,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
 }
 
-#FUNCTION: define plot titles
+# FUNCTION: define function to generate plot titles 
 plotTitles <- function(yAxis="Y title",topTitle="Top title"){
   axis(side=2,las=2,tcl=.2);
   mtext(yAxis,side=2,line=1.75,cex=.75,font=2);
   mtext(topTitle,side=3,line=1.75,cex=0.75,font=2);
 }
 
-#FUNCTION: convert gene window parameters by coordinates (ByCoord) to numeric values
+# FUNCTION: define function to convert gene window parameters defined by coordinates 
+# (ByCoord) to numeric values and return the coordinates in an list object
 defineGeneWindowByCoord <- function(input){
   chrom = input$chromNumber;
-  chromstart = as.numeric(input$cStart); #Note that commandArgs makes everything a string, so must convert to numeric
+  chromstart = as.numeric(input$cStart);
   chromend = as.numeric(input$cStop);
   geneWindow <- list("chrom" = chrom,"chromstart" = chromstart,"chromend" = chromend)
   return(geneWindow)
 }
 
-#FUNCTION: regular expression to extract gene coordinates from geneId (when using search by gene)
+# FUNCTION: define function that uses a regular expression to extract gene coordinates from 
+# geneId (when using search ByGene)
 geneCoordinatesByGene <- function(input){
   pattern <- " (.*?):"
   chrom <- regmatches(input$geneId,regexec(pattern,input$geneId))
@@ -276,7 +329,8 @@ geneCoordinatesByGene <- function(input){
   return(chromCoords)
 }
 
-#FUNCTION: convert gene window parameters by gene search (ByGene) to numeric values
+# FUNCTION: define function to convert gene window parameters defined by gene search (ByGene) 
+# to numeric values and return the coordinates in an list object
 defineGeneWindowByGene <- function(input){
   chromCoords <- geneCoordinatesByGene(input)
   chrom = chromCoords$chrom;
@@ -287,22 +341,26 @@ defineGeneWindowByGene <- function(input){
 }
 
 
-#FUNCTION: generate genome axis label
+# FUNCTION: define function to generate genome axis label
+# This function calls the Sushi package
 makeGenomeLabel <- function(geneWindow){
+  ## USING SUSHI PACKAGE
   labelgenome(geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend,n=3,scale="Mb");
 }
 
 
-#FUNCTION: Define color palette for bezier curve samples
+# FUNCTION: define function to create color palette for bezier curves and cytoscape plots
 bezierColorPalette <- function(input){
-  # Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3, Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
+  # The app supports a color palette for 9 different colors. As such the app supports 9 
+  # samples per data set. Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3,
+  # Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
   fullPalette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
   plotPalette <- fullPalette[1:input$numOfSamples]
   return(plotPalette)
 }
 
 
-#FUNCTION: generate legend for bezier curves
+# FUNCTION: define function to generate legend for bezier curve plot
 bezierLegend <- function(input){
   legendNames <- sapply(1:input$numOfSamples, function(number){
     eval(parse(text = (paste0("input$sNumber", number))))
@@ -312,8 +370,11 @@ bezierLegend <- function(input){
 }
 
 
-#FUNCTION: to make bezier curves plots
-#Define function to plot bezier curves
+# FUNCTION: Define function to plot bezier curves using plotBedpe
+# Each plot exists within the window created by plotLayout. The plot device there are two
+# subplots with plot margins defined by parPlot() and parGenes(). The upper subplot
+# contains the bezier curves, the lower subplot contains the gene annotations.
+# This function calls the Sushi package
 makeBezierCurves <- function(data,input,genes,geneWindow){
   
   #Call color palette
@@ -324,15 +385,22 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   plotLayout()
   
 
-  ##Bezier curve plots
+  ## Bezier curve plot (upper subplot)
+  
+  #Define margins for upper subplot
   parPlot()
   
-  #Sushi colorby and colorbycol requires >= 2 samples, therefore the following conditional tests if the dataset has 1 or >=2 samples in data$samplenumber. If only 1 sample in data$samplenumber, then coloring is by `color="blue`; else coloring is by `colorby=data$samplenumber,colorbycol=color_select`
+  #Sushi colorby and colorbycol requires >= 2 samples, therefore the following conditional 
+  # tests if the dataset has 1 or >=2 samples in data$samplenumber. If only 1 sample 
+  # in data$samplenumber, then coloring is by `color="blue"`; else coloring is by
+  # `colorby=data$samplenumber,colorbycol=color_select`
   if(max(data$samplenumber) == 1){
     #for only 1 sample in data$samplenumber
+    ## USING SUSHI PACKAGE
     pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",color="blue");
   }else{
     #for >= 2 samples in data$samplenumber
+    ## USING SUSHI PACKAGE
     pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
   }
   
@@ -341,13 +409,20 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   plotTitles(yAxis="Interaction intensity",topTitle="HiC")
   
   
-  ## Genes features plot
+  ## Genes features plot (lower subplot)
+  
+  # Define margins for lower subplot
   parGenes()
+  # Plot gene annotations
   subPlotGenes(genes,geneWindow)
 }
 
 
-#FUNCTION: to call makeBezierCurves with progress-bars
+# ###-----------   plotBezierCurves and makeBezierCurves could be combined into a single
+# function, similar to plotBedgraphWrapper or plotBedWrapper
+
+# FUNCTION: define function to call makeBezierCurves with progress-bars
+# Progress bars are a Shiny function
 plotBezierCurves <- function(data,input,genes,geneWindow){
   
   withProgress(message = 'Making bezier curve plot', value = 0, {
@@ -363,7 +438,12 @@ plotBezierCurves <- function(data,input,genes,geneWindow){
   
 }
 
-#FUNCTION: Define function to plot bedgraph data
+# FUNCTION: Define a function to plot bedgraph data
+# Each plot exists within the window created by plotLayout. Within the plot device there 
+# are two subplots with plot margins defined by parPlot() and parGenes(). The upper
+# subplot contains the peaks, the lower subplot contains the gene annotations.
+# Progress bars are a Shiny function
+# This function calls the Sushi package
 plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
   
   withProgress(message = 'Making bedgraph plot', value = 0, {
@@ -374,24 +454,40 @@ plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     #Call plot layout
     plotLayout()
     
-    # Atac curve plot
+	
+	## Bedgraph plot (upper subplot)
+	
+    # Define margins for upper subplot
     parPlot()
-    #Plot Atac-seq plot
+	
+    # Create color palette for Bedgraph peaks
     color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    
+	## USING SUSHI PACKAGE
     plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Read Depth",topTitle=plotTopTitle)
     
-    # Genes features plot
-    parGenes()
+	
+    ## Genes features plot (lower subplot)
+	
+    # Define margins for lower subplot
+	parGenes()
+	# Plot gene annotations
     subPlotGenes(genes,geneWindow)
     
+		
     #Increment progress
     incProgress(0.8)
   })
 }
 
 #FUNCTION: Define function to plot Bed data
+# Each plot exists within the window created by plotLayout. Within the plot device there 
+# are two subplots with plot margins defined by parPlot() and parGenes(). The upper 
+# subplot contains the peaks, the lower subplot contains the gene annotations.
+# Progress bars are a Shiny function
+# This function calls the Sushi package
 plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
   
   withProgress(message = 'Making bed plot', value = 0, {
@@ -402,15 +498,24 @@ plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     #Call plot layout
     plotLayout()
     
-    # ChIP curve plot
+	
+    ## Bedgraph plot (upper subplot)
+	
+	# Define margins for upper subplot
     parPlot()
-    #Plot ChIP-seq plot
+	
+    # Plot bed plot
+    ## USING SUSHI PACKAGE
     plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color=data$color,row="given",rowlabels=unique(data$name), rowlabelcol=unique(data$color),rowlabelcex=0.75)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Peaks",topTitle=plotTopTitle)
     
-    # Genes features plot
-    parGenes()
+	
+    ## Genes features plot (lower subplot)
+    
+	# Define margins for lower subplot
+	parGenes()
+	# Plot gene annotations
     subPlotGenes(genes,geneWindow)
     
     #Increment progress
@@ -418,7 +523,26 @@ plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
   })
 }
 
-# UI for Shiny
+#**************************** 
+# How Shiny Works:
+# Shiny applications have two components, a user interface object and a server function, 
+# that are passed as arguments to the shinyApp(..) function that creates a Shiny app object 
+# from this ui/server pair. The shinyApp(..) call is the last line of code in this file.
+# In the following sections, the ui and server functions are defined in separate sections, 
+# then passed to the shinyApp(..) function to create the Shiny app object. The pairing of 
+# ui and server via the shinyApp(..) function creates the dynamic, reactive interface in 
+# the web-browser.
+
+# Resources for learning Shiny: https://shiny.rstudio.com/articles/
+# To understand how shinyApp(..) creates a dynamic, reactive Shiny app object read:
+# https://shiny.rstudio.com/articles/basics.html
+# To understand reactivity read:
+# https://shiny.rstudio.com/articles/reactivity-overview.html
+
+#**************************** 
+# ui for Shiny
+# The ui defines the user interface for the Shiny app object. This creates all the front-end
+# HTML that is seen by the user in the web browser.
 ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 
                 ## CSS and JS scripts for Introduction by IntroJS
@@ -438,6 +562,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 includeScript("www/cyjs.js"),
                 
                 ##
+				# fluidRow containing title image, genome options, help button and reload button
                 fluidRow(
                   column(width = 6,
                          img(src="DNARchitect_Logo.png",align="left",height="75px")),
@@ -451,10 +576,13 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                          actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"),
                          style = "margin-top: 5px;")
                 ),
+				# tabsetPanel define the 'Upload File' and 'Plots' tabs
                 tabsetPanel(
                   id = "mainTabs",
+				  # tabPanel for the 'Upload File' tab
                   tabPanel(title = "Upload File",
-                           fluidRow(
+				           # fluidRow establishing Step 1, Step 2, and Step 3 panels
+						   fluidRow(
                              column(4,
                                     tags$br(),
                                     wellPanel(id="dataTypeWellPanel",
@@ -482,7 +610,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                       )  
                                     )
                              ),
-                           
+							 
+				           # fluidRow establishing conditional panels for specifying Bed/Bedgraph
                            fluidRow(
                              conditionalPanel(id="atacFormatPanel", 
                                               condition = "input.fileTypes.includes('ATAC')",
@@ -505,11 +634,16 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                            ),
                            
                            tags$br(),
+						   # uiOutput("dataTabs") dynamically generates tabs to upload each selected Data Type. See the server for backend of this uiOutput.
                            uiOutput("dataTabs")
                   ),
+				  
+				  # tabPanel for the 'Plots' panel
                   tabPanel(
                     title = "Plots",
                     fluidRow(tags$br()),
+					
+					# fluidRow creates ui elements for selecting the number of HiC samples, naming the HiC samples, and conditional panels for visualizing genome based on either gene name or coordinates
                     fluidRow(
                       column(3,
                              div(id="numOfSamplesDiv",selectInput(inputId = "numOfSamples", 
@@ -568,7 +702,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
                     
                     fluidRow(tags$hr()),
-                    fluidRow(
+					#fluidRow defines conditionalPanels for the HiC bezier curve plot and cytoscape network plot
+					fluidRow(
                       column(6,
                              conditionalPanel(id="hicPlotPanel",
                                               condition = "input.fileTypes.includes('HiC')",
@@ -593,6 +728,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
 
                     fluidRow(tags$hr()),
+					#fluidRow defines conditionalPanels for ATAC data plot and cytoscape 'clicked nodes' table
                     fluidRow(
                       column(6,
                              conditionalPanel(id="atacPlotPanel",
@@ -618,6 +754,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
                     
                     fluidRow(tags$hr()),
+					#fluidRow defines conditionalPanels for ChIP-data and mRNA-data plots
                     fluidRow(
                       column(6,
                              conditionalPanel(id="chipPlotPanel",
@@ -645,19 +782,38 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 )
 )
 
+#**************************** 
+# server for Shiny
+# The server defines the 'server-side' R code for the App. The server calls the FUNCTIONS
+# defined previously to perform computation, plotting etc in R. The server is paired with 
+# the ui via shinyApp() to deliver R outputs to the ui.
+# The server utilizes several functions to control reactivity, including observeEvent.
+# The structure is:
+#		observeEvent(event,{R code})
+# 			The content of the observeEvent {R code}, will only be executed when the event 
+#			is invalidated (ie changes)
 server <- function(input, output, session) {
   
-  # Reload App
+  
+  
+  
+  ## Reload App when click 'Reload App' button
   observeEvent(input$reloadApp, {
     session$reload()
   })
+  
+  
+  
   
   ## Go to the "Plots" tab when click "goToPlots" button
   observeEvent(input$goToPlots, {
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
   })
   
-  ## Render appropriate number of textInput based on number of samples
+  
+  
+  
+  ## Render appropriate number of textInput based on number of HiC samples
   output$sampleNames <- renderUI({
     Samples <- lapply(1:input$numOfSamples, function(number){
       textInput(inputId = paste0("sNumber", number), 
@@ -665,6 +821,7 @@ server <- function(input, output, session) {
                 value = "Sample ID")
     })
   })
+  
   
   
   ## Server code for Introduction by IntroJS
@@ -676,7 +833,7 @@ server <- function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
   })
   
-  # Display help modal
+  # Display help modal when click the 'Help' button
   observeEvent(input$startHelp,{
     
     # The tutorial via IntroJS uses the HiC and ATAC use case scenario, so updateSelectizeInput is used to update fileTypes appropriately 
@@ -692,7 +849,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  # Initiate IntroJS tutorial
+  # Initiate IntroJS tutorial when click the 'Start Tutorial' button
   observeEvent(input$startTutorial,{
     
     removeModal()
@@ -704,8 +861,12 @@ server <- function(input, output, session) {
   })
   
   
-  ## Generate dynamic upload UI based on fileTypes selected
+  
+  ## Generate dynamic upload UI based on fileTypes selected. This is output in the ui
+  #  via the uiOutput("dataTabs")
   output$dataTabs <- renderUI({
+	  # By using lapply, the dataTabs will generate 'upload panels' for as many elements 
+	  # as there are in the input$fileTypes object
     dataTabs <- lapply(1:length(input$fileTypes), function(i){
       tabPanel(title = input$fileTypes[i],
                
@@ -773,8 +934,10 @@ server <- function(input, output, session) {
                )
       )
     })
+	# Use do.call to run the function tabsetPanel with the arguments `dataTabs` 
     do.call(tabsetPanel, dataTabs)
   })
+  
   
   
   ## START OF ANALYSIS/VISUALIZATION BLOCK
@@ -783,6 +946,8 @@ server <- function(input, output, session) {
     # Define submitBy variable
     submitBy <- reactiveValues(method="ByGene")
     
+	# ###----------- The following if statements could probably be improved with a more
+	# general FUNCTION
     # Warning messages if user processes data before files are uploaded
     if("HiC" %in% input$fileTypes && is.null(input$HiCFile)){
       showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
@@ -804,6 +969,8 @@ server <- function(input, output, session) {
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
       
+	  # ###----------- The following if statements could probably be improved with a more
+	  # general function
       if("HiC" %in% input$fileTypes){
         req(input$HiCFile)
         HiCdata <- HiCdataRead(input);
@@ -868,7 +1035,9 @@ server <- function(input, output, session) {
       
       withProgress(message = 'Making cytoscape plot', value = 0, {
         
-        #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
+        #Load geneWindow from user defined parameters if input$submitByCoordinates is
+		# invalidated, else load by search coordinates if input$submitByGene is 
+		# invalidated
         if( submitBy$method == "ByCoord" ){
           geneWindow <- defineGeneWindowByCoord(input);
         } else if ( submitBy$method == "ByGene" ) {
@@ -916,7 +1085,9 @@ server <- function(input, output, session) {
         # Define network that will be used for displaying connected nodes as = edgeData
         network <- edgeData
         
-        # NOTE: Reactive variables used as functions networkReactive(). Code block taken verbatim from: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
+        # NOTE: Reactive variables used as functions networkReactive(). Code block 
+		# taken verbatim from:
+		# https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
         # Start code block from: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
         networkReactive <- reactive({
           if(is.null(input$connectedNodes)) {
@@ -955,7 +1126,9 @@ server <- function(input, output, session) {
     })
     
     
-    ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
+    ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate
+	# outputs. This was made a reactive function to allow multiple "submit" scenarios 
+	# (ie byGene or byCoordinates)
     generatePlots <- reactive({
       
       # Wait for file data (if selected in fileTypes) to exist before proceeding...
@@ -972,7 +1145,8 @@ server <- function(input, output, session) {
         req(mRNAdata)
       }
       
-      #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
+      #Load geneWindow from user defined parameters if input$submitByCoordinates is 
+	  # invalidated, else load by search coordinates if input$submitByGene is invalidated
       if( submitBy$method == "ByCoord" ){
         geneWindow <- defineGeneWindowByCoord(input);
       } else if ( submitBy$method == "ByGene" ) {
@@ -1064,7 +1238,8 @@ server <- function(input, output, session) {
       output$cyplot <- renderRcytoscapejs({
         isolate({ 
           
-          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which 
+		  # occurs when the genome window contains no nodes
           tryCatch(
             {
               plotCyNetwork()
@@ -1081,7 +1256,8 @@ server <- function(input, output, session) {
         
         isolate({
 
-          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which 
+		  # occurs when the genome window contains no nodes
           tryCatch(
             {
               plotBezierCurves(data=HiCdata, input, genes, geneWindow)
@@ -1107,7 +1283,11 @@ server <- function(input, output, session) {
     })
     
     
-    ###### REACTIVE FUNCTION: Define reactive function to refresh cytoscape plot by creating a dependency on only input$refreshCytoBtn
+    ###### REACTIVE FUNCTION: Define reactive function to refresh cytoscape plot by 
+	# creating a dependency on only input$refreshCytoBtn
+	# A dependency is created in a reactive function by placing the variable at the very
+	# beginning of the reactive function. The reactive function will be executed whenever
+	# that object is invalidated.
     refreshCytoscape <- reactive({
       
       ## Create dependency on input$refreshCytoBtn
@@ -1117,7 +1297,8 @@ server <- function(input, output, session) {
       output$cyplot <- renderRcytoscapejs({
         isolate({ 
           
-          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
+          #tryCatch error handling for "Error: replacement has 1 row, data has 0", 
+		  # which occurs when the genome window contains no nodes
           tryCatch(
             {
               plotCyNetwork()
@@ -1156,7 +1337,8 @@ server <- function(input, output, session) {
     })
     
     
-    ####### Download Cytoscape Network as PNG (uses cyjs.js script in UI). From https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
+    ####### Download Cytoscape Network as PNG (uses cyjs.js script in UI). From
+	# https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
     observeEvent(input$saveImage, {
       # NOTE: Message cannot be an empty string "", nothing will happen    
       session$sendCustomMessage(type="saveImage", message="NULL")
@@ -1167,4 +1349,8 @@ server <- function(input, output, session) {
 
 }
 
+#**************************** 
+# Shiny applications have two components, a user interface object and a server function, 
+# that are passed as arguments to the shinyApp function that creates a Shiny app object 
+# from this UI/server pair.
 shinyApp(ui = ui, server = server)
