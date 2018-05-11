@@ -1,11 +1,12 @@
 # Resources for Summer Interns
 
 ## Table of Contents
-[Getting started with R ShinyApps and Genomic data visualization](#Getting-started-with-R-ShinyApps-and-genomic-data-visualization)<br>
+[Getting started](#getting-started)<br>
 [DNARchitect Development](#dnarchitect-development)<br>
 [Help](#help)<br>
 
-## Getting started with R ShinyApps and Genomic data visualization
+## Getting started
+# Getting started with R, ShinyApps, and Genomic data visualization
 
 If you've never used R, read about it then download R and RStudio. You'll need to understand CRAN and Bioconductor too: <br>
 https://en.wikipedia.org/wiki/R_(programming_language) <br>
