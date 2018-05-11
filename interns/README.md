@@ -14,6 +14,9 @@ https://biodatascience.github.io/compbio/github.html <br>
 Work through these shiny tutorials to understand how Shiny is used to create interactive R sessions in a web browser: <br>
 https://shiny.rstudio.com/tutorial/ <br>
 
+The following series of articles gives a comprehensive explanation of most aspects of Shiny. This should be your first stop for any questions, troubleshooting, debugging etc: <br>
+https://shiny.rstudio.com/articles/
+
 Read the Introduction and Getting Started sections of the shinyapps.io documentation to understand how to deploy shiny apps to the cloud: <br>
 http://docs.rstudio.com/shinyapps.io/ <br>
 
