@@ -1,6 +1,11 @@
 # Resources for Summer Interns
 
-## Getting started with R, ShinyApps, and Genomic data visualization:
+## Table of Contents
+[Getting started](#Getting-started-with-R-ShinyApps-and-genomic-data-visualization)<br>
+[DNARchitect Development](#dnarchitect-development)<br>
+[Help](#help)<br>
+
+## Getting started with R ShinyApps and Genomic data visualization
 
 If you've never used R, read about it then download R and RStudio. You'll need to understand CRAN and Bioconductor too: <br>
 https://en.wikipedia.org/wiki/R_(programming_language) <br>
@@ -35,7 +40,7 @@ https://en.wikipedia.org/wiki/Chromosome_conformation_capture <br>
 To understand the bed, bedgraph, and bedpe plots created with Sushi read about: <br>
 https://bioconductor.org/packages/devel/bioc/vignettes/Sushi/inst/doc/Sushi.pdf <br>
 
-## DNARchitect Development:
+## DNARchitect Development
 
 Comments starting with `# ###-----------` demarcate areas of code that would benefit from improvement <br>
 
@@ -49,6 +54,6 @@ Comments starting with `# ###-----------` demarcate areas of code that would ben
 7. Improve the checkHeader function
 8. Consider adding mirrors for the files pulled from storage.googleapis.com
 
-## Help:
+## Help
 The most comprehensive and detailed explanations of Shiny capabilities, troubleshooting, debugging, and features can be found in this collection of articles: <br>
 https://shiny.rstudio.com/articles/
