@@ -31,6 +31,9 @@ speciesTool <- function(species="human",gtf_source="human_gencode.gtf"){
   
   # required packages for this code are data.table and stringr
   
+  # Convert user defined species string to all lower case
+  species <- tolower(species)
+  
   # read the species gtf file, use fread due to files large size
   gtfData <- fread(gtf_source);
   
