@@ -60,7 +60,7 @@ There is an interactive tutorial accessible through the help button on the app. 
 ### Errors and Troubleshooting
 
 #### Incorrect headers
-If you upload a file with the wrong headers, a dialog box will appear after pressing the **Process Data** button indicating that the file does not contain the appropriate headers. Adjust your file's headers appropriately and re-upload then re-process the file.
+If you upload a file with the wrong headers, a dialog box will appear after pressing the **Process Data** button indicating that the file does not contain the appropriate headers. Adjust your file's headers appropriately and re-upload then re-process the file. If you specified the wrong separator or quote type in the upload panel for that file, the data will process incorrectly and the displayed table will appear without appropriate separation between columns. This will lead the App to believe that the headers are wrong (because all header columns will be combined into a single column) and give you the 'incorrect header' warning -- to fix this error correct your separator or quote selections and re-upload the file.
 
 #### HiC Plotting Error
 `Error: Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit` <br>
