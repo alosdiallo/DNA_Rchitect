@@ -1,4 +1,5 @@
 # DNA Rchitect
+# DEV release
 
 ############ ISSUES:
 ## 7. Add human genome gencode option (and ability to upload own genome)
