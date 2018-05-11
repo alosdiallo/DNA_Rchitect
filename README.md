@@ -104,9 +104,11 @@ Use the [speciesTool](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/ma
 For example, for the Gencode.chr1.txt gene annotation file for the mouse chr1, the file would be stored at: <br>
 `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`<br>
 There are two types of files that must be included in the new species storage.googleapis.com bucket: <br>
-1. The gene annotation files for each chromosome: `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`<br>
-2. The searchNames file for the species: `https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt`<br>
-The searchNames file is used by the App to generate options when typing a gene name in the plotting panel <br>
+1. The gene annotation files for each chromosome: <br>
+Example: `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`<br>
+2. The searchNames file for the species: <br>
+Example: `https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt`<br>
+The searchNames file is used by the App to generate options when typing a gene name in the plotting panel. <br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
