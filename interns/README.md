@@ -34,9 +34,7 @@ https://bioconductor.org/packages/devel/bioc/vignettes/Sushi/inst/doc/Sushi.pdf 
 
 ## DNARchitect Development:
 
-Comments starting with <br>
-`# ###-----------` <br>
-demarcate areas of code that would benefit from improvement <br>
+Comments starting with `# ###-----------` demarcate areas of code that would benefit from improvement <br>
 
 ### Development work:
 1. Include option to plot multiple bedGraph (or bed) datasets using a single plotBedgraph (or plotBed) call -- this will adding UI elements to a) activate multiple datasets in 1 bedgraph plot, b) specify which datasets.
