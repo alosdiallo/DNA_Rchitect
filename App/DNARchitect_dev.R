@@ -559,10 +559,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                             column(3,
                                    div(id="geneIdDiv",
                                        uiOutput("searchNamesList")
-                                       # selectizeInput(
-                                       #   'geneId', label = 'Type gene name: (backspace to clear)', choices = geneNames$cat,
-                                       #   options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-                                       # )
                                        ),
                                    actionButton("submitByGene", "Submit Parameters")
                             ),
