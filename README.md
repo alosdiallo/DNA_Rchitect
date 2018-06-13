@@ -110,10 +110,16 @@ Example: `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`
 Example: `https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt`<br>
 The searchNames file is used by the App to generate options when typing a gene name in the plotting panel for use in the searchByGene function. <br>
 <br>
-Existing species on google storage bucket: <br>
-A. mouse <br>
-B. human <br>
-C. drosophila_melanogaster <br>
+**Changes to Code**: <br>
+The code must be changed in 3 places to accomodate a new species.<br>
+1. `geneNames`: Each new species requires its own column in the `geneNames` object. Create a new `geneNames$yourNewSpecies` and update the URL so that the pulled file comes from the correct directory (ie: `https://storage.googleapis.com/gencode_ch_data/yourNewSpecies/yourNewSpecies_searchNames.txt`, where `yourNewSpecies` must be updated). Note that the `yourNewSpecies` must be the same name used in `input$genome` <br>
+2. `output$chromNumberUI`: Each new species requires its own case in the switch statement to render UI for selecting the chromosome to visualize. Follow the existing code and add your new species. <br>
+3. `output$searchNamesList`: Each new species requires its own case in the switch statement to render UI for visualizing by gene. Follow the exisintg code and add your new species. <br>
+<br>
+The follow species are currently supported by the App: <br>
+1. mouse <br>
+2. human <br>
+3. drosophila_melanogaster <br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
