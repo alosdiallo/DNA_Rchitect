@@ -109,10 +109,11 @@ Example: `https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt`
 2. The searchNames file for the species: <br>
 Example: `https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt`<br>
 The searchNames file is used by the App to generate options when typing a gene name in the plotting panel for use in the searchByGene function. <br>
+<br>
 Existing species on google storage bucket: <br>
-1. mouse <br>
-2. human <br>
-3. drosophila_melanogaster <br>
+A. mouse <br>
+B. human <br>
+C. drosophila_melanogaster <br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
