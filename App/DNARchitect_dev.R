@@ -22,7 +22,7 @@
 #
 #By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
 #source("https://bioconductor.org/biocLite.R")
-#install.packages(stringi,dependencies=TRUE)
+#install.packages("stringi",dependencies=TRUE)
 #biocLite("S4Vectors")
 
 #By Karni: to exit the tutorial (after pressing 'Help' Button), you need to click on the page
