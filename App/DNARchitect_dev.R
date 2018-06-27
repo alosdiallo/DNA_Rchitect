@@ -1,3 +1,4 @@
+
 # DNA Rchitect Developer Version
 
 ############ ISSUES:
@@ -18,7 +19,14 @@
 # source("https://bioconductor.org/biocLite.R")
 # biocLite() # Install bioconductor core packages
 # if (!require("Sushi")) biocLite("Sushi")
-# 
+#
+#By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
+#source("https://bioconductor.org/biocLite.R")
+#install.packages(stringi,dependencies=TRUE)
+#biocLite("S4Vectors")
+
+#By Karni: to exit the tutorial (after pressing 'Help' Button), you need to click on the page
+
 # # Packages from github
 # library("devtools");
 # if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
@@ -43,10 +51,11 @@ dataTypes <- c("HiC","ATAC","ChIP","mRNA")
 # Download geneNames file for search function
 # When adding a new species, create a new column for it in geneNames 
 # (ie geneNames$newSpecies) and be sure to pull from the correct URL
+#ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
 geneNames <- NULL
-geneNames$mouse <- read.delim("https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-geneNames$human <- read.delim("https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-geneNames$drosophila_melanogaster <- read.delim("https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$mouse <- read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$human <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$drosophila_melanogaster <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
 
 #FUNCTION: Define function to read uploaded file, only after it has been uploaded
 reqRead <- function(input, dataFileType){
@@ -55,7 +64,7 @@ reqRead <- function(input, dataFileType){
   req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
   
   data <- read.delim(
-    eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))),
+    file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
     header = eval(parse(text = (paste0("input$", dataFileType, "Header")))),
     sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
     quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
@@ -137,7 +146,7 @@ displayUploadedFile <- function(data, input, dataFileType){
 ############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
 #FUNCTION: Check if uploaded file contains required column headers
 checkHeader <- function(data, dataFileType, input){
-
+  
   # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
   # Possible formats: "Bedpe","Bed","Bedgraph"
   
@@ -333,7 +342,7 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   #Call plot layout
   plotLayout()
   
-
+  
   ##Bezier curve plots
   parPlot()
   
@@ -469,47 +478,47 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   id = "mainTabs",
                   tabPanel(title = "Upload File",
                            fluidRow(
-                             column(4,
+                             column(width =4,   #ByKarni: added with=
                                     tags$br(),
                                     wellPanel(id="dataTypeWellPanel",
-                                      tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze, then browse for your files")),
-                                      #Select data types
-                                      div(id="fileTypesDiv", selectizeInput(inputId="fileTypes","Select Data Types",choices=dataTypes,multiple=TRUE,selected=dataTypes[1])),
-                                      style = "height:150px"
-                                      )
-                                    ),
-                             column(4,
-                                    tags$br(),
-                                    wellPanel(id="processWellPanel",
-                                      tags$p(HTML("<b>Step 2:</b> After browsing for your files, click the button to process the data for plotting")),
-                                      tags$br(),
-                                      actionButton("processDataBtn","Process Data"),
-                                      style = "height:150px"
-                                      )
-                                    ),
-                             column(4,
-                                    tags$br(),
-                                    wellPanel(id="goToPlotWellPanel",
-                                      tags$p(HTML("<b>Step 3:</b> Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")),
-                                      actionButton(inputId="goToPlots","Go to Plots"),
-                                      style = "height:150px"
-                                      )  
+                                              tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze, then browse for your files")),
+                                              #Select data types
+                                              div(id="fileTypesDiv", selectizeInput(inputId="fileTypes","Select Data Types",choices=dataTypes,multiple=TRUE,selected=dataTypes[1])),
+                                              style = "height:150px"
                                     )
                              ),
+                             column(width =4,
+                                    tags$br(),
+                                    wellPanel(id="processWellPanel",
+                                              tags$p(HTML("<b>Step 2:</b> After browsing for your files, click the button to process the data for plotting")),
+                                              tags$br(),
+                                              actionButton("processDataBtn","Process Data"),
+                                              style = "height:150px"
+                                    )
+                             ),
+                             column(width =4,
+                                    tags$br(),
+                                    wellPanel(id="goToPlotWellPanel",
+                                              tags$p(HTML("<b>Step 3:</b> Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")),
+                                              actionButton(inputId="goToPlots","Go to Plots"),
+                                              style = "height:150px"
+                                    )  
+                             )
+                           ),
                            
                            fluidRow(
                              conditionalPanel(id="atacFormatPanel", 
                                               condition = "input.fileTypes.includes('ATAC')",
                                               column(4,
                                                      div(id="atacFormatPanelDiv",selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph")))
-                                                     )
-                                              ),
+                                              )
+                             ),
                              conditionalPanel(id="chipFormatPanel",
                                               condition = "input.fileTypes.includes('ChIP')",
                                               column(4,
                                                      selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph"))
-                                                     )
-                                              ),
+                                              )
+                             ),
                              conditionalPanel(id="mrnaFormatPanel", 
                                               condition = "input.fileTypes.includes('mRNA')",
                                               column(4,
@@ -527,9 +536,9 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     fluidRow(
                       column(3,
                              div(id="numOfSamplesDiv",selectInput(inputId = "numOfSamples", 
-                                                   label = "Number of Samples in HiC Dataset",
-                                                   choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
-                             checkboxInput("byCoordinates","Search by Coordinates")
+                                                                  label = "Number of Samples in HiC Dataset",
+                                                                  choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
+                             checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates") #added inpuId/label for clearnace
                       ),
                       column(3,
                              div(id="sampleNamesDiv", style = "overflow-y:scroll; max-height: 150px",{
@@ -541,7 +550,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                             condition = "input.byCoordinates == true",
                             column(3,
                                    uiOutput("chromNumberUI"),
-                                   actionButton("submitByCoordinates", "Submit Parameters")
+                                   actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
                             ),
                             column(3,
                                    textInput(inputId = "cStart", 
@@ -552,15 +561,15 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                              value = "60948071")
                             )
                           )
-                          ),
+                      ),
                       div(id="searchByGeneDiv",
                           conditionalPanel(
                             condition = "input.byCoordinates == false",
                             column(3,
                                    div(id="geneIdDiv",
-                                       uiOutput("searchNamesList")
-                                       ),
-                                   actionButton("submitByGene", "Submit Parameters")
+                                      uiOutput("searchNamesList")
+                                   ),
+                                   actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                             ),
                             column(3,
                                    div(id="genomicIntervalDiv",
@@ -585,22 +594,22 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                                 downloadButton("downloadDataBezier", "Download Plot"),
                                                 tags$hr(),
                                                 plotOutput("bezierplot")
-                                                )
                                               )
+                             )
                       ),
                       column(6,
                              conditionalPanel(id="cyNetworkPanel",
                                               condition = "input.fileTypes.includes('HiC')",
                                               wellPanel(
-                                                actionButton("saveImage", "Download as PNG"),
-                                                actionButton("refreshCytoBtn", "Refresh cytoscape plot"),
+                                                actionButton(inputId = "saveImage", label = "Download as PNG"),  #ByKarni: added inputId/label
+                                                actionButton(inputId = "refreshCytoBtn", label = "Refresh cytoscape plot"),
                                                 tags$hr(),
                                                 rcytoscapejsOutput("cyplot", height="400px")
-                                                )
                                               )
+                             )
                       )
                     ),
-
+                    
                     fluidRow(tags$hr()),
                     fluidRow(
                       column(6,
@@ -609,9 +618,9 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                               wellPanel(
                                                 downloadButton("downloadDataAtac", "Download Plot"),
                                                 tags$hr(),
-                                                plotOutput("atacPlot")
-                                                )
+                                                plotOutput(outputId = "atacPlot")  #ByKarni: added outputId
                                               )
+                             )
                       ),
                       column(6,
                              conditionalPanel(id="cyClickedNodesPanel",
@@ -621,9 +630,9 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                                 verbatimTextOutput("clickedNode"),
                                                 h4("Connected Nodes"),
                                                 verbatimTextOutput("connectedNodes")
-                                                )
                                               )
                              )
+                      )
                     ),
                     
                     fluidRow(tags$hr()),
@@ -634,23 +643,23 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                               wellPanel(
                                                 downloadButton("downloadDataChip", "Download Plot"),
                                                 tags$hr(),
-                                                plotOutput("chipPlot")
-                                                )
+                                                plotOutput(outputId = "chipPlot") #ByKarni: added attr outputId for clearance
                                               )
-                             ),
+                             )
+                      ),
                       column(6,
                              conditionalPanel(id="mrnaPlotPanel",
                                               condition = "input.fileTypes.includes('mRNA')",
                                               wellPanel(
                                                 downloadButton("downloadDataMrna", "Download Plot"),
                                                 tags$hr(),
-                                                plotOutput("mrnaPlot")
+                                                plotOutput(outputId = "mrnaPlot") #ByKarni: added attr outputId for clearance
                                               )
                              )
                       )
-                      )
-                    
                     )
+                    
+                  )
                 )
 )
 
@@ -715,7 +724,7 @@ server <- function(input, output, session) {
   
   ## Generate dynamic upload UI based on fileTypes selected
   output$dataTabs <- renderUI({
-    dataTabs <- lapply(1:length(input$fileTypes), function(i){
+    dataTabs <- lapply(1:length(input$fileTypes), function(i = 'HiC'){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
       tabPanel(title = input$fileTypes[i],
                
                # Sidebar layout with input and output definitions ----
@@ -808,7 +817,7 @@ server <- function(input, output, session) {
                          choices = c("3R","3L","2R","2L","X","Y","4"), multiple = FALSE,
                          selectize = TRUE, width = NULL, size = NULL)
            }
-           )
+    )
   })
   
   
@@ -841,7 +850,7 @@ server <- function(input, output, session) {
     )
   })
   
- 
+  
   #   
   ## START OF ANALYSIS/VISUALIZATION BLOCK
   observeEvent(input$processDataBtn,{
@@ -878,7 +887,7 @@ server <- function(input, output, session) {
         })
         
         checkHeader(data=HiCdata, dataFileType="HiC", input)
- 
+        
       }
       
       #Increment progress
@@ -1056,7 +1065,7 @@ server <- function(input, output, session) {
           } else if ( input$atacFormat == "Bed" ){
             plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
           }
-          })
+        })
       })
       
       output$downloadDataAtac <- downloadHandler(
@@ -1082,7 +1091,7 @@ server <- function(input, output, session) {
           } else if ( input$chipFormat == "Bed" ){
             plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
           }
-          })
+        })
       })
       
       output$downloadDataChip <- downloadHandler(
@@ -1139,14 +1148,14 @@ server <- function(input, output, session) {
               stop("The genomic window does not contain any nodes")
             })
           
-          })
+        })
       })
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
         
         isolate({
-
+          
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
@@ -1155,8 +1164,8 @@ server <- function(input, output, session) {
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
             })
-
-          })
+          
+        })
       })
       
       output$downloadDataBezier <- downloadHandler(
@@ -1227,10 +1236,10 @@ server <- function(input, output, session) {
       # NOTE: Message cannot be an empty string "", nothing will happen    
       session$sendCustomMessage(type="saveImage", message="NULL")
     })
-
+    
     
   })
-
+  
 }
 
 shinyApp(ui = ui, server = server)
