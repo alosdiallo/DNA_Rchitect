@@ -22,7 +22,7 @@
 #
 #By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
 #source("https://bioconductor.org/biocLite.R")
-#install.packages("stringi",dependencies=TRUE)
+#install.packages(stringi,dependencies=TRUE)
 #biocLite("S4Vectors")
 
 #By Karni: to exit the tutorial (after pressing 'Help' Button), you need to click on the page
@@ -481,10 +481,12 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              column(width =4,   #ByKarni: added with=
                                     tags$br(),
                                     wellPanel(id="dataTypeWellPanel",
-                                              tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze, then browse for your files")),
+                                              tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze")), #ByKarni: removed , then browse for your files
                                               #Select data types
                                               div(id="fileTypesDiv", selectizeInput(inputId="fileTypes","Select Data Types",choices=dataTypes,multiple=TRUE,selected=dataTypes[1])),
-                                              style = "height:150px"
+                                              HTML("Browse for your files"),
+                                              actionButton(inputId = "Browse", label = "Browse"),
+                                              style = "height:200px"
                                     )
                              ),
                              column(width =4,
@@ -721,10 +723,15 @@ server <- function(input, output, session) {
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
   
-  
+  dataTabs <- eventReactive(input$Browse, {  #By Karni: 
+    input$fileTypes  #ByKarni: dependency on the Button Browse (Selecting input FileTypes is not enough to display the tabs, you need to press the Button Browse)
+  })
   ## Generate dynamic upload UI based on fileTypes selected
   output$dataTabs <- renderUI({
-    dataTabs <- lapply(1:length(input$fileTypes), function(i = 'HiC'){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
+    #ByKarni: dependency on the Button Browse (outputui "datatabs" will be shown unless the Browse button is pressed)
+    dataTabs()
+    dataTabs <- lapply(1:length(input$fileTypes), function(i='HiC'){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
+      isolate(input$fileTypes)
       tabPanel(title = input$fileTypes[i],
                
                # Sidebar layout with input and output definitions ----
@@ -791,12 +798,16 @@ server <- function(input, output, session) {
                )
       )
     })
+  
+    
     do.call(tabsetPanel, dataTabs)
   })
   
+ 
   ## Render appropriate selection of chromosomes for chosen genome when using the 
   # 'Search by Coordinates' option to plot data
   # To add chromosome options for a new species, create a new case for the switch expression
+  
   output$chromNumberUI <- renderUI({
     switch(input$genome,
            mouse = {
@@ -819,6 +830,8 @@ server <- function(input, output, session) {
            }
     )
   })
+  
+  outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE)         #By Karni: Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
   
   
   ## Render appropriate searchNames list (ie 'gene: chr1:start-stop') when using the 
@@ -849,6 +862,7 @@ server <- function(input, output, session) {
            }
     )
   })
+  outputOptions(output, "searchNamesList", suspendWhenHidden = FALSE)   #By Karni: #By Karni: Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
   
   
   #   
@@ -1239,7 +1253,7 @@ server <- function(input, output, session) {
     
     
   })
-  
+
 }
 
 shinyApp(ui = ui, server = server)
