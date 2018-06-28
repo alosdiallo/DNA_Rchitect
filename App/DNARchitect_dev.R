@@ -728,7 +728,7 @@ server <- function(input, output, session) {
   })
   ## Generate dynamic upload UI based on fileTypes selected
   output$dataTabs <- renderUI({
-    #ByKarni: dependency on the Button Browse (outputui "datatabs" will be shown unless the Browse button is pressed)
+    #ByKarni: dependency on the Button Browse (outputui "datatabs" will not be shown unless the Browse button is pressed)
     dataTabs()
     dataTabs <- lapply(1:length(input$fileTypes), function(i='HiC'){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
       isolate(input$fileTypes)
