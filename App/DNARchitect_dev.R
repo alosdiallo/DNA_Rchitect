@@ -559,7 +559,7 @@ if (interactive()){# newByKarni
                                                 #Select data types
                                                 div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE)),
                                                 #NewByKarni
-                                                HTML("<b>Browse for your files</b>"),
+                                               # HTML("<b>Browse for your files</b>"),
                                                
                                                 # checkboxInput(inputId = "BrowseHiC", label = "HiC", value = TRUE),  
                                                 #checkboxInput(inputId = "BrowseATAC", label = "ATAC"),
