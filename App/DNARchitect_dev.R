@@ -1,4 +1,4 @@
-if (interactive()){# newByKarni
+if (interactive()){# byKarni
   # DNA Rchitect Developer Version
   
   ############ ISSUES:
@@ -33,8 +33,9 @@ if (interactive()){# newByKarni
   
   ## Load libraries
   library(shiny)
-  library(shinyjs) #NewByKarni
-  #install.packages("shinyjs") #NewByKarni
+  library(shinyjs) #ByKarni to be able to use JS & Jquery fucntions
+  #install.packages("V8") #ByKarni to call JS functions from R (to be able to use extendshinyjs in the Shiny ui)
+  #install.packages("shinyjs") #ByKarni 
   library(jsonlite) # Load jsonlite for JSON communication in IntroJS
   library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
   library(Sushi) #Load sushi for plot functions (BioconductoR)
@@ -444,6 +445,7 @@ if (interactive()){# newByKarni
       incProgress(0.8)
     })
   }
+  #By Karni: fucntion to call HiC-atac-ChIP-mRNA Tabs
   dataTabs <- lapply(1:length(dataTypes), function(i=dataTypes[i]){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
     isolate(dataTypes)
     tabPanel(title = dataTypes[i],
@@ -512,8 +514,55 @@ if (interactive()){# newByKarni
     )
     
   })
-  
-  
+  #ByKarni
+  #JS code to display tabs of each file selected by the user
+  jsCodeFileSelected <- '
+shinyjs.SelectFile = function() {
+    var x = document.getElementById("fileTypes").value;
+    document.getElementById("HiC").style.visibility = "hidden";
+    document.getElementById("ATAC").style.visibility = "hidden";
+    document.getElementById("ChIP").style.visibility = "hidden";
+    document.getElementById("mRNA").style.visibility = "hidden";
+    if(x == "HiC"){
+    document.getElementById("HiC").style.visibility = "visible";
+    document.getElementById("HiC").style.display = "inline";
+    document.getElementById("ATAC").style.display = "none";
+    document.getElementById("mRNA").style.display = "none";
+    document.getElementById("ChIP").style.display = "none";
+    }else if(x == "ATAC"){
+    document.getElementById("ATAC").style.visibility = "visible";
+    document.getElementById("ATAC").style.display = "inline";
+    document.getElementById("HiC").style.display = "none";
+    document.getElementById("mRNA").style.display = "none";
+    document.getElementById("ChIP").style.display = "none";
+    }else if(x== "ChIP"){
+    document.getElementById("ChIP").style.visibility = "visible";
+    document.getElementById("ChIP").style.display = "inline";
+    document.getElementById("HiC").style.display = "none";
+    document.getElementById("mRNA").style.display = "none";
+    document.getElementById("ATAC").style.display = "none";
+    }else {
+    document.getElementById("mRNA").style.visibility = "visible";
+    document.getElementById("mRNA").style.display = "inline";
+    document.getElementById("HiC").style.display = "none";
+    document.getElementById("ATAC").style.display = "none";
+    document.getElementById("ChIP").style.display = "none";
+    }
+    
+}'
+  #ByKarni
+  #JS code to give to the user the option to plot the selected files byCoordinates or keet it as by genes
+  jsCodeCheckbox <- '
+shinyjs.Check = function(){
+var checkBox = document.getElementById("byCoordinates");
+ document.getElementById("searchByGeneDiv").style.display = "inline";
+ document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
+if (checkBox.checked == true){
+ document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
+}
+
+}
+'
   
   # UI for Shiny
   ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
@@ -558,13 +607,6 @@ if (interactive()){# newByKarni
                                                 tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze")), #ByKarni: removed , then browse for your files
                                                 #Select data types
                                                 div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE)),
-                                                #NewByKarni
-                                               # HTML("<b>Browse for your files</b>"),
-                                               
-                                                # checkboxInput(inputId = "BrowseHiC", label = "HiC", value = TRUE),  
-                                                #checkboxInput(inputId = "BrowseATAC", label = "ATAC"),
-                                                # checkboxInput(inputId = "BrowseChIP", label = "ChIP"),
-                                                # checkboxInput(inputId = "BrowsemRNA", label = "mRNA"),
                                                 style = "height:150px"
                                       )
                                ),
@@ -613,38 +655,28 @@ if (interactive()){# newByKarni
                              #NewByKarni
                              #Before using most shinyjs functions, you need to call useShinyjs() in the app's UI. It's best to include it near the top as a convention.
                              useShinyjs(),
-                             # hidden(
-                             #div(id = "element",
                              fluidRow(
                                column(width =8,
-                                      # uiOutput(outputId = "ShowTabs"),
-                                      
-                                      #HiC is initially shown
-                                       #  hidden(
-                                             div(id="File1",
-                                                do.call(tabsetPanel, dataTabs)   #call HiC Tab
-                                             )
-                                             #),
-                                      #   hidden(
-                                      #     div(id="File2",
-                                      #        do.call(tabsetPanel, dataTabs[2])   #call ATAC Tab
-                                      #    )
-                                      #    )
-                                      #     hidden(
-                                      #      div(id="File3",
-                                      #           do.call(tabsetPanel, dataTabs[3])  #call ChIP Tab
-                                      #      )
-                                      #     ),
-                                      #      hidden(
-                                      #        div(id="File4",
-                                      #            do.call(tabsetPanel, dataTabs[4])  #call mRNA Tab
-                                      #        )
-                                      #       )
+                                      extendShinyjs(text = jsCodeFileSelected), #By Karni: to call JS code into R (before tabs were uioutput running in the server)
+                                     tags$div(
+                                       id="HiC",
+                                       do.call(tabsetPanel, dataTabs[1])
+                                     ),
+                                     tags$div(
+                                       id="ATAC",
+                                       do.call(tabsetPanel, dataTabs[2])
+                                     ),
+                                     tags$div(
+                                       id="ChIP",
+                                       do.call(tabsetPanel, dataTabs[3])
+                                     ),
+                                     tags$div(
+                                       id= "mRNA",
+                                       do.call(tabsetPanel, dataTabs[4])
+                                     )
+                                   
                                )
                              )
-                             #)
-                             #)
-                             
                     ),
                     tabPanel(
                       title = "Plots",
@@ -655,11 +687,11 @@ if (interactive()){# newByKarni
                                                                     label = "Number of Samples in HiC Dataset",
                                                                     choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                                tags$br(),
-                               actionButton(inputId = "byCoordinates",label = "Search by Coordinates"), #NewByKarni
+                               checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates"), #NewByKarni
                                tags$br(), #NewByKarni
                                tags$br(),#NewByKarni
-                               tags$br(),#NewByKarni
-                               actionButton(inputId = "byGenes", label = "Search by Genes") #NewByKarni
+                               tags$br()#NewByKarni
+                               #actionButton(inputId = "byGenes", label = "Search by Genes") #NewByKarni
                         ),
                         column(3,
                                div(id="sampleNamesDiv", style = "overflow-y:scroll; max-height: 150px",{
@@ -667,24 +699,9 @@ if (interactive()){# newByKarni
                                })
                         ),
                         useShinyjs(),#NewByKarni
-                        hidden( #NewByKarni
-                          div(id="searchByCoordinatesDiv", #NewByKarni: removed the conditional Panels
-                              column(3,
-                                     uiOutput("chromNumberUI"),
-                                     
-                                     textInput(inputId = "cStart", 
-                                               label = "Start coordinate",
-                                               value = "60853778"),
-                                     textInput(inputId = "cStop", 
-                                               label = "End coordinate",
-                                               value = "60948071"),
-                                     actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
-                                     
-                              )
-                          )
-                        ),
-                        hidden( #NewByKarni
-                          div(id="searchByGeneDiv", #NewByKarni: removed the conditional Panels
+                    
+                     #ByKarni
+                          div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
                               column(3,
                                      div(id="geneIdDiv",
                                          uiOutput("searchNamesList")
@@ -700,8 +717,23 @@ if (interactive()){# newByKarni
                                      ),
                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                               )
-                          )
-                        )
+                          ),
+                     extendShinyjs(text = jsCodeCheckbox), #ByKarni: to call JS code for the checkbox into R 
+                     div(id="searchByCoordinatesDiv", 
+                         column(3,
+                                uiOutput("chromNumberUI"),
+                                
+                                textInput(inputId = "cStart", 
+                                          label = "Start coordinate",
+                                          value = "60853778"),
+                                textInput(inputId = "cStop", 
+                                          label = "End coordinate",
+                                          value = "60948071"),
+                                actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
+                                
+                         )
+                         
+                     )
                       ),
                       
                       fluidRow(tags$hr()),
@@ -785,15 +817,14 @@ if (interactive()){# newByKarni
     
     
     
-    #NewByKarni
-    
-    onevent("click", "byCoordinates", showElement("searchByCoordinatesDiv"))
-    onevent("click", "byGenes", showElement("searchByGeneDiv"))
-    #Display the tabS
-    
-    # onevent("click", "BrowseATAC", showElement("File2"))
-    # onevent("click", "BrowseChIP", showElement("File3"))
-    #onevent("click", "BrowsemRNA", showElement("File4"))
+    #ByKarni
+    #JS fucntions called in the server 
+    observeEvent(input$fileTypes,{
+      js$SelectFile()
+    })
+    observeEvent(input$byCoordinates,{
+      js$Check()
+    })
 
     # Reload App
     observeEvent(input$reloadApp, {
@@ -850,31 +881,8 @@ if (interactive()){# newByKarni
       session$sendCustomMessage(type = 'startHelp', message = list(""))
     })
     
-    
-    #dataTabs <- eventReactive(input$Browse, {  #By Karni: 
-    # input$fileTypes  #ByKarni: dependency on the Button Browse (Selecting input FileTypes is not enough to display the tabs, you need to press the Button Browse)
-    # })
-    # observeEvent(input$Browse,{
-    #  showElement("ShowHide")
-    #})
-    ## Generate dynamic upload UI based on fileTypes selected
-    #output$dataTabs <- renderUI({
-    #ByKarni: dependency on the Button Browse (outputui "datatabs" will not be shown unless the Browse button is pressed)
-    # dataTabs()
-    # observeEvent(input$Browse,{
-    #  showElement("element")
-    #})
-    
-    
-    
-    # do.call(tabsetPanel, dataTabs)
-    # })
-    #outputOptions(output, "dataTabs", suspendWhenHidden = FALSE)
-    
-    #NewByKarni
-    #ToDisplay the FileType Tabs (HIC/ATAC/CHIP/mRNA)
-    
-    
+  #ByKarni:
+    #removed calling uioutput for displaying the File Tabs (instead created JS fucntion)
     
     ## Render appropriate selection of chromosomes for chosen genome when using the 
     # 'Search by Coordinates' option to plot data
@@ -1328,6 +1336,6 @@ if (interactive()){# newByKarni
     
   }
 }
-#newByKarni
+#ByKarni added(if reactive)
 
 shinyApp(ui = ui, server = server)
