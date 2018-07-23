@@ -34,10 +34,12 @@
   
   ## Load libraries
   library(shiny)
+  library(shinycssloaders)
   library(V8)
   library(shinyjs) #ByKarni to be able to use JS & Jquery fucntions
   #install.packages("V8") #ByKarni to call JS functions from R (to be able to use extendshinyjs in the Shiny ui)
   #install.packages("shinyjs") #ByKarni 
+  #install.packages("shinycssloaders)
   library(jsonlite) # Load jsonlite for JSON communication in IntroJS
   library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
   library(Sushi) #Load sushi for plot functions (BioconductoR)
@@ -516,7 +518,9 @@
     )
     
   })
-  #ByKarni
+  
+
+   #ByKarni
   #JS code to display tabs of each file selected by the user
   jsCodeFileSelected <- '
   shinyjs.SelectFile = function() {
@@ -553,7 +557,7 @@
   
   }'
   #ByKarni
-  #JS code to give to the user the option to plot the selected files byCoordinates or keet it as by genes
+  #JS code to give to the user the option to plot the selected files byCoordinates or keep it as by genes
   jsCodeCheckbox <- '
   shinyjs.Check = function(){
   var checkBox = document.getElementById("byCoordinates");
@@ -561,15 +565,14 @@
   document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
   if (checkBox.checked == true){
   document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
+  document.getElementById("searchByCoordinatesDiv").style.display = "inline";
+  document.getElementById("searchByGeneDiv").style.display = "none";
   }
   }
   '
   jsCodeT <-'
   shinyjs.test = function(){
   var x = document.getElementById("fileTypes").value;
-  document.getElementById("atacFormatPanelDiv").style.visibility = "hidden";
-  document.getElementById("chipFormatPanelDiv").style.visibility = "hidden";
-  document.getElementById("mrnaFormatPanelDiv").style.visibility = "hidden";
   if(x == "ATAC"){
   document.getElementById("atacFormatPanelDiv").style.visibility = "visible";
   document.getElementById("atacFormatPanelDiv").style.display = "inline";
@@ -580,12 +583,17 @@
   document.getElementById("chipFormatPanelDiv").style.display = "inline";
   document.getElementById("atacFormatPanelDiv").style.display= "none";
   document.getElementById("mrnaFormatPanelDiv").style.display= "none";
-  }else {
+  }else if (x == "mRNA"){
   document.getElementById("mrnaFormatPanelDiv").style.visibility = "visible";
   document.getElementById("mrnaFormatPanelDiv").style.display = "inline";
   document.getElementById("atacFormatPanelDiv").style.display= "none";
   document.getElementById("chipFormatPanelDiv").style.display= "none";
+  }else {
+  document.getElementById("atacFormatPanelDiv").style.display= "none";
+  document.getElementById("chipFormatPanelDiv").style.display= "none";
+  document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   }
+
   }'
   jsCodePlot <-'
   shinyjs.plot =  function(){
@@ -609,39 +617,76 @@
   }
 }
   '
+  appCSS <- "
+#loading-content {
+  position: absolute;
+  background: #FFFFFF;
+  opacity: ;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  height: 100%;
+  text-align: center;
+  color: #000000;
+  }
+  "
   
   # UI for Shiny
   ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   
+                  useShinyjs(),
+                  inlineCSS(appCSS),
+                  
+                  # Loading message
+                  div(
+                    id = "loading-content",
+                    withSpinner(
+                    h2("Loading...")
+                    )
+                  ),
+                  
                   ## CSS and JS scripts for Introduction by IntroJS
                   # Include IntroJS styling
-                  includeCSS("www/introjs.css"),
+                  includeCSS("www/css/introjs.css"),
                   
                   # Include styling for the app
-                  includeCSS("www/app.css"),
+                  includeCSS("www/css/app.css"),
                   
                   # Include IntroJS library
-                  includeScript("www/intro.js"),
+                  includeScript("www/js/intro.js"),
                   
                   # Include javascript code to make shiny communicate with introJS
-                  includeScript("www/app.js"),
+                  includeScript("www/js/app.js"),
                   
                   # Include javascript code to download Cytoscape network as PNG. From: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
-                  includeScript("www/cyjs.js"),
+                  includeScript("www/js/cyjs.js"),
+                  includeScript("www/js/script.js"),
                   
-                  ##
+                  #ByKarni: seperated the styling in a new file
+                  includeCSS("www/css/styles.css"),
+                  includeCSS("www/css/style.css"),
+                  includeHTML("www/html/include.html"),
+                  
+                  
+                  
+                  
+                  # The main app code goes here
+                
+                 
                   fluidRow(
                     column(width = 6,
-                           img(src="DNARchitect_Logo.png",align="left",height="75px")),
+                           img(id = "image", src="DNARchitect_Logo.png") #ByKarni: removed the styling
+                           ),
                     column(width = 1,
                            tags$p("")),
                     column(width = 3,
                            selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"),selected = "mouse")),
                     column(width = 2,
                            tags$br(),
+                           div(id = "helpreload",
                            actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
-                           actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"),
-                           style = "margin-top: 5px;")
+                           actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
+                    )
                   ),
                   tabsetPanel(
                     id = "mainTabs",
@@ -649,28 +694,38 @@
                              fluidRow(
                                column(width =4,   #ByKarni: added with=
                                       tags$br(),
+                                      div(id = "datatypewellpanel",
                                       wellPanel(id="dataTypeWellPanel",
-                                                tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze")), #ByKarni: removed , then browse for your files
+                                                div(
+                                                  tags$html(id = "step1", "Step 1: Select the types of data you want to analyze")
+                                                  ), #ByKarni: removed , then browse for your files
                                                 #Select data types
-                                                div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE)),
-                                                style = "height:150px"
+                                                div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE))
+                                               
+                                      )
                                       )
                                ),
                                column(width =4,
                                       tags$br(),
+                                      div(id = "processwellpanel", 
                                       wellPanel(id="processWellPanel",
-                                                tags$p(HTML("<b>Step 2:</b> After browsing for your files, click the button to process the data for plotting")),
+                                                       div(
+                                                           tags$html(id = "step2", "Step 2: After browsing for your files, click the button to process the data for plotting")
+                                                           ),
                                                 tags$br(),
-                                                actionButton("processDataBtn","Process Data"),
-                                                style = "height:150px"
+                                                actionButton("processDataBtn","Process Data")
+                                      )
                                       )
                                ),
                                column(width =4,
                                       tags$br(),
+                                      div(id= "gotoplotwellpanel", 
                                       wellPanel(id="goToPlotWellPanel",
-                                                tags$p(HTML("<b>Step 3:</b> Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")),
-                                                actionButton(inputId="goToPlots","Go to Plots"),
-                                                style = "height:150px"
+                                                div(
+                                                  tags$html(id= "step3", "Step 3:Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")
+                                                  ),
+                                                actionButton(inputId="goToPlots","Go to Plots")
+                                      )
                                       )  
                                )
                              ),
@@ -679,16 +734,20 @@
                                useShinyjs(),   #ByKarni: removed the conditional panels
                                extendShinyjs(text = jsCodeT),
                                                 column(4,
-                                                       div(id="atacFormatPanelDiv",
-                                                           selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph")))
-                                                ),
-                                                column(4,
+                                                      
+                                                       div(id="atacFormatPanelDiv", 
+                                                           selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph"))
+                                                           
+                                                       ),
+                                                       
                                                        div(id ="chipFormatPanelDiv", 
-                                                       selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph")))
-                                                ),
-                                                column(4,
+                                                       selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph"))
+                                                           
+                                                       ),
+                                                  
                                                        div(id="mrnaFormatPanelDiv",
-                                                           selectInput(inputId="mrnaFormat","Select mRNA data format", choices = c("Bed","Bedgraph")))
+                                                           selectInput(inputId="mrnaFormat","Select mRNA data format", choices = c("Bed","Bedgraph"))
+                                                           )
                                                 )
                              ),
                              
@@ -729,16 +788,13 @@
                                                                     label = "Number of Samples in HiC Dataset",
                                                                     choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                                tags$br(),
-                               checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates"), #NewByKarni
-                               tags$br(), #NewByKarni
-                               tags$br(),#NewByKarni
-                               tags$br()#NewByKarni
+                               checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates") #NewByKarni
                                #actionButton(inputId = "byGenes", label = "Search by Genes") #NewByKarni
                         ),
                         column(3,
-                               div(id="sampleNamesDiv", style = "overflow-y:scroll; max-height: 150px",{
+                               div(id="sampleNamesDiv",
                                  uiOutput("sampleNames")
-                               })
+                               )
                         ),
                         useShinyjs(),#NewByKarni
                         
@@ -875,6 +931,13 @@
   )
   server <- function(input, output, session) {
     
+    # Simulate work being done for 1 second
+    Sys.sleep(1)
+    
+    # Hide the loading message when the rest of the server function has executed
+    hide(id = "loading-content", anim = TRUE, animType = "fade")    
+   
+    
     
     
     #ByKarni
@@ -941,7 +1004,7 @@
       
       removeModal()
       
-      req("HiC" %in% input$fileTypes & "ATAC" %in% input$fileTypes)
+      req(input$fileTypes)  #ByKarni: removed req(HiC & ATAC), because it is selectinput with multiple = FALSE in the UI
       
       # on click, send custom message to start help
       session$sendCustomMessage(type = 'startHelp', message = list(""))
@@ -1405,3 +1468,4 @@
 #ByKarni added(if reactive)
 
   shinyApp(ui = ui, server = server)
+ 
