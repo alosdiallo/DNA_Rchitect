@@ -1,600 +1,596 @@
 
 
-  # DNA Rchitect Developer Version
+
+# DNA Rchitect Developer Version
+
+############ ISSUES:
+## 1. Add expected input and expected output
+## 2. For functions that don't return anything, add a return of 1 or 0 for success or failure --> consider using a try-catch setup   ## val=0, try (... val=1), catch (... val=0), return(val)
+
+## Priorities: 1. Function success/failure codes
+
+# ## Check for and install required packages from CRAN
+# #Packages from CRAN
+# requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
+# for(p in requiredPackages){
+#   if(!require(p,character.only = TRUE)) install.packages(p)
+#   library(p,character.only = TRUE)
+# }
+# 
+# # Packages from bioconductor
+# source("https://bioconductor.org/biocLite.R")
+# biocLite() # Install bioconductor core packages
+# if (!require("Sushi")) biocLite("Sushi")
+#
+#By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
+#source("https://bioconductor.org/biocLite.R")
+#install.packages(stringi,dependencies=TRUE)
+#biocLite("S4Vectors")
+
+#By Karni: to exit the tutorial (after pressing 'Help' Button), you need to click on the page
+
+# # Packages from github
+# library("devtools");
+# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
+
+## Load libraries
+library(shiny)
+library(shinycssloaders)
+library(V8)
+library(shinyjs) #ByKarni to be able to use JS & Jquery fucntions
+#install.packages("V8") #ByKarni to call JS functions from R (to be able to use extendshinyjs in the Shiny ui)
+#install.packages("shinyjs") #ByKarni 
+#install.packages("shinycssloaders)
+library(jsonlite) # Load jsonlite for JSON communication in IntroJS
+library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
+library(Sushi) #Load sushi for plot functions (BioconductoR)
+library(DT) #Load DataTables for data-table functions
+library(RColorBrewer) # Load RColorBrewer for color palettes
+
+# Create help data frame with steps for IntroJS introduction/tutorial
+steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
+
+#Set maximum upload size to 1000 mb
+options(shiny.maxRequestSize = 1000*1024^2)
+
+# Create dataTypes object to define choices for fileTypes selectizeInput
+dataTypes <- c("HiC","ATAC","ChIP","mRNA")
+
+# Download geneNames file for search function
+# When adding a new species, create a new column for it in geneNames 
+# (ie geneNames$newSpecies) and be sure to pull from the correct URL
+#ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
+
+#FUNCTION: Define function to read uploaded file, only after it has been uploaded
+
+
+reqRead <- function(input, dataFileType){
   
-  ############ ISSUES:
-  ## 1. Add expected input and expected output
-  ## 2. For functions that don't return anything, add a return of 1 or 0 for success or failure --> consider using a try-catch setup   ## val=0, try (... val=1), catch (... val=0), return(val)
+  #Wait until input$HiCFile exists before proceeding...
+  req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
   
-  ## Priorities: 1. Function success/failure codes
+  data <- read.delim(
+    file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
+    header = eval(parse(text = (paste0("input$", dataFileType, "Header")))),
+    sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
+    quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
   
-  # ## Check for and install required packages from CRAN
-  # #Packages from CRAN
-  # requiredPackages = c('shiny','jsonlite','DT','RColorBrewer','devtools')
-  # for(p in requiredPackages){
-  #   if(!require(p,character.only = TRUE)) install.packages(p)
-  #   library(p,character.only = TRUE)
-  # }
-  # 
-  # # Packages from bioconductor
-  # source("https://bioconductor.org/biocLite.R")
-  # biocLite() # Install bioconductor core packages
-  # if (!require("Sushi")) biocLite("Sushi")
-  #
-  #By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
-  #source("https://bioconductor.org/biocLite.R")
-  #install.packages(stringi,dependencies=TRUE)
-  #biocLite("S4Vectors")
-  
-  #By Karni: to exit the tutorial (after pressing 'Help' Button), you need to click on the page
-  
-  # # Packages from github
-  # library("devtools");
-  # if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
-  
-  ## Load libraries
-  library(shiny)
-  library(shinycssloaders)
-  library(V8)
-  library(shinyjs) #ByKarni to be able to use JS & Jquery fucntions
-  #install.packages("V8") #ByKarni to call JS functions from R (to be able to use extendshinyjs in the Shiny ui)
-  #install.packages("shinyjs") #ByKarni 
-  #install.packages("shinycssloaders)
-  library(jsonlite) # Load jsonlite for JSON communication in IntroJS
-  library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
-  library(Sushi) #Load sushi for plot functions (BioconductoR)
-  library(DT) #Load DataTables for data-table functions
-  library(RColorBrewer) # Load RColorBrewer for color palettes
-  
-  # Create help data frame with steps for IntroJS introduction/tutorial
-  steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
-  
-  #Set maximum upload size to 1000 mb
-  options(shiny.maxRequestSize = 1000*1024^2)
-  
-  # Create dataTypes object to define choices for fileTypes selectizeInput
-  dataTypes <- c("HiC","ATAC","ChIP","mRNA")
-  
-  # Download geneNames file for search function
-  # When adding a new species, create a new column for it in geneNames 
-  # (ie geneNames$newSpecies) and be sure to pull from the correct URL
-  #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
-  geneNames <- NULL
-  geneNames$mouse <- read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-  geneNames$human <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-  geneNames$drosophila_melanogaster <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-  
-  #FUNCTION: Define function to read uploaded file, only after it has been uploaded
-  
-  
-  reqRead <- function(input, dataFileType){
-    
-    #Wait until input$HiCFile exists before proceeding...
-    req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
-    
-    data <- read.delim(
-      file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
-      header = eval(parse(text = (paste0("input$", dataFileType, "Header")))),
-      sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
-      quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
-    
-    return(data)
+  return(data)
+}
+
+#FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+HiCdataRead <- function(input){
+  if("HiC" %in% input$fileTypes){
+    dataFileType <- "HiC"
+    #Read HiC data
+    HiCdata <- reqRead(input, dataFileType)
+    return(HiCdata)
+  } else {
+    #Make HiCdata null
+    HiCdata <- NULL
+    return(HiCdata)
   }
-  
-  #FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
-  HiCdataRead <- function(input){
-    if("HiC" %in% input$fileTypes){
-      dataFileType <- "HiC"
-      #Read HiC data
-      HiCdata <- reqRead(input, dataFileType)
-      return(HiCdata)
-    } else {
-      #Make HiCdata null
-      HiCdata <- NULL
-      return(HiCdata)
-    }
+}
+
+#FUNCTION: Define function to handle ATAC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+ATACdataRead <- function(input){
+  if("ATAC" %in% input$fileTypes){
+    dataFileType <- "ATAC"
+    #Read ATAC data
+    ATACdata <- reqRead(input, dataFileType)
+    return(ATACdata)
+  } else {
+    #Make ATACdata null
+    ATACdata <- NULL
+    return(ATACdata)
   }
-  
-  #FUNCTION: Define function to handle ATAC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
-  ATACdataRead <- function(input){
-    if("ATAC" %in% input$fileTypes){
-      dataFileType <- "ATAC"
-      #Read ATAC data
-      ATACdata <- reqRead(input, dataFileType)
-      return(ATACdata)
-    } else {
-      #Make ATACdata null
-      ATACdata <- NULL
-      return(ATACdata)
-    }
+}
+
+#FUNCTION: Define function to handle ChIP data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+ChIPdataRead <- function(input){
+  if("ChIP" %in% input$fileTypes){
+    dataFileType <- "ChIP"
+    #Read ChIP data
+    ChIPdata <- reqRead(input, dataFileType)
+    return(ChIPdata)
+  } else {
+    #Make ChIPdata null
+    ChIPdata <- NULL
+    return(ChIPdata)
   }
-  
-  #FUNCTION: Define function to handle ChIP data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
-  ChIPdataRead <- function(input){
-    if("ChIP" %in% input$fileTypes){
-      dataFileType <- "ChIP"
-      #Read ChIP data
-      ChIPdata <- reqRead(input, dataFileType)
-      return(ChIPdata)
-    } else {
-      #Make ChIPdata null
-      ChIPdata <- NULL
-      return(ChIPdata)
-    }
+}
+
+#FUNCTION: Define function to handle mRNA data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
+mRNAdataRead <- function(input){
+  if("mRNA" %in% input$fileTypes){
+    dataFileType <- "mRNA"
+    #Read mRNA data
+    mRNAdata <- reqRead(input, dataFileType)
+    return(mRNAdata)
+  } else {
+    #Make mRNAdata null
+    mRNAdata <- NULL
+    return(mRNAdata)
   }
+}
+
+#FUNCTION: Define function to display head or tail or uploaded file
+displayUploadedFile <- function(data, input, dataFileType){
+  # input$HiCFile will be NULL initially. After the user selects and uploads a file, head of that data file by default, or tail if selected, will be shown
   
-  #FUNCTION: Define function to handle mRNA data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
-  mRNAdataRead <- function(input){
-    if("mRNA" %in% input$fileTypes){
-      dataFileType <- "mRNA"
-      #Read mRNA data
-      mRNAdata <- reqRead(input, dataFileType)
-      return(mRNAdata)
-    } else {
-      #Make mRNAdata null
-      mRNAdata <- NULL
-      return(mRNAdata)
-    }
+  # Wait until input$HiCFile exists before proceeding...
+  req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
+  
+  if(eval(parse(text = (paste0("input$", dataFileType, "Disp")))) == "head") {
+    return(head(data))
   }
-  
-  #FUNCTION: Define function to display head or tail or uploaded file
-  displayUploadedFile <- function(data, input, dataFileType){
-    # input$HiCFile will be NULL initially. After the user selects and uploads a file, head of that data file by default, or tail if selected, will be shown
-    
-    # Wait until input$HiCFile exists before proceeding...
-    req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
-    
-    if(eval(parse(text = (paste0("input$", dataFileType, "Disp")))) == "head") {
-      return(head(data))
-    }
-    else {
-      return(tail(data))
-    }
+  else {
+    return(tail(data))
   }
+}
+
+############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
+#FUNCTION: Check if uploaded file contains required column headers
+checkHeader <- function(data, dataFileType, input){
   
-  ############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
-  #FUNCTION: Check if uploaded file contains required column headers
-  checkHeader <- function(data, dataFileType, input){
+  # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
+  # Possible formats: "Bedpe","Bed","Bedgraph"
+  
+  #Header requirements
+  bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
+  bedHeader <- c("chrom","start","stop")
+  bedgraphHeader <- c("chrom","start","stop","value")
+  
+  
+  if(dataFileType=="HiC"){
     
-    # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
-    # Possible formats: "Bedpe","Bed","Bedgraph"
+    if(!all(bedpeHeader %in% colnames(data))){
+      showModal(modalDialog(
+        title = "Bedpe Input File Header Incorrect",
+        tags$p(HTML("The uploaded Bedpe file does not have the correct header. The required header contains: <b>'chrom1','start1','end1','chrom2','start2','end2','score','samplenumber'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+        easyClose = TRUE
+      ))
+    }
     
-    #Header requirements
-    bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
-    bedHeader <- c("chrom","start","stop")
-    bedgraphHeader <- c("chrom","start","stop","value")
+  } else if(dataFileType=="ATAC"){
     
-    
-    if(dataFileType=="HiC"){
-      
-      if(!all(bedpeHeader %in% colnames(data))){
+    if(input$atacFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
         showModal(modalDialog(
-          title = "Bedpe Input File Header Incorrect",
-          tags$p(HTML("The uploaded Bedpe file does not have the correct header. The required header contains: <b>'chrom1','start1','end1','chrom2','start2','end2','score','samplenumber'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+        
+      }
+    } else if (input$atacFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
           easyClose = TRUE
         ))
       }
-      
-    } else if(dataFileType=="ATAC"){
-      
-      if(input$atacFormat == "Bed"){
-        if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
-          showModal(modalDialog(
-            title = "Bed Input File Header Incorrect",
-            tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-          
-        }
-      } else if (input$atacFormat == "Bedgraph"){
-        if(!all(bedgraphHeader %in% colnames(data))){
-          showModal(modalDialog(
-            title = "Bedgraph Input File Headers Incorrect",
-            tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-        }
+    }
+    
+  } else if(dataFileType=="ChIP"){
+    
+    if(input$chipFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
+        showModal(modalDialog(
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
       }
-      
-    } else if(dataFileType=="ChIP"){
-      
-      if(input$chipFormat == "Bed"){
-        if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
-          showModal(modalDialog(
-            title = "Bed Input File Header Incorrect",
-            tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-        }
-      } else if (input$chipFormat == "Bedgraph"){
-        if(!all(bedgraphHeader %in% colnames(data))){
-          showModal(modalDialog(
-            title = "Bedgraph Input File Headers Incorrect",
-            tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-        }
-      }
-      
-    } else if(dataFileType=="mRNA"){
-      
-      if(input$mrnaFormat == "Bed"){
-        if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
-          showModal(modalDialog(
-            title = "Bed Input File Header Incorrect",
-            tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-        }
-      } else if (input$mrnaFormat == "Bedgraph"){
-        if(!all(bedgraphHeader %in% colnames(data))){
-          showModal(modalDialog(
-            title = "Bedgraph Input File Headers Incorrect",
-            tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
-            easyClose = TRUE
-          ))
-        }
+    } else if (input$chipFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
       }
     }
     
-  }
-  
-  
-  #FUNCTION: to read gene annotation data from Ensembl.biomart.chr file
-  readGenes <- function(geneWindow, input){
-    # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+  } else if(dataFileType=="mRNA"){
     
-    # The final URL after pasting all elements together will look like (for mouse):
-    # https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt
+    if(input$mrnaFormat == "Bed"){
+      if(!all(bedHeader %in% colnames(data)) | "value" %in% colnames(data)){
+        showModal(modalDialog(
+          title = "Bed Input File Header Incorrect",
+          tags$p(HTML("The uploaded Bed file does not have the correct header. The required header contains: <b>'chrom','start','stop'</b>. If your file contains 'value', the data will plot as Bed format ignoring the 'value' data. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    } else if (input$mrnaFormat == "Bedgraph"){
+      if(!all(bedgraphHeader %in% colnames(data))){
+        showModal(modalDialog(
+          title = "Bedgraph Input File Headers Incorrect",
+          tags$p(HTML("The uploaded Bedgraph file does not have the correct header. The required header contains: <b>'chrom','start','stop','value'</b>. Please see our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a> for details on file formats and header requirements. <br /><br /> The header must be exactly as specified in the documentation")),
+          easyClose = TRUE
+        ))
+      }
+    }
+  }
+  
+}
+
+
+#FUNCTION: to read gene annotation data from Ensembl.biomart.chr file
+readGenes <- function(geneWindow, input){
+  # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+  
+  # The final URL after pasting all elements together will look like (for mouse):
+  # https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt
+  
+  geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
+  genCode <- paste(geneCChNumber_generic,input$genome,"/Gencode.",geneWindow$chrom,".txt",sep = "")
+  genes <- read.delim(genCode,header=TRUE);
+  return(genes)
+}
+
+#FUNCTION: define spatial layout for plots
+plotLayout <- function(){
+  nf <- layout(matrix(c(1,2),2,1,byrow = TRUE), width=c(4), height=c(2,1), respect=TRUE)
+  layout.show(nf)
+}
+
+#FUNCTION: define margina parameters for data subplot
+parPlot <- function(){
+  par(mar=c(2,4,4,2));
+}
+
+#FUNCTION: define margin parameters for genes subplot
+parGenes <- function(){
+  par(mar=c(2,4,0,2));
+}
+
+#FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
+subPlotGenes <- function(genes,geneWindow){
+  plotGenes(genes,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+}
+
+#FUNCTION: define plot titles
+plotTitles <- function(yAxis="Y title",topTitle="Top title"){
+  axis(side=2,las=2,tcl=.2);
+  mtext(yAxis,side=2,line=1.75,cex=.75,font=2);
+  mtext(topTitle,side=3,line=1.75,cex=0.75,font=2);
+}
+
+#FUNCTION: convert gene window parameters by coordinates (ByCoord) to numeric values
+defineGeneWindowByCoord <- function(input){
+  chrom = input$chromNumber;
+  chromstart = as.numeric(input$cStart); #Note that commandArgs makes everything a string, so must convert to numeric
+  chromend = as.numeric(input$cStop);
+  geneWindow <- list("chrom" = chrom,"chromstart" = chromstart,"chromend" = chromend)
+  return(geneWindow)
+}
+
+#FUNCTION: regular expression to extract gene coordinates from geneId (when using search by gene)
+geneCoordinatesByGene <- function(input){
+  pattern <- " (.*?):"
+  chrom <- regmatches(input$geneId,regexec(pattern,input$geneId))
+  pattern <- ":(.*?)-"
+  chromstart <- regmatches(input$geneId,regexec(pattern,input$geneId))
+  pattern <- "-(.*?)$"
+  chromend <- regmatches(input$geneId,regexec(pattern,input$geneId))
+  chromCoords <- list("chrom"=chrom[[1]][2],
+                      "chromstart"=chromstart[[1]][2],
+                      "chromend"=chromend[[1]][2])
+  return(chromCoords)
+}
+
+#FUNCTION: convert gene window parameters by gene search (ByGene) to numeric values
+defineGeneWindowByGene <- function(input){
+  chromCoords <- geneCoordinatesByGene(input)
+  chrom = chromCoords$chrom;
+  chromstart = as.numeric(chromCoords$chromstart) - as.numeric(input$leftDistance);
+  chromend = as.numeric(chromCoords$chromend) + as.numeric(input$rightDistance);
+  geneWindow <- list("chrom" = chrom,"chromstart" = chromstart,"chromend" = chromend)
+  return(geneWindow)
+}
+
+
+#FUNCTION: generate genome axis label
+makeGenomeLabel <- function(geneWindow){
+  labelgenome(geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend,n=3,scale="Mb");
+}
+
+
+#FUNCTION: Define color palette for bezier curve samples
+bezierColorPalette <- function(input){
+  # Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3, Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
+  fullPalette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
+  plotPalette <- fullPalette[1:input$numOfSamples]
+  return(plotPalette)
+}
+
+
+#FUNCTION: generate legend for bezier curves
+bezierLegend <- function(input){
+  legendNames <- sapply(1:input$numOfSamples, function(number){
+    eval(parse(text = (paste0("input$sNumber", number))))
+  })
+  color_select <- bezierColorPalette(input)
+  legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.7,text.font=2);
+}
+
+
+#FUNCTION: to make bezier curves plots
+#Define function to plot bezier curves
+makeBezierCurves <- function(data,input,genes,geneWindow){
+  
+  #Call color palette
+  color_palette <- bezierColorPalette(input)
+  color_select <-colorRampPalette(color_palette)
+  
+  #Call plot layout
+  plotLayout()
+  
+  
+  ##Bezier curve plots
+  parPlot()
+  
+  #Sushi colorby and colorbycol requires >= 2 samples, therefore the following conditional tests if the dataset has 1 or >=2 samples in data$samplenumber. If only 1 sample in data$samplenumber, then coloring is by `color="blue`; else coloring is by `colorby=data$samplenumber,colorbycol=color_select`
+  if(max(data$samplenumber) == 1){
+    #for only 1 sample in data$samplenumber
+    ## USING SUSHI PACKAGE
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",color="blue");
+  }else{
+    #for >= 2 samples in data$samplenumber
+    ## USING SUSHI PACKAGE
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
+  }
+  
+  makeGenomeLabel(geneWindow);
+  bezierLegend(input);
+  plotTitles(yAxis="Interaction intensity",topTitle="HiC")
+  
+  
+  ## Genes features plot
+  parGenes()
+  subPlotGenes(genes,geneWindow)
+}
+
+
+#FUNCTION: to call makeBezierCurves with progress-bars
+plotBezierCurves <- function(data,input,genes,geneWindow){
+  
+  withProgress(message = 'Making bezier curve plot', value = 0, {
     
-    geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
-    genCode <- paste(geneCChNumber_generic,input$genome,"/Gencode.",geneWindow$chrom,".txt",sep = "")
-    genes <- read.delim(genCode,header=TRUE);
-    return(genes)
-  }
-  
-  #FUNCTION: define spatial layout for plots
-  plotLayout <- function(){
-    nf <- layout(matrix(c(1,2),2,1,byrow = TRUE), width=c(4), height=c(2,1), respect=TRUE)
-    layout.show(nf)
-  }
-  
-  #FUNCTION: define margina parameters for data subplot
-  parPlot <- function(){
-    par(mar=c(2,4,4,2));
-  }
-  
-  #FUNCTION: define margin parameters for genes subplot
-  parGenes <- function(){
-    par(mar=c(2,4,0,2));
-  }
-  
-  #FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
-  subPlotGenes <- function(genes,geneWindow){
-    plotGenes(genes,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
-  }
-  
-  #FUNCTION: define plot titles
-  plotTitles <- function(yAxis="Y title",topTitle="Top title"){
-    axis(side=2,las=2,tcl=.2);
-    mtext(yAxis,side=2,line=1.75,cex=.75,font=2);
-    mtext(topTitle,side=3,line=1.75,cex=0.75,font=2);
-  }
-  
-  #FUNCTION: convert gene window parameters by coordinates (ByCoord) to numeric values
-  defineGeneWindowByCoord <- function(input){
-    chrom = input$chromNumber;
-    chromstart = as.numeric(input$cStart); #Note that commandArgs makes everything a string, so must convert to numeric
-    chromend = as.numeric(input$cStop);
-    geneWindow <- list("chrom" = chrom,"chromstart" = chromstart,"chromend" = chromend)
-    return(geneWindow)
-  }
-  
-  #FUNCTION: regular expression to extract gene coordinates from geneId (when using search by gene)
-  geneCoordinatesByGene <- function(input){
-    pattern <- " (.*?):"
-    chrom <- regmatches(input$geneId,regexec(pattern,input$geneId))
-    pattern <- ":(.*?)-"
-    chromstart <- regmatches(input$geneId,regexec(pattern,input$geneId))
-    pattern <- "-(.*?)$"
-    chromend <- regmatches(input$geneId,regexec(pattern,input$geneId))
-    chromCoords <- list("chrom"=chrom[[1]][2],
-                        "chromstart"=chromstart[[1]][2],
-                        "chromend"=chromend[[1]][2])
-    return(chromCoords)
-  }
-  
-  #FUNCTION: convert gene window parameters by gene search (ByGene) to numeric values
-  defineGeneWindowByGene <- function(input){
-    chromCoords <- geneCoordinatesByGene(input)
-    chrom = chromCoords$chrom;
-    chromstart = as.numeric(chromCoords$chromstart) - as.numeric(input$leftDistance);
-    chromend = as.numeric(chromCoords$chromend) + as.numeric(input$rightDistance);
-    geneWindow <- list("chrom" = chrom,"chromstart" = chromstart,"chromend" = chromend)
-    return(geneWindow)
-  }
-  
-  
-  #FUNCTION: generate genome axis label
-  makeGenomeLabel <- function(geneWindow){
-    labelgenome(geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend,n=3,scale="Mb");
-  }
-  
-  
-  #FUNCTION: Define color palette for bezier curve samples
-  bezierColorPalette <- function(input){
-    # Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3, Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
-    fullPalette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
-    plotPalette <- fullPalette[1:input$numOfSamples]
-    return(plotPalette)
-  }
-  
-  
-  #FUNCTION: generate legend for bezier curves
-  bezierLegend <- function(input){
-    legendNames <- sapply(1:input$numOfSamples, function(number){
-      eval(parse(text = (paste0("input$sNumber", number))))
-    })
-    color_select <- bezierColorPalette(input)
-    legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.7,text.font=2);
-  }
-  
-  
-  #FUNCTION: to make bezier curves plots
-  #Define function to plot bezier curves
-  makeBezierCurves <- function(data,input,genes,geneWindow){
+    #Increment progress
+    incProgress(0.6)
     
-    #Call color palette
-    color_palette <- bezierColorPalette(input)
-    color_select <-colorRampPalette(color_palette)
+    makeBezierCurves(data, input, genes, geneWindow)
+    
+    #Increment progress
+    incProgress(0.8)
+  })
+  
+}
+
+#FUNCTION: Define function to plot bedgraph data
+plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
+  
+  withProgress(message = 'Making bedgraph plot', value = 0, {
+    
+    #Increment progress
+    incProgress(0.6)
     
     #Call plot layout
     plotLayout()
     
-    
-    ##Bezier curve plots
+    # Atac curve plot
     parPlot()
-    
-    #Sushi colorby and colorbycol requires >= 2 samples, therefore the following conditional tests if the dataset has 1 or >=2 samples in data$samplenumber. If only 1 sample in data$samplenumber, then coloring is by `color="blue`; else coloring is by `colorby=data$samplenumber,colorbycol=color_select`
-    if(max(data$samplenumber) == 1){
-      #for only 1 sample in data$samplenumber
-      ## USING SUSHI PACKAGE
-      pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",color="blue");
-    }else{
-      #for >= 2 samples in data$samplenumber
-      ## USING SUSHI PACKAGE
-      pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
-    }
-    
+    #Plot Atac-seq plot
+    color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    ## USING SUSHI PACKAGE
+    plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
     makeGenomeLabel(geneWindow);
-    bezierLegend(input);
-    plotTitles(yAxis="Interaction intensity",topTitle="HiC")
+    plotTitles(yAxis="Read Depth",topTitle=plotTopTitle)
     
-    
-    ## Genes features plot
+    # Genes features plot
     parGenes()
     subPlotGenes(genes,geneWindow)
-  }
-  
-  
-  #FUNCTION: to call makeBezierCurves with progress-bars
-  plotBezierCurves <- function(data,input,genes,geneWindow){
     
-    withProgress(message = 'Making bezier curve plot', value = 0, {
-      
-      #Increment progress
-      incProgress(0.6)
-      
-      makeBezierCurves(data, input, genes, geneWindow)
-      
-      #Increment progress
-      incProgress(0.8)
-    })
-    
-  }
+    #Increment progress
+    incProgress(0.8)
+  })
+}
+
+#FUNCTION: Define function to plot Bed data
+plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
   
-  #FUNCTION: Define function to plot bedgraph data
-  plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
+  withProgress(message = 'Making bed plot', value = 0, {
     
-    withProgress(message = 'Making bedgraph plot', value = 0, {
-      
-      #Increment progress
-      incProgress(0.6)
-      
-      #Call plot layout
-      plotLayout()
-      
-      # Atac curve plot
-      parPlot()
-      #Plot Atac-seq plot
-      color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
-      ## USING SUSHI PACKAGE
-      plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
-      makeGenomeLabel(geneWindow);
-      plotTitles(yAxis="Read Depth",topTitle=plotTopTitle)
-      
-      # Genes features plot
-      parGenes()
-      subPlotGenes(genes,geneWindow)
-      
-      #Increment progress
-      incProgress(0.8)
-    })
-  }
-  
-  #FUNCTION: Define function to plot Bed data
-  plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
+    #Increment progress
+    incProgress(0.6)
     
-    withProgress(message = 'Making bed plot', value = 0, {
-      
-      #Increment progress
-      incProgress(0.6)
-      
-      #Call plot layout
-      plotLayout()
-      
-      # ChIP curve plot
-      parPlot()
-      #Plot ChIP-seq plot
-      ## USING SUSHI PACKAGE
-      plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color=data$color,row="given",rowlabels=unique(data$name), rowlabelcol=unique(data$color),rowlabelcex=0.75)
-      makeGenomeLabel(geneWindow);
-      plotTitles(yAxis="Peaks",topTitle=plotTopTitle)
-      
-      # Genes features plot
-      parGenes()
-      subPlotGenes(genes,geneWindow)
-      
-      #Increment progress
-      incProgress(0.8)
-    })
-  }
-  #By Karni: fucntion to call HiC-atac-ChIP-mRNA Tabs
-  dataTabs <- lapply(1:length(dataTypes), function(i=dataTypes[i]){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
-    isolate(dataTypes)
-    tabPanel(title = dataTypes[i],
+    #Call plot layout
+    plotLayout()
+    
+    # ChIP curve plot
+    parPlot()
+    #Plot ChIP-seq plot
+    ## USING SUSHI PACKAGE
+    plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color=data$color,row="given",rowlabels=unique(data$name), rowlabelcol=unique(data$color),rowlabelcex=0.75)
+    makeGenomeLabel(geneWindow);
+    plotTitles(yAxis="Peaks",topTitle=plotTopTitle)
+    
+    # Genes features plot
+    parGenes()
+    subPlotGenes(genes,geneWindow)
+    
+    #Increment progress
+    incProgress(0.8)
+  })
+}
+#By Karni: fucntion to call HiC-atac-ChIP-mRNA Tabs
+dataTabs <- lapply(1:length(dataTypes), function(i=dataTypes[i]){   #ByKarni: Alos adviced to add a default file to the tabs, which is (i='HiC'), that the tab will be displayed right away  
+  isolate(dataTypes)
+  tabPanel(title = dataTypes[i],
+           
+           # Sidebar layout with input and output definitions ----
+           sidebarLayout(
              
-             # Sidebar layout with input and output definitions ----
-             sidebarLayout(
+             # Sidebar panel for inputs ----
+             sidebarPanel(
                
-               # Sidebar panel for inputs ----
-               sidebarPanel(
-                 
-                 # Input: Select a file ----
-                 div(id=paste0(dataTypes[i],"FileDiv"),
-                     fileInput(paste0(dataTypes[i],"File"), "Choose a TXT, CSV, or BG File",
-                               multiple = TRUE,
-                               accept = c(".txt","text/csv",
-                                          "text/comma-separated-values,text/plain",
-                                          ".csv",".bg"))
-                 ),
-                 
-                 # Horizontal line ----
-                 tags$hr(),
-                 
-                 # Input: Checkbox if file has header ----
-                 div(id=paste0(dataTypes[i],"HeaderDiv"),
-                     checkboxInput(paste0(dataTypes[i],"Header"), "Header", TRUE)
-                 ),
-                 
-                 # Input: Select separator ----
-                 div(id=paste0(dataTypes[i],"SepDiv"),
-                     radioButtons(paste0(dataTypes[i],"Sep"), "Separator",
-                                  choices = c(Comma = ",",
-                                              Semicolon = ";",
-                                              Tab = "\t"),
-                                  selected = "\t")
-                 ),
-                 
-                 # Input: Select quotes ----
-                 div(id=paste0(dataTypes[i],"QuoteDiv"),
-                     radioButtons(paste0(dataTypes[i],"Quote"), "Quote",
-                                  choices = c(None = "",
-                                              "Double Quote" = '"',
-                                              "Single Quote" = "'"),
-                                  selected = '"')
-                 ),
-                 
-                 # Horizontal line ----
-                 tags$hr(),
-                 # Input: Select number of rows to display ----
-                 div(id=paste0(dataTypes[i],"DispDiv"),
-                     radioButtons(paste0(dataTypes[i],"Disp"), "Display",
-                                  choices = c(Head = "head",
-                                              Tail = "tail"),
-                                  selected = "head")
-                 )
+               # Input: Select a file ----
+               div(id=paste0(dataTypes[i],"FileDiv"),
+                   fileInput(paste0(dataTypes[i],"File"), "Choose a TXT, CSV, or BG File",
+                             multiple = TRUE,
+                             accept = c(".txt","text/csv",
+                                        "text/comma-separated-values,text/plain",
+                                        ".csv",".bg"))
                ),
                
-               # Main panel for displaying outputs ----
-               mainPanel(id=paste0(dataTypes[i],"MainPanelDiv"),
-                         
-                         # # Output: Data file ----
-                         tableOutput(paste0(dataTypes[i],"Table"))
-                         
-               )
+               # Horizontal line ----
+               tags$hr(),
                
+               # Input: Checkbox if file has header ----
+               div(id=paste0(dataTypes[i],"HeaderDiv"),
+                   checkboxInput(paste0(dataTypes[i],"Header"), "Header", TRUE)
+               ),
+               
+               # Input: Select separator ----
+               div(id=paste0(dataTypes[i],"SepDiv"),
+                   radioButtons(paste0(dataTypes[i],"Sep"), "Separator",
+                                choices = c(Comma = ",",
+                                            Semicolon = ";",
+                                            Tab = "\t"),
+                                selected = "\t")
+               ),
+               
+               # Input: Select quotes ----
+               div(id=paste0(dataTypes[i],"QuoteDiv"),
+                   radioButtons(paste0(dataTypes[i],"Quote"), "Quote",
+                                choices = c(None = "",
+                                            "Double Quote" = '"',
+                                            "Single Quote" = "'"),
+                                selected = '"')
+               ),
+               
+               # Horizontal line ----
+               tags$hr(),
+               # Input: Select number of rows to display ----
+               div(id=paste0(dataTypes[i],"DispDiv"),
+                   radioButtons(paste0(dataTypes[i],"Disp"), "Display",
+                                choices = c(Head = "head",
+                                            Tail = "tail"),
+                                selected = "head")
+               )
+             ),
+             
+             # Main panel for displaying outputs ----
+             mainPanel(id=paste0(dataTypes[i],"MainPanelDiv"),
+                       
+                       # # Output: Data file ----
+                       tableOutput(paste0(dataTypes[i],"Table"))
+                       
              )
-    )
-    
-  })
+             
+           )
+  )
   
+})
 
-   #ByKarni
-  #JS code to display tabs of each file selected by the user
-  jsCodeFileSelected <- '
-  shinyjs.SelectFile = function() {
-  var x = document.getElementById("fileTypes").value;
-  document.getElementById("HiC").style.visibility = "hidden";
-  document.getElementById("ATAC").style.visibility = "hidden";
-  document.getElementById("ChIP").style.visibility = "hidden";
-  document.getElementById("mRNA").style.visibility = "hidden";
-  if(x == "HiC"){
-  document.getElementById("HiC").style.visibility = "visible";
-  document.getElementById("HiC").style.display = "inline";
-  document.getElementById("ATAC").style.display = "none";
-  document.getElementById("mRNA").style.display = "none";
-  document.getElementById("ChIP").style.display = "none";
-  }else if(x == "ATAC"){
-  document.getElementById("ATAC").style.visibility = "visible";
-  document.getElementById("ATAC").style.display = "inline";
-  document.getElementById("HiC").style.display = "none";
-  document.getElementById("mRNA").style.display = "none";
-  document.getElementById("ChIP").style.display = "none";
-  }else if(x== "ChIP"){
-  document.getElementById("ChIP").style.visibility = "visible";
-  document.getElementById("ChIP").style.display = "inline";
-  document.getElementById("HiC").style.display = "none";
-  document.getElementById("mRNA").style.display = "none";
-  document.getElementById("ATAC").style.display = "none";
-  }else {
-  document.getElementById("mRNA").style.visibility = "visible";
-  document.getElementById("mRNA").style.display = "inline";
-  document.getElementById("HiC").style.display = "none";
-  document.getElementById("ATAC").style.display = "none";
-  document.getElementById("ChIP").style.display = "none";
-  }
-  
-  }'
+
+#ByKarni
+#JS code to display tabs of each file selected by the user
+jsCodeFileSelected <- '
+shinyjs.SelectFile = function() {
+var x = document.getElementById("fileTypes").value;
+document.getElementById("HiC").style.visibility = "hidden";
+document.getElementById("ATAC").style.visibility = "hidden";
+document.getElementById("ChIP").style.visibility = "hidden";
+document.getElementById("mRNA").style.visibility = "hidden";
+if(x == "HiC"){
+document.getElementById("HiC").style.visibility = "visible";
+document.getElementById("HiC").style.display = "inline";
+document.getElementById("ATAC").style.display = "none";
+document.getElementById("mRNA").style.display = "none";
+document.getElementById("ChIP").style.display = "none";
+}else if(x == "ATAC"){
+document.getElementById("ATAC").style.visibility = "visible";
+document.getElementById("ATAC").style.display = "inline";
+document.getElementById("HiC").style.display = "none";
+document.getElementById("mRNA").style.display = "none";
+document.getElementById("ChIP").style.display = "none";
+}else if(x== "ChIP"){
+document.getElementById("ChIP").style.visibility = "visible";
+document.getElementById("ChIP").style.display = "inline";
+document.getElementById("HiC").style.display = "none";
+document.getElementById("mRNA").style.display = "none";
+document.getElementById("ATAC").style.display = "none";
+}else {
+document.getElementById("mRNA").style.visibility = "visible";
+document.getElementById("mRNA").style.display = "inline";
+document.getElementById("HiC").style.display = "none";
+document.getElementById("ATAC").style.display = "none";
+document.getElementById("ChIP").style.display = "none";
+}
+
+}'
   #ByKarni
-  #JS code to give to the user the option to plot the selected files byCoordinates or keep it as by genes
-  jsCodeCheckbox <- '
-  shinyjs.Check = function(){
-  var checkBox = document.getElementById("byCoordinates");
-  document.getElementById("searchByGeneDiv").style.display = "inline";
-  document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
-  if (checkBox.checked == true){
-  document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
-  document.getElementById("searchByCoordinatesDiv").style.display = "inline";
-  document.getElementById("searchByGeneDiv").style.display = "none";
-  }
-  }
-  '
-  jsCodeT <-'
-  shinyjs.test = function(){
-  var x = document.getElementById("fileTypes").value;
-  if(x == "ATAC"){
-  document.getElementById("atacFormatPanelDiv").style.visibility = "visible";
-  document.getElementById("atacFormatPanelDiv").style.display = "inline";
-  document.getElementById("chipFormatPanelDiv").style.display= "none";
-  document.getElementById("mrnaFormatPanelDiv").style.display= "none";
-  } else if (x == "ChIP"){
-  document.getElementById("chipFormatPanelDiv").style.visibility = "visible";
-  document.getElementById("chipFormatPanelDiv").style.display = "inline";
-  document.getElementById("atacFormatPanelDiv").style.display= "none";
-  document.getElementById("mrnaFormatPanelDiv").style.display= "none";
-  }else if (x == "mRNA"){
-  document.getElementById("mrnaFormatPanelDiv").style.visibility = "visible";
-  document.getElementById("mrnaFormatPanelDiv").style.display = "inline";
-  document.getElementById("atacFormatPanelDiv").style.display= "none";
-  document.getElementById("chipFormatPanelDiv").style.display= "none";
-  }else {
-  document.getElementById("atacFormatPanelDiv").style.display= "none";
-  document.getElementById("chipFormatPanelDiv").style.display= "none";
-  document.getElementById("mrnaFormatPanelDiv").style.display= "none";
-  }
-
-  }'
+#JS code to give to the user the option to plot the selected files byCoordinates or keep it as by genes
+jsCodeCheckbox <- '
+shinyjs.Check = function(){
+var checkBox = document.getElementById("byCoordinates");
+document.getElementById("searchByGeneDiv").style.display = "inline";
+document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
+if (checkBox.checked == true){
+document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
+document.getElementById("searchByCoordinatesDiv").style.display = "inline";
+document.getElementById("searchByGeneDiv").style.display = "none";
+}
+}
+'
+jsCodeT <-'
+shinyjs.test = function(){
+var x = document.getElementById("fileTypes").value;
+if(x == "ATAC"){
+document.getElementById("atacFormatPanelDiv").style.visibility = "visible";
+document.getElementById("atacFormatPanelDiv").style.display = "inline";
+document.getElementById("chipFormatPanelDiv").style.display= "none";
+document.getElementById("mrnaFormatPanelDiv").style.display= "none";
+} else if (x == "ChIP"){
+document.getElementById("chipFormatPanelDiv").style.visibility = "visible";
+document.getElementById("chipFormatPanelDiv").style.display = "inline";
+document.getElementById("atacFormatPanelDiv").style.display= "none";
+document.getElementById("mrnaFormatPanelDiv").style.display= "none";
+}else if (x == "mRNA"){
+document.getElementById("mrnaFormatPanelDiv").style.visibility = "visible";
+document.getElementById("mrnaFormatPanelDiv").style.display = "inline";
+document.getElementById("atacFormatPanelDiv").style.display= "none";
+document.getElementById("chipFormatPanelDiv").style.display= "none";
+}else {
+document.getElementById("atacFormatPanelDiv").style.display= "none";
+document.getElementById("chipFormatPanelDiv").style.display= "none";
+document.getElementById("mrnaFormatPanelDiv").style.display= "none";
+}
+}'
   jsCodePlot <-'
   shinyjs.plot =  function(){
   var x = document.getElementById("fileTypes").value;
@@ -615,10 +611,10 @@
   }else{
   document.getElementById("mRNAPlot").style.visibility = "visible";
   }
-}
+  }
   '
   appCSS <- "
-#loading-content {
+  #loading-content {
   position: absolute;
   background: #FFFFFF;
   opacity: ;
@@ -641,7 +637,7 @@
                   div(
                     id = "loading-content",
                     withSpinner(
-                    h2("Loading...")
+                      h2("Loading...")
                     )
                   ),
                   
@@ -671,12 +667,12 @@
                   
                   
                   # The main app code goes here
-                
-                 
+                  
+                  
                   fluidRow(
                     column(width = 6,
                            img(id = "image", src="DNARchitect_Logo.png") #ByKarni: removed the styling
-                           ),
+                    ),
                     column(width = 1,
                            tags$p("")),
                     column(width = 3,
@@ -684,8 +680,8 @@
                     column(width = 2,
                            tags$br(),
                            div(id = "helpreload",
-                           actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
-                           actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
+                               actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
+                               actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
                     )
                   ),
                   tabsetPanel(
@@ -695,37 +691,37 @@
                                column(width =4,   #ByKarni: added with=
                                       tags$br(),
                                       div(id = "datatypewellpanel",
-                                      wellPanel(id="dataTypeWellPanel",
-                                                div(
-                                                  tags$html(id = "step1", "Step 1: Select the types of data you want to analyze")
-                                                  ), #ByKarni: removed , then browse for your files
-                                                #Select data types
-                                                div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE))
-                                               
-                                      )
+                                          wellPanel(id="dataTypeWellPanel",
+                                                    div(
+                                                      tags$html(id = "step1", "Step 1: Select the types of data you want to analyze")
+                                                    ), #ByKarni: removed , then browse for your files
+                                                    #Select data types
+                                                    div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE))
+                                                    
+                                          )
                                       )
                                ),
                                column(width =4,
                                       tags$br(),
                                       div(id = "processwellpanel", 
-                                      wellPanel(id="processWellPanel",
-                                                       div(
-                                                           tags$html(id = "step2", "Step 2: After browsing for your files, click the button to process the data for plotting")
-                                                           ),
-                                                tags$br(),
-                                                actionButton("processDataBtn","Process Data")
-                                      )
+                                          wellPanel(id="processWellPanel",
+                                                    div(
+                                                      tags$html(id = "step2", "Step 2: After browsing for your files, click the button to process the data for plotting")
+                                                    ),
+                                                    tags$br(),
+                                                    actionButton("processDataBtn","Process Data")
+                                          )
                                       )
                                ),
                                column(width =4,
                                       tags$br(),
                                       div(id= "gotoplotwellpanel", 
-                                      wellPanel(id="goToPlotWellPanel",
-                                                div(
-                                                  tags$html(id= "step3", "Step 3:Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")
-                                                  ),
-                                                actionButton(inputId="goToPlots","Go to Plots")
-                                      )
+                                          wellPanel(id="goToPlotWellPanel",
+                                                    div(
+                                                      tags$html(id= "step3", "Step 3:Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")
+                                                    ),
+                                                    actionButton(inputId="goToPlots","Go to Plots")
+                                          )
                                       )  
                                )
                              ),
@@ -733,22 +729,22 @@
                              fluidRow(
                                useShinyjs(),   #ByKarni: removed the conditional panels
                                extendShinyjs(text = jsCodeT),
-                                                column(4,
-                                                      
-                                                       div(id="atacFormatPanelDiv", 
-                                                           selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph"))
-                                                           
-                                                       ),
-                                                       
-                                                       div(id ="chipFormatPanelDiv", 
-                                                       selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph"))
-                                                           
-                                                       ),
-                                                  
-                                                       div(id="mrnaFormatPanelDiv",
-                                                           selectInput(inputId="mrnaFormat","Select mRNA data format", choices = c("Bed","Bedgraph"))
-                                                           )
-                                                )
+                               column(4,
+                                      
+                                      div(id="atacFormatPanelDiv", 
+                                          selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph"))
+                                          
+                                      ),
+                                      
+                                      div(id ="chipFormatPanelDiv", 
+                                          selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph"))
+                                          
+                                      ),
+                                      
+                                      div(id="mrnaFormatPanelDiv",
+                                          selectInput(inputId="mrnaFormat","Select mRNA data format", choices = c("Bed","Bedgraph"))
+                                      )
+                               )
                              ),
                              
                              tags$br(),
@@ -793,7 +789,7 @@
                         ),
                         column(3,
                                div(id="sampleNamesDiv",
-                                 uiOutput("sampleNames")
+                                   uiOutput("sampleNames")
                                )
                         ),
                         useShinyjs(),#NewByKarni
@@ -839,29 +835,29 @@
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                              # conditionalPanel(id="hicPlotPanel",
-                                #                condition = "input.fileTypes.includes('HiC')",
-                              div ( id= "HiCplot", 
-                                                wellPanel(
-                                                  downloadButton("downloadDataBezier", "Download Plot"),
-                                                  tags$hr(),
-                                                  plotOutput("bezierplot")
-                                                )
-                              )
-                              # )
+                               # conditionalPanel(id="hicPlotPanel",
+                               #                condition = "input.fileTypes.includes('HiC')",
+                               div ( id= "HiCplot", 
+                                     wellPanel(
+                                       downloadButton("downloadDataBezier", "Download Plot"),
+                                       tags$hr(),
+                                       plotOutput("bezierplot")
+                                     )
+                               )
+                               # )
                         ),
                         column(6,
-                             #  conditionalPanel(id="cyNetworkPanel",
-                                #                condition = "input.fileTypes.includes('HiC')",
-                             div(id = "HiCNetwork",
-                                                wellPanel(
-                                                  actionButton(inputId = "saveImage", label = "Download as PNG"),  #ByKarni: added inputId/label
-                                                  actionButton(inputId = "refreshCytoBtn", label = "Refresh cytoscape plot"),
-                                                  tags$hr(),
-                                                  rcytoscapejsOutput("cyplot", height="400px")
-                                                )
-                             )
-                             #  )
+                               #  conditionalPanel(id="cyNetworkPanel",
+                               #                condition = "input.fileTypes.includes('HiC')",
+                               div(id = "HiCNetwork",
+                                   wellPanel(
+                                     actionButton(inputId = "saveImage", label = "Download as PNG"),  #ByKarni: added inputId/label
+                                     actionButton(inputId = "refreshCytoBtn", label = "Refresh cytoscape plot"),
+                                     tags$hr(),
+                                     rcytoscapejsOutput("cyplot", height="400px")
+                                   )
+                               )
+                               #  )
                         )
                       ),
                       
@@ -870,29 +866,29 @@
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                              # conditionalPanel(id="atacPlotPanel",
-                                 #               condition = "input.fileTypes.includes('ATAC')",
-                              div (id = "ATACPlot", 
-                                                wellPanel(
-                                                  downloadButton("downloadDataAtac", "Download Plot"),
-                                                  tags$hr(),
-                                                  plotOutput(outputId = "atacPlot")  #ByKarni: added outputId
-                                                )
-                              )
-                              # )
+                               # conditionalPanel(id="atacPlotPanel",
+                               #               condition = "input.fileTypes.includes('ATAC')",
+                               div (id = "ATACPlot", 
+                                    wellPanel(
+                                      downloadButton("downloadDataAtac", "Download Plot"),
+                                      tags$hr(),
+                                      plotOutput(outputId = "atacPlot")  #ByKarni: added outputId
+                                    )
+                               )
+                               # )
                         ),
                         column(6,
-                              # conditionalPanel(id="cyClickedNodesPanel",
-                                   #             condition = "input.fileTypes.includes('HiC')",
-                              div(id = "HiCcyclic",
-                                                wellPanel(
-                                                  h4("Clicked Node"),
-                                                  verbatimTextOutput("clickedNode"),
-                                                  h4("Connected Nodes"),
-                                                  verbatimTextOutput("connectedNodes")
-                                                )
-                              )
-                              # )
+                               # conditionalPanel(id="cyClickedNodesPanel",
+                               #             condition = "input.fileTypes.includes('HiC')",
+                               div(id = "HiCcyclic",
+                                   wellPanel(
+                                     h4("Clicked Node"),
+                                     verbatimTextOutput("clickedNode"),
+                                     h4("Connected Nodes"),
+                                     verbatimTextOutput("connectedNodes")
+                                   )
+                               )
+                               # )
                         )
                       ),
                       
@@ -901,28 +897,28 @@
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                            #   conditionalPanel(id="chipPlotPanel",
-                                              #  condition = "input.fileTypes.includes('ChIP')",
-                            div(id = "ChIPPlot", 
-                                                wellPanel(
-                                                  downloadButton("downloadDataChip", "Download Plot"),
-                                                  tags$hr(),
-                                                  plotOutput(outputId = "chipPlot") #ByKarni: added attr outputId for clearance
-                                                )
-                            )
-                              # )
+                               #   conditionalPanel(id="chipPlotPanel",
+                               #  condition = "input.fileTypes.includes('ChIP')",
+                               div(id = "ChIPPlot", 
+                                   wellPanel(
+                                     downloadButton("downloadDataChip", "Download Plot"),
+                                     tags$hr(),
+                                     plotOutput(outputId = "chipPlot") #ByKarni: added attr outputId for clearance
+                                   )
+                               )
+                               # )
                         ),
                         column(6,
                                #conditionalPanel(id="mrnaPlotPanel",
-                                              #  condition = "input.fileTypes.includes('mRNA')",
+                               #  condition = "input.fileTypes.includes('mRNA')",
                                div(id= "mRNAPlot", 
-                                                wellPanel(
-                                                  downloadButton("downloadDataMrna", "Download Plot"),
-                                                  tags$hr(),
-                                                  plotOutput(outputId = "mrnaPlot") #ByKarni: added attr outputId for clearance
-                                                )
+                                   wellPanel(
+                                     downloadButton("downloadDataMrna", "Download Plot"),
+                                     tags$hr(),
+                                     plotOutput(outputId = "mrnaPlot") #ByKarni: added attr outputId for clearance
+                                   )
                                )
-                              # )
+                               # )
                         )
                       )
                       
@@ -936,7 +932,7 @@
     
     # Hide the loading message when the rest of the server function has executed
     hide(id = "loading-content", anim = TRUE, animType = "fade")    
-   
+    
     
     
     
@@ -1046,26 +1042,31 @@
     ## Render appropriate searchNames list (ie 'gene: chr1:start-stop') when using the 
     # 'Search by Gene' option to plot data
     # To add new searchNames list for a new species, create a new case for the switch expression
+   # geneNames <- NULL
+  #  geneNames$mouse <- read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+   # geneNames$human <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+  #  geneNames$drosophila_melanogaster <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+    
     output$searchNamesList <- renderUI({
       switch(input$genome,
              mouse = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices = geneNames$mouse,
+                              choices = read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              },
              human = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices = geneNames$human,
+                              choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              },
              drosophila_melanogaster = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices = geneNames$drosophila_melanogaster,
+                              choices =  read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              }
@@ -1464,8 +1465,8 @@
     })
     
   }
-
-#ByKarni added(if reactive)
-
+  
+  #ByKarni added(if reactive)
+  
   shinyApp(ui = ui, server = server)
- 
+  
