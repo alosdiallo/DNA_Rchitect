@@ -1052,21 +1052,21 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
              mouse = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices = read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                              choices = includeText("www/mouse_searchNames.txt"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              },
              human = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                              choices = includeText("www/human_searchNames.txt"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              },
              drosophila_melanogaster = {
                selectizeInput(inputId = 'geneId', 
                               label = 'Type gene name: (backspace to clear)', 
-                              choices =  read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                              choices = includeText("www/drosophila_searchNames.txt"),
                               options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                )
              }
