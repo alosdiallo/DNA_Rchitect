@@ -648,13 +648,11 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   z-index: 100;
   left: 0;
   right: 0;
-  height: 100%;
+  height: 400%;
   text-align: center;
   color: #000000;
   }
   "
-
-  
   # UI for Shiny
   ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   
@@ -664,9 +662,9 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   # Loading message
                   div(
                     id = "loading-content",
-                    withSpinner(
-                      h2("Loading...")
-                    )
+                   # withSpinner(
+                     h2("Loading...")
+                   # )
                   ),
                   
                   ## CSS and JS scripts for Introduction by IntroJS
@@ -720,11 +718,12 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                       tags$br(),
                                       div(id = "datatypewellpanel",
                                           wellPanel(id="dataTypeWellPanel",
-                                                    div(
-                                                      tags$html(id = "step1", "Step 1: Select the types of data you want to analyze")
-                                                    ), #ByKarni: removed , then browse for your files
+                                                   # div(
+                                                      tags$html("Step 1: Select the types of data you want to analyze"),
+                                                    #), #ByKarni: removed , then browse for your files
                                                     #Select data types
-                                                    div(id="fileTypesDiv", selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE))
+                                                   tags$br(),
+                                                   selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple=FALSE)
                                                     
                                           )
                                       )
@@ -733,9 +732,9 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                       tags$br(),
                                       div(id = "processwellpanel", 
                                           wellPanel(id="processWellPanel",
-                                                    div(
-                                                      tags$html(id = "step2", "Step 2: After browsing for your files, click the button to process the data for plotting")
-                                                    ),
+                                                  #  div(
+                                                      tags$html("Step 2: After browsing for your files, click the button to process the data for plotting"),
+                                                   # ),
                                                     tags$br(),
                                                     actionButton("processDataBtn","Process Data")
                                           )
@@ -745,9 +744,10 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                       tags$br(),
                                       div(id= "gotoplotwellpanel", 
                                           wellPanel(id="goToPlotWellPanel",
-                                                    div(
-                                                      tags$html(id= "step3", "Step 3:Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")
-                                                    ),
+                                                   # div(
+                                                      tags$html("Step 3: Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data"),
+                                                   # ),
+                                                   tags$br(),
                                                     actionButton(inputId="goToPlots","Go to Plots")
                                           )
                                       )  
@@ -803,6 +803,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                )
                              )
                     ),
+                  #  readfile(),
                     tabPanel(
                       title = "Plots",
                       fluidRow(tags$br()),
@@ -844,6 +845,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                       actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                     
                                      ) ),
+                
                                    div(id="geneIdDiv_human",
                                        column(3,
                                       selectizeInput(inputId = 'geneId_human', 
@@ -859,6 +861,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                                 value = "50000"),
                                       actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                                      ) ),
+                  
                                    div(id="geneIdDiv_drosophila",
                                        column(3,
                                       selectizeInput(inputId = 'geneId_drosophila', 
