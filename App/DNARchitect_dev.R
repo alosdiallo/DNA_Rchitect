@@ -557,13 +557,39 @@ document.getElementById("ChIP").style.display = "none";
 #JS code to give to the user the option to plot the selected files byCoordinates or keep it as by genes
 jsCodeCheckbox <- '
 shinyjs.Check = function(){
+var x = document.getElementById("genome").value;
 var checkBox = document.getElementById("byCoordinates");
-document.getElementById("searchByGeneDiv").style.display = "inline";
+document.getElementById("geneIdDiv_mouse").style.display = "inline";
 document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
+document.getElementById("geneIdDiv_human").style.visibility = "hidden";
+document.getElementById("geneIdDiv_drosophila").style.visibility = "hidden";
+
+
+
 if (checkBox.checked == true){
 document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
 document.getElementById("searchByCoordinatesDiv").style.display = "inline";
-document.getElementById("searchByGeneDiv").style.display = "none";
+document.getElementById("geneIdDiv_human").style.display = "none";
+document.getElementById("geneIdDiv_mouse").style.display = "none";
+document.getElementById("geneIdDiv_drosophila").style.display = "none";
+} else {
+
+if (x == "mouse"){
+document.getElementById("geneIdDiv_mouse").style.visibility = "visible";
+document.getElementById("geneIdDiv_mouse").style.display = "inline";
+document.getElementById("geneIdDiv_human").style.display = "none";
+document.getElementById("geneIdDiv_drosophila").style.display = "none";
+}else if (x == "human"){
+document.getElementById("geneIdDiv_human").style.visibility = "visible";
+document.getElementById("geneIdDiv_human").style.display = "inline";
+document.getElementById("geneIdDiv_mouse").style.display = "none";
+document.getElementById("geneIdDiv_drosophila").style.display = "none";
+}else {
+  document.getElementById("geneIdDiv_drosophila").style.visibility = "visible";
+document.getElementById("geneIdDiv_drosophila").style.display = "inline";
+  document.getElementById("geneIdDiv_mouse").style.display = "none";
+document.getElementById("geneIdDiv_human").style.display = "none";
+}
 }
 }
 '
@@ -613,6 +639,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   }
   }
   '
+
   appCSS <- "
   #loading-content {
   position: absolute;
@@ -626,6 +653,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   color: #000000;
   }
   "
+
   
   # UI for Shiny
   ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
@@ -793,26 +821,66 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                )
                         ),
                         useShinyjs(),#NewByKarni
-                        
+                        extendShinyjs(text = jsCodeCheckbox),
+                       # extendShinyjs(text = jsCodeGenes),
                         #ByKarni
-                        div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
-                            column(3,
-                                   div(id="geneIdDiv",
-                                       uiOutput("searchNamesList")
-                                   ),
+                      #  div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
+                            
+                                   div(id="geneIdDiv_mouse",
+                                       column(3,
+                                      # uiOutput("searchNamesList")
+                                      selectizeInput(inputId = 'geneId_mouse', 
+                                                     label = 'Type gene name: (backspace to clear)', 
+                                                     choices = read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                     options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                                      ),
+                                      
+                                          textInput(inputId = "leftDistance", 
+                                                    label = "Genomic interval to left of gene (bases)",
+                                                    value = "50000"),
+                                          textInput(inputId = "rightDistance", 
+                                                    label = "Genomic interval to right of gene (bases)",
+                                                    value = "50000"),
+                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                    
+                                     ) ),
+                                   div(id="geneIdDiv_human",
+                                       column(3,
+                                      selectizeInput(inputId = 'geneId_human', 
+                                                                   label = 'Type gene name: (backspace to clear)', 
+                                                                    choices =  read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                     options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                                      ),
+                                      textInput(inputId = "leftDistance", 
+                                                label = "Genomic interval to left of gene (bases)",
+                                                value = "50000"),
+                                      textInput(inputId = "rightDistance", 
+                                                label = "Genomic interval to right of gene (bases)",
+                                                value = "50000"),
+                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                                     ) ),
+                                   div(id="geneIdDiv_drosophila",
+                                       column(3,
+                                      selectizeInput(inputId = 'geneId_drosophila', 
+                                                                       label = 'Type gene name: (backspace to clear)', 
+                                                                      choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                                                       ),
+                                      textInput(inputId = "leftDistance", 
+                                                label = "Genomic interval to left of gene (bases)",
+                                                value = "50000"),
+                                      textInput(inputId = "rightDistance", 
+                                                label = "Genomic interval to right of gene (bases)",
+                                                value = "50000"),
+                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                      
+                                   )),
                                    
-                                   div(id="genomicIntervalDiv",
-                                       textInput(inputId = "leftDistance", 
-                                                 label = "Genomic interval to left of gene (bases)",
-                                                 value = "50000"),
-                                       textInput(inputId = "rightDistance", 
-                                                 label = "Genomic interval to right of gene (bases)",
-                                                 value = "50000")
-                                   ),
-                                   actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
-                            )
-                        ),
-                        extendShinyjs(text = jsCodeCheckbox), #ByKarni: to call JS code for the checkbox into R 
+                                   
+                                 
+                           # ),
+                       # ),
+                       #ByKarni: to call JS code for the checkbox into R 
                         div(id="searchByCoordinatesDiv", 
                             column(3,
                                    uiOutput("chromNumberUI"),
@@ -928,7 +996,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   server <- function(input, output, session) {
     
     # Simulate work being done for 1 second
-    Sys.sleep(1)
+    Sys.sleep(0.2)
     
     # Hide the loading message when the rest of the server function has executed
     hide(id = "loading-content", anim = TRUE, animType = "fade")    
@@ -950,12 +1018,15 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
     observeEvent(input$byCoordinates,{
       js$Check()
     })
+    observeEvent(input$genome, {
+      js$Check()
+    })
     
     # Reload App
     observeEvent(input$reloadApp, {
       session$reload()
     })
-    
+  
     ## Go to the "Plots" tab when click "goToPlots" button
     observeEvent(input$goToPlots, {
       updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
@@ -1037,43 +1108,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
     })
     
     outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE)         #By Karni: Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
-    
-    
-    ## Render appropriate searchNames list (ie 'gene: chr1:start-stop') when using the 
-    # 'Search by Gene' option to plot data
-    # To add new searchNames list for a new species, create a new case for the switch expression
-   # geneNames <- NULL
-  #  geneNames$mouse <- read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-   # geneNames$human <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-  #  geneNames$drosophila_melanogaster <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-    
-    output$searchNamesList <- renderUI({
-      switch(input$genome,
-             mouse = {
-               selectizeInput(inputId = 'geneId', 
-                              label = 'Type gene name: (backspace to clear)', 
-                              choices = includeText("www/mouse_searchNames.txt"),
-                              options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-               )
-             },
-             human = {
-               selectizeInput(inputId = 'geneId', 
-                              label = 'Type gene name: (backspace to clear)', 
-                              choices = includeText("www/human_searchNames.txt"),
-                              options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-               )
-             },
-             drosophila_melanogaster = {
-               selectizeInput(inputId = 'geneId', 
-                              label = 'Type gene name: (backspace to clear)', 
-                              choices = includeText("www/drosophila_searchNames.txt"),
-                              options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-               )
-             }
-      )
-    })
-    outputOptions(output, "searchNamesList", suspendWhenHidden = FALSE)   #By Karni: #By Karni: Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
-    
     
     #   
     ## START OF ANALYSIS/VISUALIZATION BLOCK
@@ -1469,4 +1503,5 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   #ByKarni added(if reactive)
   
   shinyApp(ui = ui, server = server)
+  
   
