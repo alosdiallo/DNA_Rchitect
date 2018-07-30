@@ -45,7 +45,11 @@ library(jsonlite) # Load jsonlite for JSON communication in IntroJS
 library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
 library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(DT) #Load DataTables for data-table functions
-library(RColorBrewer) # Load RColorBrewer for color palettes
+library(iotools)
+library(devtools)
+
+library(data.table)
+library(fst)
 
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
@@ -55,6 +59,7 @@ options(shiny.maxRequestSize = 1000*1024^2)
 
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
+
 
 # Download geneNames file for search function
 # When adding a new species, create a new column for it in geneNames 
@@ -653,6 +658,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
   color: #000000;
   }
   "
+ 
+ 
   # UI for Shiny
   ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   
@@ -664,6 +671,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                     id = "loading-content",
                    # withSpinner(
                      h2("Loading...")
+               
                    # )
                   ),
                   
@@ -688,7 +696,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   includeCSS("www/css/styles.css"),
                   includeCSS("www/css/style.css"),
                   includeHTML("www/html/include.html"),
-                  
+               
+             
                   
                   
                   
@@ -826,55 +835,46 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                        # extendShinyjs(text = jsCodeGenes),
                         #ByKarni
                       #  div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
-                            
+                     # read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+                    # read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+                    #read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                    
                                    div(id="geneIdDiv_mouse",
                                        column(3,
+                                             # dfmouse <- fst::read.fst("dataset1.fst"),
                                       # uiOutput("searchNamesList")
                                       selectizeInput(inputId = 'geneId_mouse', 
                                                      label = 'Type gene name: (backspace to clear)', 
                                                      choices = read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
-                                      
-                                          textInput(inputId = "leftDistance", 
-                                                    label = "Genomic interval to left of gene (bases)",
-                                                    value = "50000"),
-                                          textInput(inputId = "rightDistance", 
-                                                    label = "Genomic interval to right of gene (bases)",
-                                                    value = "50000"),
+                                      includeHTML("www/html/numericDistance.html"),
                                       actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                     
                                      ) ),
-                
+                     
                                    div(id="geneIdDiv_human",
                                        column(3,
-                                      selectizeInput(inputId = 'geneId_human', 
+                                             # dfhuman <- fst::read.fst("dataset2.fst"),
+                                       selectizeInput(inputId = 'geneId_human', 
                                                                    label = 'Type gene name: (backspace to clear)', 
-                                                                    choices =  read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                    choices =read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
-                                      textInput(inputId = "leftDistance", 
-                                                label = "Genomic interval to left of gene (bases)",
-                                                value = "50000"),
-                                      textInput(inputId = "rightDistance", 
-                                                label = "Genomic interval to right of gene (bases)",
-                                                value = "50000"),
+                                      includeHTML("www/html/numericDistance.html"),
                                       actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                                      ) ),
-                  
-                                   div(id="geneIdDiv_drosophila",
+                 
+                      
+                                  div(id="geneIdDiv_drosophila",
                                        column(3,
+                                             # dfdrosophila <- fst::read.fst("dataset3.fst"),
                                       selectizeInput(inputId = 'geneId_drosophila', 
                                                                        label = 'Type gene name: (backspace to clear)', 
-                                                                      choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                      choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
                                                                       options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-                                                       ),
-                                      textInput(inputId = "leftDistance", 
-                                                label = "Genomic interval to left of gene (bases)",
-                                                value = "50000"),
-                                      textInput(inputId = "rightDistance", 
-                                                label = "Genomic interval to right of gene (bases)",
-                                                value = "50000"),
+                                                      ),
+                                      includeHTML("www/html/numericDistance.html"),
                                       actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                       
                                    )),
@@ -888,12 +888,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                             column(3,
                                    uiOutput("chromNumberUI"),
                                    
-                                   textInput(inputId = "cStart", 
-                                             label = "Start coordinate",
-                                             value = "60853778"),
-                                   textInput(inputId = "cStop", 
-                                             label = "End coordinate",
-                                             value = "60948071"),
+                                  includeHTML("www/html/numericCoord.html"),
                                    actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
                                    
                             )
@@ -1003,10 +998,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
     
     # Hide the loading message when the rest of the server function has executed
     hide(id = "loading-content", anim = TRUE, animType = "fade")    
-    
-    
-    
-    
+  
+   
     #ByKarni
     #JS fucntions called in the server 
     observeEvent(input$fileTypes,{
