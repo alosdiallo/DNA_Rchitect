@@ -1,0 +1,28 @@
+<HTML>
+   <HEAD>
+   <SCRIPT language=Javascript>
+      <!--
+      function isNumberKey(evt)
+      {
+         var charCode = (evt.which) ? evt.which : event.keyCode
+         if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+         return true;
+      }
+      //-->
+   </SCRIPT>
+   </HEAD>
+   <BODY>
+   <form>
+   <div class = "form-group">
+      <label for="lft">Genomic interval to left of gene (bases)</label>
+      <INPUT id="leftDistance" onkeypress="return isNumberKey(event)" type="text" name="txtChar" value= "50000" class="form-control" width = "215">
+	</div>
+	<div class = "form-group">
+      <label for="right">Genomic interval to right of gene (bases)</label>
+      <INPUT id="rightDistance" onkeypress="return isNumberKey(event)" type="text" name="txtChar" value= "50000" class="form-control" width ="15">
+	 </div>
+   </form>
+   </BODY>
+</HTML>
