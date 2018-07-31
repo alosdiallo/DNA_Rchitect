@@ -43,7 +43,7 @@ A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is avail
 - Chrome
 - Firefox
 - Safari
-- Microsoft Edge
+- Microsoft Internet Explorer
 
 ### Header requirements
 All files must have the following standard headers. Missing or misspelled headers will lead to processing errors. Non-required headers will be ignored<br>
