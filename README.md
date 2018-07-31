@@ -132,7 +132,8 @@ This application utilizes the following packages and libraries:<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
 
-### Authors
+Authors
+--------------------
 	Simon Matthew Gray - Division of Immunology, Harvard Medical School
 	Ricardo Ramirez - Department of Microbiology & Immunobiology, Harvard Medical School
 	Karni Bedirian - Division of Immunology, Harvard Medical School
