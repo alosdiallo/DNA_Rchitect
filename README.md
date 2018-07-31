@@ -123,8 +123,8 @@ The code must be changed in 3 places to accomodate a new species.<br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
-[IntroJS](https://introjs.com/)<br> 
-[Cytoscape.js](http://js.cytoscape.org/)<br>
+[`IntroJS`](https://introjs.com/)<br> 
+[`Cytoscape.js`](http://js.cytoscape.org/)<br>
 [`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)<br>
 [`shiny`](https://cran.r-project.org/web/packages/shiny/index.html)<br>
 [`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/index.html)<br>
