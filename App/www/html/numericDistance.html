@@ -12,17 +12,45 @@
       }
       //-->
    </SCRIPT>
+   <style>
+  input:invalid{
+    border-color: #900;
+    background-color: #FDD;
+  }
+  input:focus:invalid {
+   outline: none;
+  }
+   .error {
+  width  : 100%;
+  padding: 0;
+ 
+  font-size: 80%;
+  color: white;
+  background-color: #900;
+  border-radius: 0 0 5px 5px;
+ 
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.error.active {
+  padding: 0.3em;
+}
+
+</style>
    </HEAD>
    <BODY>
    <form>
    <div class = "form-group">
-      <label for="lft">Genomic interval to left of gene (bases)</label>
-      <INPUT id="leftDistance" onkeypress="return isNumberKey(event)" type="text" name="txtChar" value= "50000" class="form-control" width = "215">
+      <label>Genomic interval to left of gene (bases)</label>
+      <INPUT id="leftDistance" pattern="\d+" onkeypress="return isNumberKey(event)" type="number" name="leftDistance" value= "50000" min="0" class="form-control" required>
 	</div>
 	<div class = "form-group">
-      <label for="right">Genomic interval to right of gene (bases)</label>
-      <INPUT id="rightDistance" onkeypress="return isNumberKey(event)" type="text" name="txtChar" value= "50000" class="form-control" width ="15">
+      <label>Genomic interval to right of gene (bases)</label>
+      <INPUT id="rightDistance" pattern="\d+" onkeypress="return isNumberKey(event)" type="number" name="rightDistance" value= "50000" min="0" class="form-control"  required>
 	 </div>
+	 <span class="error" aria-live="polite"></span>
+	   <button class="btn btn-default action-button" id = "submitByGene">Submit Parameters</button>
    </form>
    </BODY>
 </HTML>
