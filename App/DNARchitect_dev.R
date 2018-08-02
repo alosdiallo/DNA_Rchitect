@@ -1,6 +1,3 @@
-
-
-
 # DNA Rchitect Developer Version
 
 ############ ISSUES:
@@ -60,6 +57,9 @@ options(shiny.maxRequestSize = 1000*1024^2)
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
 
+#fst::write_fst(read.csv.raw("mouse_searchNames.txt"), "mouse.fst")
+#fst::write_fst(read.csv.raw("human_searchNames.txt"), "human.fst")
+#runApp('C:/Users/Hp/Desktop/DNARchitect/DNARchitect_Karni_final.R')
 
 # Download geneNames file for search function
 # When adding a new species, create a new column for it in geneNames 
@@ -698,7 +698,9 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   includeHTML("www/html/include.html"),
                
              
-                  
+                  #feather::write_feather(read.csv.raw("mouse_searchNames.txt"), "mouse.feather"),
+                  #feather::write_feather(read.csv.raw("human_searchNames.txt"), "human.feather"),
+                  #feather::write_feather(read.csv.raw("drosophila_searchNames.txt"), "drosophila.feather"),
                   
                   
                   # The main app code goes here
@@ -832,50 +834,48 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                         ),
                         useShinyjs(),#NewByKarni
                         extendShinyjs(text = jsCodeCheckbox),
-                       # extendShinyjs(text = jsCodeGenes),
                         #ByKarni
                       #  div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
                      # read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
                     # read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
                     #read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
-                    
+                  # fst::write_fst(read.csv.raw("mouse_searchNames.txt", header=FALSE), "mouse.fst"),
+                   # fst::write_fst(read.csv.raw("human_searchNames.txt", header=FALSE), "human.fst"),
+                   # fst::write_fst(read.csv.raw("drosophila_searchNames.txt", header=FALSE), "drosophila.fst"),
                                    div(id="geneIdDiv_mouse",
                                        column(3,
-                                             # dfmouse <- fst::read.fst("dataset1.fst"),
                                       # uiOutput("searchNamesList")
-                                      selectizeInput(inputId = 'geneId_mouse', 
+                                      selectizeInput(inputId = 'geneId', 
                                                      label = 'Type gene name: (backspace to clear)', 
-                                                     choices = read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                     choices = read_fst("mouse.fst"),
                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
-                                      includeHTML("www/html/numericDistance.html"),
-                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                      includeHTML("www/html/numericDistance.html")
+                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                     
                                      ) ),
                      
                                    div(id="geneIdDiv_human",
                                        column(3,
-                                             # dfhuman <- fst::read.fst("dataset2.fst"),
-                                       selectizeInput(inputId = 'geneId_human', 
+                                       selectizeInput(inputId = 'geneId', 
                                                                    label = 'Type gene name: (backspace to clear)', 
-                                                                    choices =read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                    choices =read_fst("human.fst"),
                                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
-                                      includeHTML("www/html/numericDistance.html"),
-                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                      includeHTML("www/html/numericDistance.html")
+                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                                      ) ),
                  
                       
-                                  div(id="geneIdDiv_drosophila",
+                                   div(id="geneIdDiv_drosophila",
                                        column(3,
-                                             # dfdrosophila <- fst::read.fst("dataset3.fst"),
-                                      selectizeInput(inputId = 'geneId_drosophila', 
+                                     selectizeInput(inputId = 'geneId', 
                                                                        label = 'Type gene name: (backspace to clear)', 
-                                                                      choices = read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
+                                                                      choices =read_fst("drosophila.fst"),
                                                                       options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                                       ),
-                                      includeHTML("www/html/numericDistance.html"),
-                                      actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
+                                      includeHTML("www/html/numericDistance.html")
+                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                       
                                    )),
                                    
@@ -888,8 +888,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                             column(3,
                                    uiOutput("chromNumberUI"),
                                    
-                                  includeHTML("www/html/numericCoord.html"),
-                                   actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
+                                  includeHTML("www/html/numericCoord.html")
+                                 # actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
                                    
                             )
                             
@@ -1056,7 +1056,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
       updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Upload File")
       showModal(modalDialog(
         title = "Help",
-        tags$p(HTML("Click <b>Start Tutorial</b> to begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
+        tags$p(HTML("Click <b>Start Tutorial</b> to
+                    begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
         footer = actionButton(inputId = "startTutorial","Start Tutorial"),
         easyClose = TRUE
       ))
@@ -1484,20 +1485,13 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
         
       })
       
-      
       ####### Download Cytoscape Network as PNG (uses cyjs.js script in UI). From https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
       observeEvent(input$saveImage, {
         # NOTE: Message cannot be an empty string "", nothing will happen    
         session$sendCustomMessage(type="saveImage", message="NULL")
       })
-      
-      
     })
-    
   }
-  
-  #ByKarni added(if reactive)
-  
   shinyApp(ui = ui, server = server)
   
   
