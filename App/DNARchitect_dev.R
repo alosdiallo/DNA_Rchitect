@@ -696,15 +696,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   includeCSS("www/css/styles.css"),
                   includeCSS("www/css/style.css"),
                   includeHTML("www/html/include.html"),
-               
              
-                  #feather::write_feather(read.csv.raw("mouse_searchNames.txt"), "mouse.feather"),
-                  #feather::write_feather(read.csv.raw("human_searchNames.txt"), "human.feather"),
-                  #feather::write_feather(read.csv.raw("drosophila_searchNames.txt"), "drosophila.feather"),
-                  
-                  
                   # The main app code goes here
-                  
                   
                   fluidRow(
                     column(width = 6,
@@ -886,13 +879,10 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                        #ByKarni: to call JS code for the checkbox into R 
                         div(id="searchByCoordinatesDiv", 
                             column(3,
-                                   uiOutput("chromNumberUI"),
-                                   
+                                   uiOutput("chromNumberUI"),             
                                   includeHTML("www/html/numericCoord.html")
-                                 # actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance
-                                   
-                            )
-                            
+                                 # actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance     
+                            )   
                         )
                       ),
                       
