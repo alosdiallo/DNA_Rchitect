@@ -30,21 +30,28 @@
 # library("devtools");
 # if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
+#install.packages("shinycssloaders)
+
+#cALL all JS functions from R (to be able to use extendshinyjs in the Shiny ui)
+#install.packages("V8")
+#install.packages("shinyjs") 
+
+#Before running the app write the 
+# fst::write_fst(read.csv.raw("mouse_searchNames.txt", header=FALSE), "mouse.fst"),
+# fst::write_fst(read.csv.raw("human_searchNames.txt", header=FALSE), "human.fst"),
+# fst::write_fst(read.csv.raw("drosophila_searchNames.txt", header=FALSE), "drosophila.fst"),
+
+
 ## Load libraries
 library(shiny)
-library(shinycssloaders)
-library(V8)
-library(shinyjs) #ByKarni to be able to use JS & Jquery fucntions
-#install.packages("V8") #ByKarni to call JS functions from R (to be able to use extendshinyjs in the Shiny ui)
-#install.packages("shinyjs") #ByKarni 
-#install.packages("shinycssloaders)
+library(V8) #Embedded JavaScript Engine for R
+library(shinyjs) #Use JavaScript operations in Shiny apps
 library(jsonlite) # Load jsonlite for JSON communication in IntroJS
 library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
 library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(DT) #Load DataTables for data-table functions
 library(iotools)
 library(devtools)
-
 library(data.table)
 library(fst)
 
@@ -57,14 +64,9 @@ options(shiny.maxRequestSize = 1000*1024^2)
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
 
-#fst::write_fst(read.csv.raw("mouse_searchNames.txt"), "mouse.fst")
-#fst::write_fst(read.csv.raw("human_searchNames.txt"), "human.fst")
-#runApp('C:/Users/Hp/Desktop/DNARchitect/DNARchitect_Karni_final.R')
-
 # Download geneNames file for search function
 # When adding a new species, create a new column for it in geneNames 
 # (ie geneNames$newSpecies) and be sure to pull from the correct URL
-#ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
 
 #FUNCTION: Define function to read uploaded file, only after it has been uploaded
 
@@ -521,9 +523,7 @@ dataTabs <- lapply(1:length(dataTypes), function(i=dataTypes[i]){   #ByKarni: Al
   
 })
 
-
-#ByKarni
-#JS code to display tabs of each file selected by the user
+#JS code to hide/show tabs of each file selected by the user
 jsCodeFileSelected <- '
 shinyjs.SelectFile = function() {
 var x = document.getElementById("fileTypes").value;
@@ -558,8 +558,8 @@ document.getElementById("ChIP").style.display = "none";
 }
 
 }'
-  #ByKarni
-#JS code to give to the user the option to plot the selected files byCoordinates or keep it as by genes
+
+#JS code to give to the user the option to plot the selected files by Coordinates or by genes
 jsCodeCheckbox <- '
 shinyjs.Check = function(){
 var x = document.getElementById("genome").value;
@@ -568,8 +568,6 @@ document.getElementById("geneIdDiv_mouse").style.display = "inline";
 document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
 document.getElementById("geneIdDiv_human").style.visibility = "hidden";
 document.getElementById("geneIdDiv_drosophila").style.visibility = "hidden";
-
-
 
 if (checkBox.checked == true){
 document.getElementById("searchByCoordinatesDiv").style.visibility = "visible";
@@ -598,7 +596,8 @@ document.getElementById("geneIdDiv_human").style.display = "none";
 }
 }
 '
-jsCodeT <-'
+
+jsCodePanel <-'
 shinyjs.test = function(){
 var x = document.getElementById("fileTypes").value;
 if(x == "ATAC"){
@@ -622,42 +621,43 @@ document.getElementById("chipFormatPanelDiv").style.display= "none";
 document.getElementById("mrnaFormatPanelDiv").style.display= "none";
 }
 }'
-  jsCodePlot <-'
-  shinyjs.plot =  function(){
-  var x = document.getElementById("fileTypes").value;
-  document.getElementById("HiCplot").style.visibility = "hidden";
-  document.getElementById("HiCNetwork").style.visibility = "hidden";
-  document.getElementById("HiCcyclic").style.visibility = "hidden";
-  document.getElementById("ATACPlot").style.visibility = "hidden";
-  document.getElementById("ChIPPlot").style.visibility = "hidden";
-  document.getElementById("mRNAPlot").style.visibility = "hidden";
-  if(x == "HiC"){
-  document.getElementById("HiCplot").style.visibility = "visible";
-  document.getElementById("HiCNetwork").style.visibility = "visible";
-  document.getElementById("HiCcyclic").style.visibility = "visible";
-  }else if (x == "ATAC"){
-  document.getElementById("ATACPlot").style.visibility = "visible";
-  }else if(x == "ChIP"){
-  document.getElementById("ChIPPlot").style.visibility = "visible";
-  }else{
-  document.getElementById("mRNAPlot").style.visibility = "visible";
-  }
-  }
-  '
 
-  appCSS <- "
-  #loading-content {
-  position: absolute;
-  background: #FFFFFF;
-  opacity: ;
-  z-index: 100;
-  left: 0;
-  right: 0;
-  height: 400%;
-  text-align: center;
-  color: #000000;
-  }
-  "
+jsCodePlot <-'
+shinyjs.plot =  function(){
+var x = document.getElementById("fileTypes").value;
+document.getElementById("HiCplot").style.visibility = "hidden";
+document.getElementById("HiCNetwork").style.visibility = "hidden";
+document.getElementById("HiCcyclic").style.visibility = "hidden";
+document.getElementById("ATACPlot").style.visibility = "hidden";
+document.getElementById("ChIPPlot").style.visibility = "hidden";
+document.getElementById("mRNAPlot").style.visibility = "hidden";
+if(x == "HiC"){
+document.getElementById("HiCplot").style.visibility = "visible";
+document.getElementById("HiCNetwork").style.visibility = "visible";
+document.getElementById("HiCcyclic").style.visibility = "visible";
+}else if (x == "ATAC"){
+document.getElementById("ATACPlot").style.visibility = "visible";
+}else if(x == "ChIP"){
+document.getElementById("ChIPPlot").style.visibility = "visible";
+}else{
+document.getElementById("mRNAPlot").style.visibility = "visible";
+}
+}
+'
+
+appCSS <- "
+#loading-content {
+position: absolute;
+background: #FFFFFF;
+opacity: ;
+z-index: 100;
+left: 0;
+right: 0;
+height: 400%;
+text-align: center;
+color: #000000;
+}
+"
  
  
   # UI for Shiny
@@ -669,10 +669,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   # Loading message
                   div(
                     id = "loading-content",
-                   # withSpinner(
                      h2("Loading...")
-               
-                   # )
                   ),
                   
                   ## CSS and JS scripts for Introduction by IntroJS
@@ -692,16 +689,18 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                   includeScript("www/js/cyjs.js"),
                   includeScript("www/js/script.js"),
                   
-                  #ByKarni: seperated the styling in a new file
+                  #Include CSS files for styling
                   includeCSS("www/css/styles.css"),
                   includeCSS("www/css/style.css"),
+                  
                   includeHTML("www/html/include.html"),
-             
+               
+                  
                   # The main app code goes here
                   
                   fluidRow(
                     column(width = 6,
-                           img(id = "image", src="DNARchitect_Logo.png") #ByKarni: removed the styling
+                           img(id = "image", src="DNARchitect_Logo.png") 
                     ),
                     column(width = 1,
                            tags$p("")),
@@ -718,7 +717,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                     id = "mainTabs",
                     tabPanel(title = "Upload File",
                              fluidRow(
-                               column(width =4,   #ByKarni: added with=
+                               column(width =4,   
                                       tags$br(),
                                       div(id = "datatypewellpanel",
                                           wellPanel(id="dataTypeWellPanel",
@@ -759,9 +758,9 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                              ),
                              
                              fluidRow(
-                               useShinyjs(),   #ByKarni: removed the conditional panels
-                               extendShinyjs(text = jsCodeT),
-                               column(4,
+                               useShinyjs(),   #removed the conditional panels
+                               extendShinyjs(text = jsCodePanel),
+                               column(width =4,
                                       
                                       div(id="atacFormatPanelDiv", 
                                           selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph"))
@@ -780,13 +779,13 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                              ),
                              
                              tags$br(),
-                             
-                             #NewByKarni
-                             #Before using most shinyjs functions, you need to call useShinyjs() in the app's UI. It's best to include it near the top as a convention.
+
+                             #Call useShinyjs() in the app's UI. It's best to include it near the top as a convention.
                              useShinyjs(),
                              fluidRow(
                                column(width =8,
-                                      extendShinyjs(text = jsCodeFileSelected), #By Karni: to call JS code into R (before tabs were uioutput running in the server)
+                                      #Call JS code into R (before tabs were uioutput running in the server)
+                                      extendShinyjs(text = jsCodeFileSelected), 
                                       tags$div(
                                         id="HiC",
                                         do.call(tabsetPanel, dataTabs[1])
@@ -807,7 +806,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                )
                              )
                     ),
-                  #  readfile(),
                     tabPanel(
                       title = "Plots",
                       fluidRow(tags$br()),
@@ -817,8 +815,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                                                     label = "Number of Samples in HiC Dataset",
                                                                     choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                                tags$br(),
-                               checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates") #NewByKarni
-                               #actionButton(inputId = "byGenes", label = "Search by Genes") #NewByKarni
+                               checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates") 
                         ),
                         column(3,
                                div(id="sampleNamesDiv",
@@ -827,14 +824,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                         ),
                         useShinyjs(),#NewByKarni
                         extendShinyjs(text = jsCodeCheckbox),
-                        #ByKarni
-                      #  div(id="searchByGeneDiv", #ByKarni (Put everything as one div)
-                     # read.delim(file ="https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-                    # read.delim(file = "https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-                    #read.delim(file = "https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t"),
-                  # fst::write_fst(read.csv.raw("mouse_searchNames.txt", header=FALSE), "mouse.fst"),
-                   # fst::write_fst(read.csv.raw("human_searchNames.txt", header=FALSE), "human.fst"),
-                   # fst::write_fst(read.csv.raw("drosophila_searchNames.txt", header=FALSE), "drosophila.fst"),
                                    div(id="geneIdDiv_mouse",
                                        column(3,
                                       # uiOutput("searchNamesList")
@@ -844,8 +833,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
                                       includeHTML("www/html/numericDistance.html")
-                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
-                                    
                                      ) ),
                      
                                    div(id="geneIdDiv_human",
@@ -856,7 +843,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                                                      options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                       ),
                                       includeHTML("www/html/numericDistance.html")
-                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
                                                      ) ),
                  
                       
@@ -868,21 +854,14 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                                                       options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                                                       ),
                                       includeHTML("www/html/numericDistance.html")
-                                      #actionButton(inputId = "submitByGene",label =  "Submit Parameters") #ByKarni: added inputId/label
-                                      
                                    )),
-                                   
-                                   
-                                 
-                           # ),
-                       # ),
-                       #ByKarni: to call JS code for the checkbox into R 
-                        div(id="searchByCoordinatesDiv", 
-                            column(3,
-                                   uiOutput("chromNumberUI"),             
-                                  includeHTML("www/html/numericCoord.html")
-                                 # actionButton(inputId = "submitByCoordinates", label = "Submit Parameters") #ByKarni: added inputId/label for clearance     
-                            )   
+
+                                  div(id="searchByCoordinatesDiv", 
+                                      column(3,
+                                        uiOutput("chromNumberUI"),
+                                        includeHTML("www/html/numericCoord.html")
+                            )
+                            
                         )
                       ),
                       
@@ -891,8 +870,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                               # conditionalPanel(id="hicPlotPanel",
-                               #                condition = "input.fileTypes.includes('HiC')",
                                div ( id= "HiCplot", 
                                      wellPanel(
                                        downloadButton("downloadDataBezier", "Download Plot"),
@@ -900,20 +877,16 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                        plotOutput("bezierplot")
                                      )
                                )
-                               # )
                         ),
                         column(6,
-                               #  conditionalPanel(id="cyNetworkPanel",
-                               #                condition = "input.fileTypes.includes('HiC')",
                                div(id = "HiCNetwork",
                                    wellPanel(
-                                     actionButton(inputId = "saveImage", label = "Download as PNG"),  #ByKarni: added inputId/label
+                                     actionButton(inputId = "saveImage", label = "Download as PNG"),  
                                      actionButton(inputId = "refreshCytoBtn", label = "Refresh cytoscape plot"),
                                      tags$hr(),
                                      rcytoscapejsOutput("cyplot", height="400px")
                                    )
                                )
-                               #  )
                         )
                       ),
                       
@@ -922,20 +895,15 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                               # conditionalPanel(id="atacPlotPanel",
-                               #               condition = "input.fileTypes.includes('ATAC')",
                                div (id = "ATACPlot", 
                                     wellPanel(
                                       downloadButton("downloadDataAtac", "Download Plot"),
                                       tags$hr(),
-                                      plotOutput(outputId = "atacPlot")  #ByKarni: added outputId
+                                      plotOutput(outputId = "atacPlot")  
                                     )
                                )
-                               # )
                         ),
                         column(6,
-                               # conditionalPanel(id="cyClickedNodesPanel",
-                               #             condition = "input.fileTypes.includes('HiC')",
                                div(id = "HiCcyclic",
                                    wellPanel(
                                      h4("Clicked Node"),
@@ -944,7 +912,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                                      verbatimTextOutput("connectedNodes")
                                    )
                                )
-                               # )
                         )
                       ),
                       
@@ -953,28 +920,22 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
                         useShinyjs(),
                         extendShinyjs(text = jsCodePlot),
                         column(6,
-                               #   conditionalPanel(id="chipPlotPanel",
-                               #  condition = "input.fileTypes.includes('ChIP')",
                                div(id = "ChIPPlot", 
                                    wellPanel(
                                      downloadButton("downloadDataChip", "Download Plot"),
                                      tags$hr(),
-                                     plotOutput(outputId = "chipPlot") #ByKarni: added attr outputId for clearance
+                                     plotOutput(outputId = "chipPlot") 
                                    )
                                )
-                               # )
                         ),
                         column(6,
-                               #conditionalPanel(id="mrnaPlotPanel",
-                               #  condition = "input.fileTypes.includes('mRNA')",
                                div(id= "mRNAPlot", 
                                    wellPanel(
                                      downloadButton("downloadDataMrna", "Download Plot"),
                                      tags$hr(),
-                                     plotOutput(outputId = "mrnaPlot") #ByKarni: added attr outputId for clearance
+                                     plotOutput(outputId = "mrnaPlot") 
                                    )
                                )
-                               # )
                         )
                       )
                       
@@ -989,8 +950,6 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
     # Hide the loading message when the rest of the server function has executed
     hide(id = "loading-content", anim = TRUE, animType = "fade")    
   
-   
-    #ByKarni
     #JS fucntions called in the server 
     observeEvent(input$fileTypes,{
       js$SelectFile()
@@ -1063,10 +1022,7 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
       # on click, send custom message to start help
       session$sendCustomMessage(type = 'startHelp', message = list(""))
     })
-    
-    #ByKarni:
-    #removed calling uioutput for displaying the File Tabs (instead created JS fucntion)
-    
+
     ## Render appropriate selection of chromosomes for chosen genome when using the 
     # 'Search by Coordinates' option to plot data
     # To add chromosome options for a new species, create a new case for the switch expression
@@ -1093,9 +1049,8 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
              }
       )
     })
-    
-    outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE)         #By Karni: Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
-    
+    #Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released
+    outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE)         
     #   
     ## START OF ANALYSIS/VISUALIZATION BLOCK
     observeEvent(input$processDataBtn,{
@@ -1104,6 +1059,10 @@ document.getElementById("mrnaFormatPanelDiv").style.display= "none";
       submitBy <- reactiveValues(method="ByGene")
       
       # Warning messages if user processes data before files are uploaded
+      #dataFile <- eval(parse(text = (paste0("input$", "fileTypes" ,"File"))))
+      #if( is.null(input$dataFile)){
+      #  showNotification(ui=paste0("Upload incomplete, please upload ",  input$fileTypes," file before proceeding"),duration=5,closeButton=TRUE,type="error")
+      #}
       if("HiC" %in% input$fileTypes && is.null(input$HiCFile)){
         showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
       }
