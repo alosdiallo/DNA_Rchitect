@@ -36,7 +36,7 @@
 #install.packages("V8")
 #install.packages("shinyjs") 
 
-#Before running the app write the 
+#Before running the app write the gene names to fst file format
 # fst::write_fst(read.csv.raw("mouse_searchNames.txt", header=FALSE), "mouse.fst"),
 # fst::write_fst(read.csv.raw("human_searchNames.txt", header=FALSE), "human.fst"),
 # fst::write_fst(read.csv.raw("drosophila_searchNames.txt", header=FALSE), "drosophila.fst"),
