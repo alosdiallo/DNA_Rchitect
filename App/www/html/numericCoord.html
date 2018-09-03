@@ -1,50 +1,15 @@
 <!DOCTYPE html>
 <HTML>
    <HEAD>
- <SCRIPT language=Javascript>
-  		 
-      <!--
-      function isNumberKey(evt)
-      {
-         var charCode = (evt.which) ? evt.which : event.keyCode
-         if (charCode > 31 && (charCode < 48 || charCode > 57))
-            return false;
-
-         return true;
-      }
-      //-->
-
+   <SCRIPT language=Javascript>
    </SCRIPT>
    <style>
-   input:invalid{
-    border-color: #900;
-    background-color: #FDD;
-  }
-  input:focus:invalid {
-   outline: none;
-  }
-  .error {
-  width  : 100%;
-  padding: 0;
- 
-  font-size: 80%;
-  color: white;
-  background-color: #900;
-  border-radius: 0 0 5px 5px;
- 
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-}
-
-.error.active {
-  padding: 0.3em;
-}
-
-    
-</style>
+   </style>
  </HEAD>
    <BODY>
+ 
    <form [formGroup]="form01">
+  
    <div class = "form-group">
       <label>Start Coordinate</label>
       <INPUT id="cStart" pattern="\d+" onkeypress="return isNumberKey(event)" type="number" name="cStart" value= "60853778" min="0"  class="form-control" required / > 

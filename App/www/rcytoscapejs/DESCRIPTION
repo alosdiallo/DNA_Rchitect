@@ -1,0 +1,22 @@
+Package: rcytoscapejs
+Title: Cytoscape JS HTMLWidgets
+Version: 0.0.7
+Authors@R: person("Augustin", "Luna", email="lunaa@cbio.mskcc.org", role=c("aut", "cre"))
+Description: HTMLWidgets package for CytoscapeJS.
+License: file LICENSE
+Depends: R (>= 3.1.0), htmlwidgets (>= 0.3.2), shiny, DT
+LazyData: true
+RoxygenNote: 5.0.1
+Author: Augustin Luna [aut, cre]
+Maintainer: Augustin Luna <lunaa@cbio.mskcc.org>
+Built: R 3.5.0; ; 2018-07-06 16:49:41 UTC; windows
+RemoteType: github
+RemoteHost: https://api.github.com
+RemoteRepo: r-cytoscape.js
+RemoteUsername: cytoscape
+RemoteRef: master
+RemoteSha: 8649c7c2debee1cea4e1da5ff14eba5cc264a105
+GithubRepo: r-cytoscape.js
+GithubUsername: cytoscape
+GithubRef: master
+GithubSHA1: 8649c7c2debee1cea4e1da5ff14eba5cc264a105

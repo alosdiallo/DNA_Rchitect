@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Create CytoscapeJS widget</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for rcytoscapejs {rcytoscapejs}"><tr><td>rcytoscapejs {rcytoscapejs}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Create CytoscapeJS widget</h2>
+
+<h3>Description</h3>
+
+<p>Pass network information to CytoscapeJS widget
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+rcytoscapejs(nodeEntries, edgeEntries, layout = "cose", width = NULL,
+  height = NULL, showPanzoom = TRUE, highlightConnectedNodes = TRUE,
+  boxSelectionEnabled = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>nodeEntries</code></td>
+<td>
+<p>nodes output from createCytoscapeJsNetwork function</p>
+</td></tr>
+<tr valign="top"><td><code>edgeEntries</code></td>
+<td>
+<p>edges output from createCytoscapeJsNetwork function</p>
+</td></tr>
+<tr valign="top"><td><code>layout</code></td>
+<td>
+<p>the layout algorithm to use for layout. If 'preset', then columns
+'x' and 'y' from nodeEntries will be used for position information.</p>
+</td></tr>
+<tr valign="top"><td><code>width</code></td>
+<td>
+<p>width of widget (Default: 100 percent for Shiny apps)</p>
+</td></tr>
+<tr valign="top"><td><code>height</code></td>
+<td>
+<p>height of widget (Default: 400px for Shiny apps)</p>
+</td></tr>
+<tr valign="top"><td><code>showPanzoom</code></td>
+<td>
+<p>whether to show the CytoscapeJS panzoom menu in the upper left corner (Default: TRUE)</p>
+</td></tr>
+<tr valign="top"><td><code>highlightConnectedNodes</code></td>
+<td>
+<p>whether to highlight connected nodes to a clicked node (Default: TRUE)</p>
+</td></tr>
+<tr valign="top"><td><code>boxSelectionEnabled</code></td>
+<td>
+<p>whether to allow users to box select multiple nodes (Default: TRUE)</p>
+</td></tr>
+</table>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="createCytoscapeJsNetwork.html">createCytoscapeJsNetwork</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+id &lt;- c("Jerry", "Elaine", "Kramer", "George")
+name &lt;- id
+nodeData &lt;- data.frame(id, name, stringsAsFactors=FALSE)
+
+source &lt;- c("Jerry", "Jerry", "Jerry", "Elaine", "Elaine", "Kramer", "Kramer", "Kramer", "George")
+target &lt;- c("Elaine", "Kramer", "George", "Jerry", "Kramer", "Jerry", "Elaine", "George", "Jerry")
+edgeData &lt;- data.frame(source, target, stringsAsFactors=FALSE)
+
+network &lt;- createCytoscapeJsNetwork(nodeData, edgeData)
+rcytoscapejs(network$nodes, network$edges)
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>rcytoscapejs</em> version 0.0.7 <a href="00Index.html">Index</a>]</div>
+</body></html>

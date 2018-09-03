@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Generate a CytoscapeJS compatible network</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for createCytoscapeJsNetwork {rcytoscapejs}"><tr><td>createCytoscapeJsNetwork {rcytoscapejs}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Generate a CytoscapeJS compatible network</h2>
+
+<h3>Description</h3>
+
+<p>Generate a CytoscapeJS compatible network
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+createCytoscapeJsNetwork(nodeData, edgeData, nodeColor = "#888888",
+  nodeShape = "ellipse", nodeHeight = "70", nodeWidth = "70",
+  nodeLabelColor = "#FFFFFF", edgeColor = "#888888",
+  edgeSourceShape = "none", edgeTargetShape = "triangle", nodeHref = "")
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>nodeData</code></td>
+<td>
+<p>a data.frame with at least two columns: id and name; Any additional 
+columns from nodeData will be passed to CytoscapeJS. If 'x' and 'y' columns are 
+specified and the layout in rcytoscapejs function is set 
+to 'preset' then the user-specified locations will be used.</p>
+</td></tr>
+<tr valign="top"><td><code>edgeData</code></td>
+<td>
+<p>a data.frame with at least two columns: source and target</p>
+</td></tr>
+<tr valign="top"><td><code>nodeColor</code></td>
+<td>
+<p>a hex color for nodes (default: #666666)</p>
+</td></tr>
+<tr valign="top"><td><code>nodeShape</code></td>
+<td>
+<p>a shape for nodes (default: ellipse)</p>
+</td></tr>
+<tr valign="top"><td><code>nodeHeight</code></td>
+<td>
+<p>node height (default: 30)</p>
+</td></tr>
+<tr valign="top"><td><code>nodeWidth</code></td>
+<td>
+<p>node width (default: 30)</p>
+</td></tr>
+<tr valign="top"><td><code>nodeLabelColor</code></td>
+<td>
+<p>node label color (default: #FFFFFF)</p>
+</td></tr>
+<tr valign="top"><td><code>edgeColor</code></td>
+<td>
+<p>a hex color for edges (default: #666666)</p>
+</td></tr>
+<tr valign="top"><td><code>edgeSourceShape</code></td>
+<td>
+<p>a shape for arrow sources (default: none)</p>
+</td></tr>
+<tr valign="top"><td><code>edgeTargetShape</code></td>
+<td>
+<p>a shape for arrow targets (default: triangle)</p>
+</td></tr>
+<tr valign="top"><td><code>nodeHref</code></td>
+<td>
+<p>a link associated with the node (appears in a tooltip)</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>a list with two entries:
+</p>
+
+<ul>
+<li><p> nodes a JSON string with node information compatible with CytoscapeJS
+</p>
+</li>
+<li><p> edges a JSON string with edge information compatible with CytoscapeJS
+</p>
+</li></ul>
+
+<p>If required columns (see parameters) are not provided, an error will be thrown
+</p>
+<p>See http://cytoscape.github.io/cytoscape.js/ for shape details
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="rcytoscapejs.html">rcytoscapejs</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+id &lt;- c("Jerry", "Elaine", "Kramer", "George")
+name &lt;- id
+nodeData &lt;- data.frame(id, name, stringsAsFactors=FALSE)
+
+source &lt;- c("Jerry", "Jerry", "Jerry", "Elaine", "Elaine", "Kramer", "Kramer", "Kramer", "George")
+target &lt;- c("Elaine", "Kramer", "George", "Jerry", "Kramer", "Jerry", "Elaine", "George", "Jerry")
+edgeData &lt;- data.frame(source, target, stringsAsFactors=FALSE)
+
+network &lt;- createCytoscapeJsNetwork(nodeData, edgeData)
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>rcytoscapejs</em> version 0.0.7 <a href="00Index.html">Index</a>]</div>
+</body></html>
