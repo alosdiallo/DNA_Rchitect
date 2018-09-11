@@ -61,7 +61,7 @@ library(jsonlite) # Load jsonlite for JSON communication in IntroJS
 #install.packages("shiny")
 #install.packages("DT")
 #library("rcytoscapejs", lib.loc="C:/Users/Alos/Desktop/DNARchitect/www")
-#library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
+library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
 library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(iotools)
 library(devtools)
@@ -511,7 +511,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 includeCSS(path = "www/css/style.css"),   
                 
                 includeHTML(path = "www/html/include.html"),
-              
+                
                 
                 
                 # The main app code goes here
@@ -580,7 +580,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                            ),
                            
                            tags$br(),
-                         uiOutput(outputId = "dataTabs")
+                           uiOutput(outputId = "dataTabs")
                   ),
                   tabPanel(
                     title = "Plots",
@@ -592,24 +592,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                              label = "Number of Samples in HiC Dataset",
                                              choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                              tags$br(),
-                             checkboxInput(inputId = "byCoordinates",label = "Search by Coordinates", value = FALSE),
-                             checkboxInput(inputId = "byGenes", label = "Search by Genes", value = TRUE),
-                             tags$script(HTML(
-                               '
-                               document.getElementById("byCoordinates").onclick = function(){
-                               document.getElementById("byGenes").checked=false;
-                               }
-                               '
-                             )),
-                             tags$script(HTML(
-                               '
-                               document.getElementById("byGenes").onclick = function(){
-                               document.getElementById("byCoordinates").checked=false;
-                               }
-                               '
-                             ))
-                             
-                      ),
+                             radioButtons(inputId = "searchby", label = "Search By: ", choices =  c("Coordinates", "Genes"), selected = "Coordinates")
+                             ),
                       column(width =3,
                              div(id="sampleNamesDiv",
                                  uiOutput(outputId = "sampleNames")
@@ -617,22 +601,21 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"), selected = "mouse")
                       ),
                       
-                      div(id="geneIdDiv",
-                          column(width =3,
-                                 withLoader(ui_element = uiOutput("searchNamesList"), type = "image", loader = "Loading.png", proxy.height = "100px"),
-                              #  uiOutput("searchNamesList"),
-                                 includeHTML(path = "www/html/numericDistance.html")
-                          ) ),
-                      
-                      
-                      div(id="searchByCoordinatesDiv", 
-                          column(width =3,
-                                withLoader(uiOutput(outputId = "chromNumberUI"), type = "image", loader= "Loading.png", proxy.height = "100px"),
-                               # uiOutput(outputId = "chromNumberUI"),
+                             div(id="searchByCoordinatesDiv", 
+                                 column(width =3,
+                                 uiOutput(outputId = "chromNumberUI"),
                                  includeHTML(path = "www/html/numericCoord.html")         
+                                 )
+                             ),
+                     
+                      div(id="geneIdDiv",
+                          column(width=3, 
+                                 withLoader(ui_element = uiOutput("searchNamesList"), type = "image", loader = "Loading.png", proxy.height = "100px"),
+                                  # uiOutput("searchNamesList"),
+                                 includeHTML(path = "www/html/numericDistance.html")
                           )
                       )
-                    ),
+                             ),
                     
                     fluidRow(tags$hr()),
                     fluidRow(
@@ -699,13 +682,13 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              )
                       )
                     )
-                  )
+                             )
+                             )
                 )
-)
 
-source(file = "www/createCytoscapeJsNetwork.R")
-source(file = "www/rcytoscapejs.R")
-source(file = "www/runShinyApp.R")#Shiny Server
+#source(file = "www/createCytoscapeJsNetwork.R")
+#source(file = "www/rcytoscapejs.R")
+#source(file = "www/runShinyApp.R")#Shiny Server
 server <- function(input, output, session) {
   
   # Hide the loading message when the rest of the server function has executed
@@ -732,33 +715,9 @@ server <- function(input, output, session) {
   })
   #Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released Needtochange
   outputOptions(output, "sampleNames", suspendWhenHidden = FALSE) 
-
-  output$searchNamesList <- renderUI({
-    switch(input$genome,
-           mouse = {
-             selectizeInput(inputId = 'geneId', 
-                            label = 'Type gene name: (backspace to clear)', 
-                            choices = mousegenes,
-                            options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-             )
-           },
-           human = {
-             selectizeInput(inputId = 'geneId', 
-                            label = 'Type gene name: (backspace to clear)', 
-                            choices = humangenes,
-                            options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-             )
-           },
-           drosophila_melanogaster = {
-             selectizeInput(inputId = 'geneId', 
-                            label = 'Type gene name: (backspace to clear)', 
-                            choices= drosophilagenes,
-                            options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-             )
-           }
-    )
-  })
- # outputOptions(output, "searchNamesList", suspendWhenHidden = FALSE)
+  
+  
+  # outputOptions(output, "searchNamesList", suspendWhenHidden = FALSE)
   
   ## Server code for Introduction by IntroJS
   # set help content
@@ -906,6 +865,9 @@ server <- function(input, output, session) {
   
   ## Render appropriate selection of chromosomes for chosen genome when using the 'Search by Coordinates' option to plot data
   # To add chromosome options for a new species, create a new case for the switch expression
+  observeEvent(input$searchby, {
+  if (input$searchby == "Coordinates"){ 
+    shinyjs::show(id = "searchByCoordinatesDiv")
   output$chromNumberUI <- renderUI({
     switch(input$genome,
            mouse = {
@@ -929,6 +891,41 @@ server <- function(input, output, session) {
     )
   })
   outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
+  }
+    shinyjs::hide(id = "geneIdDiv")
+    })
+  observeEvent(input$searchby, { 
+    if (input$searchby == "Genes"){
+      shinyjs::hide(id = "searchByCoordinatesDiv")
+      shinyjs::show(id = "geneIdDiv")
+      output$searchNamesList <- renderUI({
+        switch(input$genome,
+               mouse = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices = mousegenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               human = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices = humangenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               drosophila_melanogaster = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices= drosophilagenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               }
+        )
+      })
+    }
+  })
+ # outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
   
   ## START OF ANALYSIS/VISUALIZATION BLOCK
   observeEvent(input$processDataBtn,{
