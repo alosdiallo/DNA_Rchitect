@@ -1,4 +1,4 @@
-# Resources for Summer Interns
+# Resources 
 
 ## Table of Contents
 [Getting started](#getting-started)<br>
