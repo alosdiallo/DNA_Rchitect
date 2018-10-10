@@ -50,19 +50,18 @@ library(shiny)
 library(htmlwidgets)
 library(zoo)
 library(biomaRt)
+library(graph)   #to save the network
+library(BioNet)  #to save the network
 library(methods)
 library(base)
 library(DT) #Load DataTables for data-table functions
 library(V8) #Embedded JavaScript Engine for R
 library(shinyjs) #Use JavaScript operations in Shiny apps
 library(jsonlite) # Load jsonlite for JSON communication in IntroJS
-##Required packages to install "rcytoscapejs"
-#install.packages("htmlwidgets")
-#install.packages("shiny")
-#install.packages("DT")
-#library("rcytoscapejs", lib.loc="C:/Users/Alos/Desktop/DNARchitect/www")
-library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
 library(Sushi) #Load sushi for plot functions (BioconductoR)
+library(igraph)
+library(ggplot2)
+library(shinyBS)
 library(iotools)
 library(devtools)
 library(data.table)
@@ -294,7 +293,7 @@ parGenes <- function(){
 
 #FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
 subPlotGenes <- function(genes,geneWindow){
-  plotGenes(genes,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.6,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
 }
 
 #FUNCTION: define plot titles
@@ -396,7 +395,9 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   
   ## Genes features plot
   parGenes()
-  subPlotGenes(genes,geneWindow)
+ # if (input$genome == "mouse" || "human"){
+    subPlotGenes(genes,geneWindow)
+#  }
 }
 
 
@@ -516,9 +517,12 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 
                 # The main app code goes here
                 fluidRow(
-                  column(width = 10,
+                  column(width = 8,
                          img(id = "image", src="DNARchitect_Logo.png"),
                          tags$p("")
+                  ),
+                  column(width = 2,
+                         selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"), selected = "mouse")
                   ),
                   column(width = 2,
                          tags$br(),
@@ -597,8 +601,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                       column(width =3,
                              div(id="sampleNamesDiv",
                                  uiOutput(outputId = "sampleNames")
-                             ),
-                             selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"), selected = "mouse")
+                             )
+                             
                       ),
                       
                              div(id="searchByCoordinatesDiv", 
@@ -624,17 +628,40 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                    wellPanel(
                                      downloadButton(outputId = "downloadDataBezier",label =  "Download Plot"),
                                      tags$hr(),
-                                     plotOutput(outputId = "bezierplot")
+                                     plotOutput(outputId = "bezierplot", height="800px")
                                    )
                              )
                       ),
                       column(width =6,
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
-                                   actionButton(inputId = "saveImage", label = "Download as PNG"),  
-                                   actionButton(inputId = "refreshCytoBtn", label = "Refresh cytoscape plot"),
-                                   tags$hr(),
-                                   rcytoscapejsOutput(outputId = "cyplot", height="400px")
+                                   tabsetPanel( id = "MainNetwork",
+                                     tabPanel(title = "Network", plotOutput(outputId = "cyplot", height="800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = "downloadNetwork",label =  "Download as PNG"),
+                                              downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
+                                              actionButton(inputId  = "SaveNetwork_xgmml", label = "Save Network as XGMML")),
+                                     tabPanel(title = "Hubs",
+                                              plotOutput(outputId = "plotHubs", height = "800px"),
+                                              tags$br(),
+                                              downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')),
+                                     tabPanel(title = "Degree Distribution",
+                                              plotOutput(outputId = "plotdegree", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')),
+                                     tabPanel(title = "Groups",
+                                              plotOutput(outputId = "plotgroups", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
+                                              actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
+                                              bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", verbatimTextOutput(outputId = "membership_data"),tags$br(), downloadButton(outputId = "download_memb_data", label = "Download as Text"))
+                                              ),
+                                     tabPanel(title = "Node Degree",
+                                              plotOutput(outputId = "plotNodeDegree", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG'))
+                                   )
+
                                  )
                              )
                       )
@@ -646,18 +673,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                   wellPanel(
                                     downloadButton(outputId = "downloadDataAtac", label = "Download Plot"),
                                     tags$hr(),
-                                    plotOutput(outputId = "atacPlot")  
+                                    plotOutput(outputId = "atacPlot", height="800px")  
                                   )
-                             )
-                      ),
-                      column(width=6, 
-                             div(id = "HiCcyclic", style="display:none" ,
-                                 wellPanel(
-                                   h4("Clicked Node"),
-                                   verbatimTextOutput(outputId = "clickedNode"),
-                                   h4("Connected Nodes"),
-                                   verbatimTextOutput(outputId = "connectedNodes")
-                                 )
                              )
                       )
                     ),
@@ -668,7 +685,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                   wellPanel(
                                     downloadButton(outputId = "downloadDataChip", label = "Download Plot"),
                                     tags$hr(),
-                                    plotOutput(outputId = "chipPlot")  
+                                    plotOutput(outputId = "chipPlot", height="800px")  
                                   )
                              )
                       ),
@@ -677,7 +694,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                   wellPanel(
                                     downloadButton(outputId = "downloadDataMrna",label =  "Download Plot"),
                                     tags$hr(),
-                                    plotOutput(outputId = "mrnaPlot")  
+                                    plotOutput(outputId = "mrnaPlot", height="800px")  
                                   )
                              )
                       )
@@ -686,9 +703,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              )
                 )
 
-#source(file = "www/createCytoscapeJsNetwork.R")
-#source(file = "www/rcytoscapejs.R")
-#source(file = "www/runShinyApp.R")#Shiny Server
 server <- function(input, output, session) {
   
   # Hide the loading message when the rest of the server function has executed
@@ -759,7 +773,6 @@ server <- function(input, output, session) {
     if ("HiC" %in% input$fileTypes){
       shinyjs::show(id = "HiCplot")
       shinyjs::show(id = "HiCNetwork ")
-      shinyjs::show(id = "HiCcyclic ")
     }
     else{
       shinyjs::hide(id = "HiCplot")
@@ -1087,11 +1100,146 @@ server <- function(input, output, session) {
         }) #End code block from: From: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
         
         ## Generate cytoscape plots
-        cyNetwork <- createCytoscapeJsNetwork(nodeData, edgeData, edgeTargetShape="none")
-        rcytoscapejs(cyNetwork$nodes, cyNetwork$edges, showPanzoom=TRUE, highlightConnectedNodes = TRUE, boxSelectionEnabled = TRUE)
-        
+       # cyNetwork <- createCytoscapeJsNetwork(nodeData, edgeData, edgeTargetShape="none")
+       # rcytoscapejs(cyNetwork$nodes, cyNetwork$edges, showPanzoom=TRUE, highlightConnectedNodes = TRUE, boxSelectionEnabled = TRUE)
+          ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F) 
+          number_nodes <- vcount(ntwrk)
+          if (number_nodes > 30){
+            node_size = 6
+            node_label = NA
+          }else {
+            node_size = 18
+            node_label = name
+          }
+          plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+          
+          ##It does not work
+          #Save Network as XGML file format
+          observeEvent(input$SaveNetwork_xgmml, {
+            saveNetwork(network = ntwrk, name="network", file = "network", type="XGMML")
+            showNotification(ui="Network Saved as XGMML file in the directory of the app",duration=5,closeButton=TRUE,type="message")
+          })
       })
       
+    
+
+
+        output$plotdegree <- renderPlot({ 
+        deg <- degree(ntwrk, mode="all")
+        deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+        output$plotdegree = renderPlot({ 
+        plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+          
+          output$downloadPlot_degree <- downloadHandler(
+            filename = "Degree_Distribution.png",
+            content = function(file) {
+              png(file)
+              deg <- degree(ntwrk, mode="all")
+              deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+              plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+              dev.off()
+            }) 
+          })
+        })
+
+        output$plotgroups <- renderPlot({ 
+          ceb <- cluster_edge_betweenness(ntwrk)
+          plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+          output$membership_data <- renderText({
+           membership(ceb)
+          })
+          
+          output$download_memb_data <- downloadHandler(
+            filename = "Membership.txt",
+            content =  function(file){
+              writeLines(paste(membership(ceb)), file)
+            }
+          )
+          
+          output$downloadPlot_groups <- downloadHandler(
+            filename = "Community_Detecion.png",
+            content = function(file) {
+              png(file)
+              ceb <- cluster_edge_betweenness(ntwrk)
+              plot(ceb, ntwrk, vertex.label = node_label,  main = "Community Detection")
+              dev.off()
+            }) 
+          })
+
+        output$plotHubs <- renderPlot({
+          hs <- hub_score(ntwrk)$vector
+          plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+          output$downloadPlot_hub <- downloadHandler(
+            filename = "Hub.png",
+            content = function(file) {
+              png(file)
+              hs <- hub_score(ntwrk)$vector
+              plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+              dev.off()
+            }) 
+        })
+        
+        output$plotNodeDegree <- renderPlot({            
+          deg <- degree(ntwrk, mode = "all")
+          dens_deg <- density(x = deg)
+          plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+          polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+          #degree_dataframe <- data.frame(deg)
+          #hist(x = deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab = "Degree")
+         # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+          output$downloadPlot_node_degree <- downloadHandler(
+            filename = "Node-Degree.png",
+            content = function(file) {
+              png(file)
+              deg <- degree(ntwrk, mode = "all")
+              dens_deg <- density(x = deg)
+              plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+              polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+             # degree_dataframe <- data.frame(deg)
+              #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
+              #ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+              dev.off()
+            })
+        })
+        
+        ###### Download Network
+        output$downloadNetwork <- downloadHandler(
+          filename = function() {
+            "Network.png"
+          },
+          content = function(file) {
+            png(file)
+            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label) 
+            dev.off()
+          }
+        )
+        
+        ##Download All
+        output$downloadAll <- downloadHandler(
+          filename = function() {
+            "Network-Analysis.pdf"
+          },
+          content = function(file) {
+            pdf(file)
+            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            hs <- hub_score(ntwrk)$vector
+            plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            deg <- degree(ntwrk, mode="all")
+            deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
+            ceb <- cluster_edge_betweenness(ntwrk)
+            plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+            #paste0("community membership for each node", membership(ceb))
+            deg <- degree(ntwrk, mode = "all") 
+            dens_deg <- density(x = deg)
+            plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+            polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+           # degree_dataframe <- data.frame(deg)
+            #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
+           # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue")# + labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+            dev.off()
+          }
+        )
     })
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
@@ -1200,7 +1348,7 @@ server <- function(input, output, session) {
       )
       
       ####### Cytoscape Network Output:
-      output$cyplot <- renderRcytoscapejs({
+      output$cyplot <- renderPlot({
         isolate({ 
           
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
@@ -1217,9 +1365,7 @@ server <- function(input, output, session) {
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
-        
         isolate({
-          
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
@@ -1228,7 +1374,6 @@ server <- function(input, output, session) {
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
             })
-          
         })
       })
       
@@ -1244,37 +1389,13 @@ server <- function(input, output, session) {
       )
       
     })
-    ###### REACTIVE FUNCTION: Define reactive function to refresh cytoscape plot by creating a dependency on only input$refreshCytoBtn
-    refreshCytoscape <- reactive({
-      
-      ## Create dependency on input$refreshCytoBtn
-      input$refreshCytoBtn
-      
-      ####### Cytoscape Network Output:
-      output$cyplot <- renderRcytoscapejs({
-        isolate({ 
-          
-          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
-          tryCatch(
-            {
-              plotCyNetwork()
-            },
-            error=function(e) {
-              stop("The genomic window does not contain any nodes")
-            })
-        })
-      })
-    })
     
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
     observeEvent(input$submitByCoordinates, {
       submitBy$method = "ByCoord"
+      updateTabsetPanel(session = session,inputId = "MainNetwork", selected  = "Network")
       generatePlots()
       
-      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
-      observeEvent(input$refreshCytoBtn, {
-        refreshCytoscape()
-      })
     })
     
     ######Execute code to Generate Plots Once Press submitByGene actionButton
@@ -1282,10 +1403,6 @@ server <- function(input, output, session) {
       submitBy$method = "ByGene"
       generatePlots()
       
-      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
-      observeEvent(input$refreshCytoBtn, {
-        refreshCytoscape()
-      })
     })
     
     ####### Download Cytoscape Network as PNG (uses cyjs.js script in UI). From https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
