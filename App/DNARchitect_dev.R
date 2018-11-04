@@ -60,6 +60,7 @@ library(shinyjs) #Use JavaScript operations in Shiny apps
 library(jsonlite) # Load jsonlite for JSON communication in IntroJS
 library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(igraph)
+library(graph)
 library(ggplot2)
 library(shinyBS)
 library(iotools)
@@ -67,6 +68,13 @@ library(devtools)
 library(data.table)
 library(shinycssloaders)
 library(shinycustomloader)
+library(biomaRt)
+library(packrat)
+library(MASS)
+library(gridExtra)
+library(latexpdf)
+
+
 
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
@@ -636,30 +644,35 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
                                    tabsetPanel( id = "MainNetwork",
-                                     tabPanel(title = "Network", plotOutput(outputId = "cyplot", height="800px"),
-                                              tags$br(), 
+                                     tabPanel(title = "Network",
+                                              plotOutput(outputId = "cyplot", height="800px"),
+                                              tags$br(),
                                               downloadButton(outputId = "downloadNetwork",label =  "Download as PNG"),
                                               downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
-                                              actionButton(inputId  = "SaveNetwork_xgmml", label = "Save Network as XGMML")),
+                                              downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
+                                              ),
                                      tabPanel(title = "Hubs",
                                               plotOutput(outputId = "plotHubs", height = "800px"),
                                               tags$br(),
-                                              downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')),
+                                              downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
+                                              ),
                                      tabPanel(title = "Degree Distribution",
                                               plotOutput(outputId = "plotdegree", height = "800px"),
                                               tags$br(), 
-                                              downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')),
+                                              downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
+                                              ),
                                      tabPanel(title = "Groups",
                                               plotOutput(outputId = "plotgroups", height = "800px"),
                                               tags$br(), 
                                               downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
                                               actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
-                                              bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", verbatimTextOutput(outputId = "membership_data"),tags$br(), downloadButton(outputId = "download_memb_data", label = "Download as Text"))
+                                              bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", tableOutput(outputId = "membership_data"))
                                               ),
                                      tabPanel(title = "Node Degree",
                                               plotOutput(outputId = "plotNodeDegree", height = "800px"),
                                               tags$br(), 
-                                              downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG'))
+                                              downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG')
+                                              )
                                    )
 
                                  )
@@ -1019,7 +1032,7 @@ server <- function(input, output, session) {
     ###### REACTIVE FUNCTION: Define reactive function to plot cytoscape network
     plotCyNetwork <- reactive({
       
-      withProgress(message = 'Making cytoscape plot', value = 0, {
+          withProgress(message = 'Making cytoscape plot', value = 0, {
         
         #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
         if( submitBy$method == "ByCoord" ){
@@ -1069,6 +1082,18 @@ server <- function(input, output, session) {
         # Define network that will be used for displaying connected nodes as = edgeData
         network <- edgeData
         
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        
+        number_nodes <- vcount(ntwrk)
+        if (number_nodes > 30){
+          node_size = 6
+          node_label = NA
+        }else {
+          node_size = 18
+          node_label = name
+        }
+  
+  
         # NOTE: Reactive variables used as functions networkReactive(). Code block taken verbatim from: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
         # Start code block from: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
         networkReactive <- reactive({
@@ -1081,7 +1106,6 @@ server <- function(input, output, session) {
             return(network[idx,])
           }
         })
-        
         output$nodeDataTable <- DT::renderDataTable({
           tmp <- nodeData[which(id == input$clickedNode),]
           DT::datatable(tmp, filter='bottom', style='bootstrap', options=list(pageLength=5))
@@ -1098,63 +1122,40 @@ server <- function(input, output, session) {
         output$connectedNodes = renderPrint({
           input$connectedNodes
         }) #End code block from: From: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
-        
-        ## Generate cytoscape plots
-       # cyNetwork <- createCytoscapeJsNetwork(nodeData, edgeData, edgeTargetShape="none")
-       # rcytoscapejs(cyNetwork$nodes, cyNetwork$edges, showPanzoom=TRUE, highlightConnectedNodes = TRUE, boxSelectionEnabled = TRUE)
-          ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F) 
-          number_nodes <- vcount(ntwrk)
-          if (number_nodes > 30){
-            node_size = 6
-            node_label = NA
-          }else {
-            node_size = 18
-            node_label = name
-          }
-          plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-          
-          ##It does not work
-          #Save Network as XGML file format
-          observeEvent(input$SaveNetwork_xgmml, {
-            saveNetwork(network = ntwrk, name="network", file = "network", type="XGMML")
-            showNotification(ui="Network Saved as XGMML file in the directory of the app",duration=5,closeButton=TRUE,type="message")
-          })
       })
-      
-    
-
-
+        
+        plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        
         output$plotdegree <- renderPlot({ 
-        deg <- degree(ntwrk, mode="all")
-        deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
-        output$plotdegree = renderPlot({ 
-        plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
-          
-          output$downloadPlot_degree <- downloadHandler(
-            filename = "Degree_Distribution.png",
-            content = function(file) {
-              png(file)
-              deg <- degree(ntwrk, mode="all")
-              deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
-              plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
-              dev.off()
-            }) 
+          deg <- igraph::degree(ntwrk, mode="all")
+          deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+          output$plotdegree = renderPlot({ 
+            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+            
+            output$downloadPlot_degree <- downloadHandler(
+              filename = "Degree_Distribution.png",
+              content = function(file) {
+                png(file)
+                deg <- igraph::degree(ntwrk, mode="all")
+                deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+                plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+                dev.off()
+              }) 
           })
         })
-
+        
         output$plotgroups <- renderPlot({ 
           ceb <- cluster_edge_betweenness(ntwrk)
           plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
-          output$membership_data <- renderText({
-           membership(ceb)
+          output$membership_data <- renderTable({
+            memb_info = membership(ceb)
+            Membership = as.character(membership(ceb))
+            Node = names(memb_info)
+            df = data.frame(Membership, Node)
+            print(df)
+          #  paste (Membership, Node)
           })
           
-          output$download_memb_data <- downloadHandler(
-            filename = "Membership.txt",
-            content =  function(file){
-              writeLines(paste(membership(ceb)), file)
-            }
-          )
           
           output$downloadPlot_groups <- downloadHandler(
             filename = "Community_Detecion.png",
@@ -1164,38 +1165,38 @@ server <- function(input, output, session) {
               plot(ceb, ntwrk, vertex.label = node_label,  main = "Community Detection")
               dev.off()
             }) 
-          })
-
+        })
+        
         output$plotHubs <- renderPlot({
           hs <- hub_score(ntwrk)$vector
-          plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+          plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
           output$downloadPlot_hub <- downloadHandler(
             filename = "Hub.png",
             content = function(file) {
               png(file)
               hs <- hub_score(ntwrk)$vector
-              plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+              plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
               dev.off()
             }) 
         })
         
         output$plotNodeDegree <- renderPlot({            
-          deg <- degree(ntwrk, mode = "all")
+          deg <- igraph::degree(ntwrk, mode = "all")
           dens_deg <- density(x = deg)
           plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
           polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
           #degree_dataframe <- data.frame(deg)
           #hist(x = deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab = "Degree")
-         # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+          # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
           output$downloadPlot_node_degree <- downloadHandler(
             filename = "Node-Degree.png",
             content = function(file) {
               png(file)
-              deg <- degree(ntwrk, mode = "all")
+              deg <- igraph::degree(ntwrk, mode = "all")
               dens_deg <- density(x = deg)
               plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
               polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
-             # degree_dataframe <- data.frame(deg)
+              # degree_dataframe <- data.frame(deg)
               #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
               #ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
               dev.off()
@@ -1223,24 +1224,27 @@ server <- function(input, output, session) {
             pdf(file)
             plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
             hs <- hub_score(ntwrk)$vector
-            plot(ntwrk, vertex.size = hs*50, main = "Hubs", vertex.color = "pink", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-            deg <- degree(ntwrk, mode="all")
+            plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            deg <- igraph::degree(ntwrk, mode="all")
             deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
             plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
             ceb <- cluster_edge_betweenness(ntwrk)
             plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
             #paste0("community membership for each node", membership(ceb))
-            deg <- degree(ntwrk, mode = "all") 
+            deg <- igraph::degree(ntwrk, mode = "all") 
             dens_deg <- density(x = deg)
             plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
             polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
-           # degree_dataframe <- data.frame(deg)
+            # degree_dataframe <- data.frame(deg)
             #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
-           # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue")# + labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+            # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue")# + labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
             dev.off()
           }
         )
+   
+    
     })
+ 
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
     generatePlots <- reactive({
@@ -1414,6 +1418,7 @@ server <- function(input, output, session) {
   
   #To enable new-session reconnections, in case the client has disconnected from the server (and has reached a gray-out state)
   session$allowReconnect(TRUE)
+ 
 }
 shinyApp(ui = ui, server = server)
 
