@@ -135,10 +135,10 @@ This application utilizes the following packages and libraries:<br>
 
 Authors
 --------------------
-	Simon Matthew Gray - Division of Immunology, Harvard Medical School
-	Ricardo Ramirez - Department of Microbiology & Immunobiology, Harvard Medical School
-	Karni Bedirian - Division of Immunology, Harvard Medical School
-	Alos Diallo - Division of Immunology, Harvard Medical School
+	Karni Bedirian - Department of Immunology, Harvard Medical School
+	Ricardo Ramirez - Department of Immunology, Harvard Medical School
+	Simon Matthew Gray - Department of Immunology, Harvard Medical School
+	Alos Diallo - Department of Immunology, Harvard Medical School
 	
 Copyright © 2018 the President and Fellows of Harvard College.
 ![Blavatnikimmunology](https://storage.googleapis.com/gencode_ch_data/Blavatnikimmunology.jpg)  
