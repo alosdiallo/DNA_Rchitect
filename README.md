@@ -1,7 +1,7 @@
 ![DNA Rchitect](https://storage.googleapis.com/gencode_ch_data/logo2.png)  
 
 ## Welcome to the github repository for DNA Rchitect, a Shiny App for visualizing genomic data. 
-Start using the [web version](http://shiny.immgen.org/DNARchitect/) of this application, or download the [source code](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/App) and run locally. 
+Start using the [web version](http://shiny.immgen.org/DNARchitect/) of this application, or download the [source code](https://github.com/alosdiallo/DNA_Rchitect/tree/master/Appp) and run locally. 
 
 ## Table of Contents
 [Introduction](#introduction)<br>
@@ -37,7 +37,7 @@ https://help.github.com/articles/which-remote-url-should-i-use/).
 
 
 ### Web version
-A [web version](https://simongray.shinyapps.io/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be shutdown by the server. If you are analyzing large data files (especially if the sum of your uploaded file sizes exceeds 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions). The web version of the App will shutdown after 15 minutes of inactivity and all uploaded data and analysis will be deleted. The web version does not store your data for use at a later time -- you must upload your files with each new session of the web version of the App. Running a locally installed version allows you to keep the App open indefinitely and the maximum RAM per instance is limited only by your computer's hardware. The web version permits a maximum file size of 1000 MB.
+A [web version](http://shiny.immgen.org/DNARchitect/) of the App is available for use in the cloud. Note that the web version has a **hard maximum of 8 GB of RAM** per instance. If you exceed 8 GB of RAM during your analysis, the web version of the app will be shutdown by the server. If you are analyzing large data files (especially if the sum of your uploaded file sizes exceeds 4 GB), we recommend installing and running a local version of the app through RStudio, as described in [installation instructions](#installation-instructions). The web version of the App will shutdown after 15 minutes of inactivity and all uploaded data and analysis will be deleted. The web version does not store your data for use at a later time -- you must upload your files with each new session of the web version of the App. Running a locally installed version allows you to keep the App open indefinitely and the maximum RAM per instance is limited only by your computer's hardware. The web version permits a maximum file size of 1000 MB.
 
 ### Supported browsers
 - Chrome
@@ -79,7 +79,7 @@ If the page 'grays out' with the above error message, the App has disconnected f
 
 #### Maximum upload size exceeded
 `Maximum upload size exceeded`<br>
-The above warning will displayed if you attempt to upload a file exceeding 1000 MB. The [web version](https://simongray.shinyapps.io/DNARchitect/) of the app has a maximum individual file size of 1000 MB. To analyze files larger than 1000 MB, [install](#installation-instructions) and run a local version of the app on your computer. The default maximum file size is 1000 MB on the locally installed app. To increase the maximum file size, edit the following line of code: <br>
+The above warning will displayed if you attempt to upload a file exceeding 1000 MB. The [web version](http://shiny.immgen.org/DNARchitect/) of the app has a maximum individual file size of 1000 MB. To analyze files larger than 1000 MB, [install](#installation-instructions) and run a local version of the app on your computer. The default maximum file size is 1000 MB on the locally installed app. To increase the maximum file size, edit the following line of code: <br>
 `options(shiny.maxRequestSize = 1000*1024^2)`<br>
 For example, to increase maximum file size to 2000 MB adjust the code as follows:<br>
 `options(shiny.maxRequestSize = 2000*1024^2)`<br>
