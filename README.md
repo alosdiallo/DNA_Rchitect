@@ -139,5 +139,9 @@ Authors
 	Ricardo Ramirez - Department of Microbiology & Immunobiology, Harvard Medical School
 	Karni Bedirian - Division of Immunology, Harvard Medical School
 	Alos Diallo - Division of Immunology, Harvard Medical School
+	
+Copyright © 2018 the President and Fellows of Harvard College.
+![Blavatnikimmunology](https://storage.googleapis.com/gencode_ch_data/Blavatnikimmunology.jpg) 
+![Immgen](https://storage.googleapis.com/gencode_ch_data/immgen.png)  
 
 ### [MIT License](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Licence.txt)
