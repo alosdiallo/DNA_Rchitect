@@ -13,10 +13,9 @@ Start using the [web version](http://shiny.immgen.org/DNARchitect/) of this appl
 [Errors and Troubleshooting](#errors-and-troubleshooting)<br>
 1. [Incorrect headers](#incorrect-headers)<br>
 2. [HiC Plotting Error](#hic-plotting-error)<br>
-3. [Cytoscape network graph error](#cytoscape-network-graph-error)<br>
-4. [Grayed out page](#grayed-out-page)<br>
-5. [Maximum upload size exceeded](#maximum-upload-size-exceeded)<br>
-6. [Shiny deploy error](#shiny-deploy-error)
+3. [Grayed out page](#grayed-out-page)<br>
+4. [Maximum upload size exceeded](#maximum-upload-size-exceeded)<br>
+5. [Shiny deploy error](#shiny-deploy-error)
 
 [Sample data](#sample-data)<br>
 [Adding gene annotation for a new species](#adding-gene-annotation-for-a-new-species)<br>
@@ -66,11 +65,6 @@ If you upload a file with the wrong headers, a dialog box will appear after pres
 #### HiC Plotting Error
 `Error: Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit` <br>
 The above error indicates that the current genomic window (as defined by the genomic interval to left and right of gene or by the selected coordinates) contains a HiC anchor on the plot boundary. Adjust your window and click **Submit Parameters** again. Repeat until your window plots properly (ie until your boundary coordinates do not intersect anchors).
-
-#### Cytoscape network graph error
-`Error: The genomic window does not contain any nodes` <br>
-The above error indicates that the selected genomic window does not contain any HiC anchors (ie nodes). Enlarge the genomic window until it contatins HiC anchors. <br>
-See the [PDF tutorial](#tutorial) for more information, including examples of each error in the App.
 
 #### Grayed out page
 `Disconnected from server`<br>
@@ -125,8 +119,6 @@ The code must be changed in 3 places to accomodate a new species.<br>
 ### References
 This application utilizes the following packages and libraries:<br>
 [`IntroJS`](https://introjs.com/)<br> 
-[`Cytoscape.js`](http://js.cytoscape.org/)<br>
-[`rcytoscapejs`](https://github.com/cytoscape/r-cytoscape.js)<br>
 [`shiny`](https://cran.r-project.org/web/packages/shiny/index.html)<br>
 [`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/index.html)<br>
 [`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)<br>
