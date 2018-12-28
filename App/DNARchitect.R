@@ -1,14 +1,10 @@
-# DNA Rchitect
+# DNA Rchitect Developer Version
 
 ############ ISSUES:
-# 1. Comment where cytoscape is used
-## 7. Add human genome gencode option (and ability to upload own genome) --> file with chromosomes for each species (If time: C. elegans and Drosophila) --> better goal to make species a plug and play solution
-## 8. Add R script for making gene names to github
-## 9. Create tool for species --> changes code to allow another species to be added. Input for tool would be species name --- tool_species <- function(SpeciesName)
-## 10. Add expected input and expected output
-## 11. For functions that don't return anything, add a return of 1 or 0 for success or failure --> consider using a try-catch setup   ## val=0, try (... val=1), catch (... val=0), return(val)
+## 1. Add expected input and expected output
+## 2. For functions that don't return anything, add a return of 1 or 0 for success or failure --> consider using a try-catch setup   ## val=0, try (... val=1), catch (... val=0), return(val)
 
-## Priorities: 1. Human, 2. Script for adding species, 3. Commenting, 4. Function success/failure codes
+## Priorities: 1. Function success/failure codes
 
 # ## Check for and install required packages from CRAN
 # #Packages from CRAN
@@ -22,18 +18,63 @@
 # source("https://bioconductor.org/biocLite.R")
 # biocLite() # Install bioconductor core packages
 # if (!require("Sushi")) biocLite("Sushi")
-# 
+#
+#By Karni: You have to install few bioconductor packages in case they are not installed by the command biocLite(): "stringi", "S4Vectors"
+#source("https://bioconductor.org/biocLite.R")
+#install.packages(stringi,dependencies=TRUE)
+#biocLite("S4Vectors")
+#can't load package biomaRt > install.packages("biomaRt)
+
+#To exit the tutorial (after pressing 'Help' Button), you need to click on the page
+
 # # Packages from github
 # library("devtools");
 # if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
 
+#library("rcytoscapejs", lib.loc="C:/Users/User/Desktop/DNARchitect_Test/www")
+
+#install.packages("stringi")
+#install.packages("shinycssloaders)
+#cALL all JS functions from R 
+#install.packages("V8")
+#install.packages("shinyjs") 
+
+#Before deploying it I had to install
+#install.packages("rjson")
+#install.packages("rJava")
+#install.packages("paxtoolsr")
+
+#library(BioNet) #to save network in XGMML file format
 ## Load libraries
 library(shiny)
-library(jsonlite) # Load jsonlite for JSON communication in IntroJS
-library(rcytoscapejs) # Load rcytoscapejs to generate network (Github)
-library(Sushi) #Load sushi for plot functions (BioconductoR)
+library(htmlwidgets)
+library(zoo)
+library(biomaRt)
+library(graph)   #to save the network
+library(BioNet)  #to save the network
+library(methods)
+library(base)
 library(DT) #Load DataTables for data-table functions
-library(RColorBrewer) # Load RColorBrewer for color palettes
+library(V8) #Embedded JavaScript Engine for R
+library(shinyjs) #Use JavaScript operations in Shiny apps
+library(jsonlite) # Load jsonlite for JSON communication in IntroJS
+library(Sushi) #Load sushi for plot functions (BioconductoR)
+library(igraph)
+library(graph)
+library(ggplot2)
+library(shinyBS)
+library(iotools)
+library(devtools)
+library(data.table)
+library(shinycssloaders)
+library(shinycustomloader)
+library(biomaRt)
+library(packrat)
+library(MASS)
+library(gridExtra)
+library(latexpdf)
+
+
 
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
@@ -44,10 +85,6 @@ options(shiny.maxRequestSize = 1000*1024^2)
 # Create dataTypes object to define choices for fileTypes selectizeInput
 dataTypes <- c("HiC","ATAC","ChIP","mRNA")
 
-#Download geneNames file for search function
-geneNames <- NULL
-geneNames$cat <- read.delim("https://storage.googleapis.com/gencode_ch_data/searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-
 #FUNCTION: Define function to read uploaded file, only after it has been uploaded
 reqRead <- function(input, dataFileType){
   
@@ -55,13 +92,27 @@ reqRead <- function(input, dataFileType){
   req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
   
   data <- read.delim(
-    eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))),
+    file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
     header = eval(parse(text = (paste0("input$", dataFileType, "Header")))),
     sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
     quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
   
   return(data)
 }
+
+#Read geneNames file for search function
+#geneNames <- NULL
+#geneNames$mouse <- read.delim("https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+#geneNames$human <- read.delim("https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+#geneNames$drosophila_melanogaster <- read.delim("https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+
+mousegenes <- read.csv.raw(file = "www/mouse_searchNames.txt", header = FALSE)
+humangenes <- read.csv.raw(file = "www/human_searchNames.txt", header = FALSE)
+drosophilagenes <- read.csv.raw(file = "www/drosophila_searchNames.txt", header = FALSE)
+names(mousegenes) <- " "
+names(humangenes) <- " "
+names(drosophilagenes) <- " "
+
 
 #FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
 HiCdataRead <- function(input){
@@ -134,10 +185,9 @@ displayUploadedFile <- function(data, input, dataFileType){
   }
 }
 
-############### THIS SHOULD PROBABLY BE IMPROVED!! ###############
 #FUNCTION: Check if uploaded file contains required column headers
 checkHeader <- function(data, dataFileType, input){
-
+  
   # Possible dataFileType: "HiC","ATAC","ChIP","mRNA"
   # Possible formats: "Bedpe","Bed","Bedgraph"
   
@@ -218,15 +268,17 @@ checkHeader <- function(data, dataFileType, input){
       }
     }
   }
-  
 }
 
-
 #FUNCTION: to read gene annotation data from Ensembl.biomart.chr file
-readGenes <- function(geneWindow){
+readGenes <- function(geneWindow, input){
   # Read Ensembl.biomart.chr file from googleStorage public URL to plot gene coordinates (Ensembl.biomart.chr files are available for all mouse genes per chromosome.)
+  
+  # The final URL after pasting all elements together will look like (for mouse):
+  # https://storage.googleapis.com/gencode_ch_data/mouse/Gencode.chr1.txt
+  
   geneCChNumber_generic = "https://storage.googleapis.com/gencode_ch_data/";
-  genCode <- paste(geneCChNumber_generic,"Gencode.",geneWindow$chrom,".txt",sep = "")
+  genCode <- paste(geneCChNumber_generic ,input$genome,"/Gencode.",geneWindow$chrom,".txt",sep = "")
   genes <- read.delim(genCode,header=TRUE);
   return(genes)
 }
@@ -249,7 +301,7 @@ parGenes <- function(){
 
 #FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
 subPlotGenes <- function(genes,geneWindow){
-  plotGenes(genes,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.5,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.6,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
 }
 
 #FUNCTION: define plot titles
@@ -329,7 +381,7 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   #Call plot layout
   plotLayout()
   
-
+  
   ##Bezier curve plots
   parPlot()
   
@@ -351,7 +403,9 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   
   ## Genes features plot
   parGenes()
-  subPlotGenes(genes,geneWindow)
+ # if (input$genome == "mouse" || "human"){
+    subPlotGenes(genes,geneWindow)
+#  }
 }
 
 
@@ -428,234 +482,244 @@ plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
   })
 }
 
+#Inlcude Styling for Loading Page content 
+appCSS <- "
+#loading-content {
+position: absolute;
+background: #FFFFFF;
+z-index: 100;
+left: 0;
+right: 0;
+height: 400%;
+text-align: center;
+color: #000000;
+}
+"
+
+
 # UI for Shiny
 ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 
-                ## CSS and JS scripts for Introduction by IntroJS
-                # Include IntroJS styling
-                includeCSS("www/introjs.css"),
+                useShinyjs(),
+                inlineCSS(appCSS),
+                
+                # Loading Screen message
+                div(
+                  id = "loading-content",
+                  h2("Loading...")
+                ),
+                
+                #JS script for Introduction by IntroJS
+                # Include IntroJS library
+                includeScript("www/js/intro.js"),
+                
+                # Include javascript code to download Cytoscape network as PNG, to make shiny communicate with introJS.
+                includeScript(path = "www/js/script.js"),
                 
                 # Include styling for the app
-                includeCSS("www/app.css"),
+                includeCSS(path = "www/css/style.css"),   
                 
-                # Include IntroJS library
-                includeScript("www/intro.js"),
+                includeHTML(path = "www/html/include.html"),
                 
-                # Include javascript code to make shiny communicate with introJS
-                includeScript("www/app.js"),
                 
-                # Include javascript code to download Cytoscape network as PNG. From: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
-                includeScript("www/cyjs.js"),
                 
-                ##
+                # The main app code goes here
                 fluidRow(
-                  column(width = 6,
-                         img(src="DNARchitect_Logo.png",align="left",height="75px")),
-                  column(width = 1,
-                         tags$p("")),
-                  column(width = 3,
-                         selectInput(inputId = "genome",label = "Genome", choices = c("Mouse (mus musculus)"),selected = "Mouse (mus musculus)")),
+                  column(width = 8,
+                         img(id = "image", src="DNARchitect_Logo.png"),
+                         tags$p("")
+                  ),
+                  column(width = 2,
+                         selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"), selected = "mouse")
+                  ),
                   column(width = 2,
                          tags$br(),
-                         actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
-                         actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"),
-                         style = "margin-top: 5px;")
+                         div(id = "helpreload",
+                             actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
+                             actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
+                  )
                 ),
                 tabsetPanel(
                   id = "mainTabs",
                   tabPanel(title = "Upload File",
                            fluidRow(
-                             column(4,
+                             column(width =4,   
                                     tags$br(),
-                                    wellPanel(id="dataTypeWellPanel",
-                                      tags$p(HTML("<b>Step 1:</b> Select the types of data you want to analyze, then browse for your files")),
-                                      #Select data types
-                                      div(id="fileTypesDiv", selectizeInput(inputId="fileTypes","Select Data Types",choices=dataTypes,multiple=TRUE,selected=dataTypes[1])),
-                                      style = "height:150px"
-                                      )
-                                    ),
-                             column(4,
-                                    tags$br(),
-                                    wellPanel(id="processWellPanel",
-                                      tags$p(HTML("<b>Step 2:</b> After browsing for your files, click the button to process the data for plotting")),
-                                      tags$br(),
-                                      actionButton("processDataBtn","Process Data"),
-                                      style = "height:150px"
-                                      )
-                                    ),
-                             column(4,
-                                    tags$br(),
-                                    wellPanel(id="goToPlotWellPanel",
-                                      tags$p(HTML("<b>Step 3:</b> Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data")),
-                                      actionButton(inputId="goToPlots","Go to Plots"),
-                                      style = "height:150px"
-                                      )  
+                                    div(id = "datatypewellpanel", 
+                                        wellPanel(id="dataTypeWellPanel", 
+                                                  tags$html("Step 1: Select the types of data you want to analyze"),
+                                                  tags$br(),
+                                                  selectizeInput(inputId="fileTypes",label ="Select Data Types",choices=c("HiC", "ATAC", "ChIP", "mRNA"),multiple = TRUE, selected=dataTypes[1])
+                                        )
                                     )
                              ),
+                             column(width =4,
+                                    tags$br(),
+                                    div(id = "processwellpanel", 
+                                        wellPanel(id="processWellPanel",
+                                                  tags$html("Step 2: After browsing for your files, click the button to process the data for plotting"),
+                                                  tags$br(),
+                                                  tags$br(),
+                                                  actionButton(inputId = "processDataBtn",label = "Process Data")
+                                        )
+                                    )
+                             ),
+                             column(width =4,
+                                    tags$br(),
+                                    div(id= "gotoplotwellpanel",
+                                        wellPanel(id="goToPlotWellPanel",
+                                                  tags$html("Step 3: Make sure your data looks correctly formatted in the tabs below. Then, click on the Plots tab to visualize your data"),
+                                                  tags$br(),
+                                                  tags$br(),
+                                                  actionButton(inputId="goToPlots",label = "Go to Plots")
+                                        )
+                                    )  
+                             )
+                           ),
                            
                            fluidRow(
-                             conditionalPanel(id="atacFormatPanel", 
-                                              condition = "input.fileTypes.includes('ATAC')",
-                                              column(4,
-                                                     div(id="atacFormatPanelDiv",selectInput(inputId="atacFormat","Select ATAC data format", choices = c("Bed","Bedgraph")))
-                                                     )
-                                              ),
-                             conditionalPanel(id="chipFormatPanel",
-                                              condition = "input.fileTypes.includes('ChIP')",
-                                              column(4,
-                                                     selectInput("chipFormat","Select ChIP data format", choices = c("Bed","Bedgraph"))
-                                                     )
-                                              ),
-                             conditionalPanel(id="mrnaFormatPanel", 
-                                              condition = "input.fileTypes.includes('mRNA')",
-                                              column(4,
-                                                     div(id="mrnaFormatPanelDiv",selectInput(inputId="mrnaFormat","Select mRNA data format", choices = c("Bed","Bedgraph")))
-                                              )
+                             column(width =4,
+                                    div(id="atacFormatPanelDiv",  style = "display:none",
+                                        selectInput(inputId="atacFormat",label = "Select ATAC data format", choices = c("Bed","Bedgraph"))
+                                    ),
+                                    div(id ="chipFormatPanelDiv", style = "display:none",
+                                        selectInput(inputId = "chipFormat",label = "Select ChIP data format", choices = c("Bed","Bedgraph"))
+                                    ),
+                                    div(id="mrnaFormatPanelDiv", style = "display:none",
+                                        selectInput(inputId="mrnaFormat",label = "Select mRNA data format", choices = c("Bed","Bedgraph"))
+                                    )
                              )
                            ),
                            
                            tags$br(),
-                           uiOutput("dataTabs")
+                           uiOutput(outputId = "dataTabs")
                   ),
                   tabPanel(
                     title = "Plots",
                     fluidRow(tags$br()),
                     fluidRow(
-                      column(3,
-                             div(id="numOfSamplesDiv",selectInput(inputId = "numOfSamples", 
-                                                   label = "Number of Samples in HiC Dataset",
-                                                   choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
-                             checkboxInput("byCoordinates","Search by Coordinates")
-                      ),
-                      column(3,
-                             div(id="sampleNamesDiv", style = "overflow-y:scroll; max-height: 150px",{
-                               uiOutput("sampleNames")
-                             })
-                      ),
-                      div(id="searchByCoordinatesDiv",
-                          conditionalPanel(
-                            condition = "input.byCoordinates == true",
-                            column(3,
-                                   selectInput(inputId = "chromNumber", 
-                                               label = "Chr Number",
-                                               choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chrX","chrY"), multiple = FALSE,
-                                               selectize = TRUE, width = NULL, size = NULL),
-                                   actionButton("submitByCoordinates", "Submit Parameters")
-                            ),
-                            column(3,
-                                   textInput(inputId = "cStart", 
-                                             label = "Start coordinate",
-                                             value = "60853778"),
-                                   textInput(inputId = "cStop", 
-                                             label = "End coordinate",
-                                             value = "60948071")
-                            )
-                          )
-                          ),
-                      div(id="searchByGeneDiv",
-                          conditionalPanel(
-                            condition = "input.byCoordinates == false",
-                            column(3,
-                                   div(id="geneIdDiv",
-                                       selectizeInput(
-                                         'geneId', label = 'Type gene name: (backspace to clear)', choices = geneNames$cat,
-                                         options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
-                                       )),
-                                   actionButton("submitByGene", "Submit Parameters")
-                            ),
-                            column(3,
-                                   div(id="genomicIntervalDiv",
-                                       textInput(inputId = "leftDistance", 
-                                                 label = "Genomic interval to left of gene (bases)",
-                                                 value = "50000"),
-                                       textInput(inputId = "rightDistance", 
-                                                 label = "Genomic interval to right of gene (bases)",
-                                                 value = "50000")
-                                   )  
-                            )
-                          )
-                      )
-                    ),
-                    
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(6,
-                             conditionalPanel(id="hicPlotPanel",
-                                              condition = "input.fileTypes.includes('HiC')",
-                                              wellPanel(
-                                                downloadButton("downloadDataBezier", "Download Plot"),
-                                                tags$hr(),
-                                                plotOutput("bezierplot")
-                                                )
-                                              )
-                      ),
-                      column(6,
-                             conditionalPanel(id="cyNetworkPanel",
-                                              condition = "input.fileTypes.includes('HiC')",
-                                              wellPanel(
-                                                actionButton("saveImage", "Download as PNG"),
-                                                actionButton("refreshCytoBtn", "Refresh cytoscape plot"),
-                                                tags$hr(),
-                                                rcytoscapejsOutput("cyplot", height="400px")
-                                                )
-                                              )
-                      )
-                    ),
-
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(6,
-                             conditionalPanel(id="atacPlotPanel",
-                                              condition = "input.fileTypes.includes('ATAC')",
-                                              wellPanel(
-                                                downloadButton("downloadDataAtac", "Download Plot"),
-                                                tags$hr(),
-                                                plotOutput("atacPlot")
-                                                )
-                                              )
-                      ),
-                      column(6,
-                             conditionalPanel(id="cyClickedNodesPanel",
-                                              condition = "input.fileTypes.includes('HiC')",
-                                              wellPanel(
-                                                h4("Clicked Node"),
-                                                verbatimTextOutput("clickedNode"),
-                                                h4("Connected Nodes"),
-                                                verbatimTextOutput("connectedNodes")
-                                                )
-                                              )
-                             )
-                    ),
-                    
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(6,
-                             conditionalPanel(id="chipPlotPanel",
-                                              condition = "input.fileTypes.includes('ChIP')",
-                                              wellPanel(
-                                                downloadButton("downloadDataChip", "Download Plot"),
-                                                tags$hr(),
-                                                plotOutput("chipPlot")
-                                                )
-                                              )
+                      column(width =3,
+                             div(id="numOfSamplesDiv",
+                                 selectInput(inputId = "numOfSamples", 
+                                             label = "Number of Samples in HiC Dataset",
+                                             choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
+                             tags$br(),
+                             radioButtons(inputId = "searchby", label = "Search By: ", choices =  c("Coordinates", "Genes"), selected = "Coordinates")
                              ),
-                      column(6,
-                             conditionalPanel(id="mrnaPlotPanel",
-                                              condition = "input.fileTypes.includes('mRNA')",
-                                              wellPanel(
-                                                downloadButton("downloadDataMrna", "Download Plot"),
-                                                tags$hr(),
-                                                plotOutput("mrnaPlot")
+                      column(width =3,
+                             div(id="sampleNamesDiv",
+                                 uiOutput(outputId = "sampleNames")
+                             )
+                             
+                      ),
+                      
+                             div(id="searchByCoordinatesDiv", 
+                                 column(width =3,
+                                 uiOutput(outputId = "chromNumberUI"),
+                                 includeHTML(path = "www/html/numericCoord.html")         
+                                 )
+                             ),
+                     
+                      div(id="geneIdDiv",
+                          column(width=3, 
+                                 withLoader(ui_element = uiOutput("searchNamesList"), type = "image", loader = "Loading.png", proxy.height = "100px"),
+                                  # uiOutput("searchNamesList"),
+                                 includeHTML(path = "www/html/numericDistance.html")
+                          )
+                      )
+                             ),
+                    
+                    fluidRow(tags$hr()),
+                    fluidRow(
+                      column(width =6,
+                             div ( id= "HiCplot", style="display:none" ,
+                                   wellPanel(
+                                     downloadButton(outputId = "downloadDataBezier",label =  "Download Plot"),
+                                     tags$hr(),
+                                     plotOutput(outputId = "bezierplot", height="800px")
+                                   )
+                             )
+                      ),
+                      column(width =6,
+                             div(id = "HiCNetwork", style="display:none" ,
+                                 wellPanel(
+                                   tabsetPanel( id = "MainNetwork",
+                                     tabPanel(title = "Network",
+                                              plotOutput(outputId = "cyplot", height="800px"),
+                                              tags$br(),
+                                              downloadButton(outputId = "downloadNetwork",label =  "Download as PNG"),
+                                              downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
+                                              downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
+                                              ),
+                                     tabPanel(title = "Hubs",
+                                              plotOutput(outputId = "plotHubs", height = "800px"),
+                                              tags$br(),
+                                              downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
+                                              ),
+                                     tabPanel(title = "Degree Distribution",
+                                              plotOutput(outputId = "plotdegree", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
+                                              ),
+                                     tabPanel(title = "Groups",
+                                              plotOutput(outputId = "plotgroups", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
+                                              actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
+                                              bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", tableOutput(outputId = "membership_data"))
+                                              ),
+                                     tabPanel(title = "Node Degree",
+                                              plotOutput(outputId = "plotNodeDegree", height = "800px"),
+                                              tags$br(), 
+                                              downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG')
                                               )
+                                   )
+
+                                 )
                              )
                       )
+                    ),
+                    fluidRow(tags$hr()),
+                    fluidRow(
+                      column(width =6,  
+                             div (id = "ATACPlot", style="display:none" ,
+                                  wellPanel(
+                                    downloadButton(outputId = "downloadDataAtac", label = "Download Plot"),
+                                    tags$hr(),
+                                    plotOutput(outputId = "atacPlot", height="800px")  
+                                  )
+                             )
                       )
-                    
+                    ),
+                    fluidRow(tags$hr()),
+                    fluidRow(
+                      column(width =6,
+                             div (id = "ChIPPlot",  style="display:none" ,
+                                  wellPanel(
+                                    downloadButton(outputId = "downloadDataChip", label = "Download Plot"),
+                                    tags$hr(),
+                                    plotOutput(outputId = "chipPlot", height="800px")  
+                                  )
+                             )
+                      ),
+                      column(width =6,
+                             div (id = "mRNAPlot",  style="display:none" ,
+                                  wellPanel(
+                                    downloadButton(outputId = "downloadDataMrna",label =  "Download Plot"),
+                                    tags$hr(),
+                                    plotOutput(outputId = "mrnaPlot", height="800px")  
+                                  )
+                             )
+                      )
                     )
+                             )
+                             )
                 )
-)
 
 server <- function(input, output, session) {
+  
+  # Hide the loading message when the rest of the server function has executed
+  hide(id = "loading-content", anim = TRUE, animType = "fade") 
   
   # Reload App
   observeEvent(input$reloadApp, {
@@ -673,9 +737,14 @@ server <- function(input, output, session) {
       textInput(inputId = paste0("sNumber", number), 
                 label = paste0("HiC Sample ", number),
                 value = "Sample ID")
+      
     })
   })
+  #Dynamic UI elements are suspended by default, when suspendWhenHidden = TRUE they are released Needtochange
+  outputOptions(output, "sampleNames", suspendWhenHidden = FALSE) 
   
+  
+  # outputOptions(output, "searchNamesList", suspendWhenHidden = FALSE)
   
   ## Server code for Introduction by IntroJS
   # set help content
@@ -693,13 +762,13 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, inputId="fileTypes",choices=dataTypes,selected=dataTypes[1:2])
     # Tutorial starts on the Upload File tab
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Upload File")
-    
     showModal(modalDialog(
       title = "Help",
-      tags$p(HTML("Click <b>Start Tutorial</b> to begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
+      tags$p(HTML("Click <b>Start Tutorial</b> to
+                  begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
       footer = actionButton(inputId = "startTutorial","Start Tutorial"),
       easyClose = TRUE
-    ))
+      ))
   })
   
   # Initiate IntroJS tutorial
@@ -707,16 +776,51 @@ server <- function(input, output, session) {
     
     removeModal()
     
-    req("HiC" %in% input$fileTypes & "ATAC" %in% input$fileTypes)
+    req("HiC" %in% input$fileTypes & "ATAC" %in% input$fileTypes)  
     
     # on click, send custom message to start help
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
   
+  observeEvent(input$fileTypes, {
+    if ("HiC" %in% input$fileTypes){
+      shinyjs::show(id = "HiCplot")
+      shinyjs::show(id = "HiCNetwork ")
+    }
+    else{
+      shinyjs::hide(id = "HiCplot")
+      shinyjs::hide(id = "HiCNetwork ")
+      shinyjs::hide(id = "HiCcyclic ")
+    }
+    if ("ATAC" %in% input$fileTypes){
+      shinyjs::show(id = "atacFormatPanelDiv")
+      shinyjs::show(id = "ATACPlot")
+    }
+    else{
+      shinyjs::hide(id = "atacFormatPanelDiv")
+      shinyjs::hide(id = "ATACPlot")
+    }
+    if ("ChIP" %in% input$fileTypes){
+      shinyjs::show(id = "chipFormatPanelDiv")
+      shinyjs::show(id = "ChIPPlot")
+    }
+    else{
+      shinyjs::hide(id = "chipFormatPanelDiv")
+      shinyjs::hide(id = "ChIPPlot")
+    }
+    if ("mRNA" %in% input$fileTypes ){
+      shinyjs::show(id = "mrnaFormatPanelDiv")
+      shinyjs::show(id = "mRNAPlot ")
+    }
+    else{
+      shinyjs::hide(id = "mrnaFormatPanelDiv")
+      shinyjs::hide(id = "mRNAPlot ")
+    }
+  })
   
   ## Generate dynamic upload UI based on fileTypes selected
   output$dataTabs <- renderUI({
-    dataTabs <- lapply(1:length(input$fileTypes), function(i){
+    dataTabs <- lapply(1:length(input$fileTypes), function(i ){
       tabPanel(title = input$fileTypes[i],
                
                # Sidebar layout with input and output definitions ----
@@ -777,15 +881,77 @@ server <- function(input, output, session) {
                            
                            # # Output: Data file ----
                            tableOutput(paste0(input$fileTypes[i],"Table"))
-                           
                  )
-                 
                )
       )
     })
     do.call(tabsetPanel, dataTabs)
   })
+  #outputOptions(output, "dataTabs", suspendWhenHidden = FALSE) 
   
+  ## Render appropriate selection of chromosomes for chosen genome when using the 'Search by Coordinates' option to plot data
+  # To add chromosome options for a new species, create a new case for the switch expression
+  observeEvent(input$searchby, {
+  if (input$searchby == "Coordinates"){ 
+    shinyjs::show(id = "searchByCoordinatesDiv")
+  output$chromNumberUI <- renderUI({
+    switch(input$genome,
+           mouse = {
+             selectInput(inputId = "chromNumber",
+                         label = "Chr Number",
+                         choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chrX","chrY"), multiple = FALSE,
+                         selectize = TRUE, width = NULL, size = NULL)
+           },
+           human = {
+             selectInput(inputId = "chromNumber",
+                         label = "Chr Number",
+                         choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY"), multiple = FALSE,
+                         selectize = TRUE, width = NULL, size = NULL)
+           },
+           drosophila_melanogaster = {
+             selectInput(inputId = "chromNumber",
+                         label = "Chr Number",
+                         choices = c("3R","3L","2R","2L","X","Y","4"), multiple = FALSE,
+                         selectize = TRUE, width = NULL, size = NULL)
+           }
+    )
+  })
+  outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
+  }
+    shinyjs::hide(id = "geneIdDiv")
+    })
+  observeEvent(input$searchby, { 
+    if (input$searchby == "Genes"){
+      shinyjs::hide(id = "searchByCoordinatesDiv")
+      shinyjs::show(id = "geneIdDiv")
+      output$searchNamesList <- renderUI({
+        switch(input$genome,
+               mouse = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices = mousegenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               human = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices = humangenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               drosophila_melanogaster = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices= drosophilagenes,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               }
+        )
+      })
+    }
+  })
+ # outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
   
   ## START OF ANALYSIS/VISUALIZATION BLOCK
   observeEvent(input$processDataBtn,{
@@ -810,7 +976,6 @@ server <- function(input, output, session) {
       showNotification(ui="Upload incomplete, please upload mRNA file before proceeding",duration=5,closeButton=TRUE,type="error")
     }
     
-    
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
       
@@ -820,9 +985,7 @@ server <- function(input, output, session) {
         output$HiCTable <- renderTable({
           displayUploadedFile(data=HiCdata, input, dataFileType="HiC")
         })
-        
         checkHeader(data=HiCdata, dataFileType="HiC", input)
- 
       }
       
       #Increment progress
@@ -834,9 +997,7 @@ server <- function(input, output, session) {
         output$ATACTable <- renderTable({
           displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
         })
-        
         checkHeader(data=ATACdata, dataFileType="ATAC", input)
-        
       }
       
       #Increment progress
@@ -848,9 +1009,7 @@ server <- function(input, output, session) {
         output$ChIPTable <- renderTable({
           displayUploadedFile(data=ChIPdata, input, dataFileType="ChIP")
         })
-        
         checkHeader(data=ChIPdata, dataFileType="ChIP", input)
-        
       }
       
       #Increment progress
@@ -862,9 +1021,7 @@ server <- function(input, output, session) {
         output$mRNATable <- renderTable({
           displayUploadedFile(data=mRNAdata, input, dataFileType="mRNA")
         })
-        
         checkHeader(data=mRNAdata, dataFileType="mRNA", input)
-        
       }
       
       #Increment progress
@@ -872,11 +1029,10 @@ server <- function(input, output, session) {
       
     })
     
-    
     ###### REACTIVE FUNCTION: Define reactive function to plot cytoscape network
     plotCyNetwork <- reactive({
       
-      withProgress(message = 'Making cytoscape plot', value = 0, {
+          withProgress(message = 'Making cytoscape plot', value = 0, {
         
         #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
         if( submitBy$method == "ByCoord" ){
@@ -926,6 +1082,18 @@ server <- function(input, output, session) {
         # Define network that will be used for displaying connected nodes as = edgeData
         network <- edgeData
         
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        
+        number_nodes <- vcount(ntwrk)
+        if (number_nodes > 30){
+          node_size = 6
+          node_label = NA
+        }else {
+          node_size = 18
+          node_label = name
+        }
+  
+  
         # NOTE: Reactive variables used as functions networkReactive(). Code block taken verbatim from: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
         # Start code block from: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
         networkReactive <- reactive({
@@ -938,7 +1106,6 @@ server <- function(input, output, session) {
             return(network[idx,])
           }
         })
-        
         output$nodeDataTable <- DT::renderDataTable({
           tmp <- nodeData[which(id == input$clickedNode),]
           DT::datatable(tmp, filter='bottom', style='bootstrap', options=list(pageLength=5))
@@ -955,15 +1122,129 @@ server <- function(input, output, session) {
         output$connectedNodes = renderPrint({
           input$connectedNodes
         }) #End code block from: From: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
-        
-        ## Generate cytoscape plots
-        cyNetwork <- createCytoscapeJsNetwork(nodeData, edgeData, edgeTargetShape="none")
-        rcytoscapejs(cyNetwork$nodes, cyNetwork$edges, showPanzoom=TRUE, highlightConnectedNodes = TRUE, boxSelectionEnabled = TRUE)
-        
       })
-      
-    })
+        
+        plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        
+        output$plotdegree <- renderPlot({ 
+          deg <- igraph::degree(ntwrk, mode="all")
+          deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+          output$plotdegree = renderPlot({ 
+            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+            
+            output$downloadPlot_degree <- downloadHandler(
+              filename = "Degree_Distribution.png",
+              content = function(file) {
+                png(file)
+                deg <- igraph::degree(ntwrk, mode="all")
+                deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+                plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+                dev.off()
+              }) 
+          })
+        })
+        
+        output$plotgroups <- renderPlot({ 
+          ceb <- cluster_edge_betweenness(ntwrk)
+          plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+          output$membership_data <- renderTable({
+            memb_info = membership(ceb)
+            Membership = as.character(membership(ceb))
+            Node = names(memb_info)
+            df = data.frame(Membership, Node)
+            print(df)
+          #  paste (Membership, Node)
+          })
+          
+          
+          output$downloadPlot_groups <- downloadHandler(
+            filename = "Community_Detecion.png",
+            content = function(file) {
+              png(file)
+              ceb <- cluster_edge_betweenness(ntwrk)
+              plot(ceb, ntwrk, vertex.label = node_label,  main = "Community Detection")
+              dev.off()
+            }) 
+        })
+        
+        output$plotHubs <- renderPlot({
+          hs <- hub_score(ntwrk)$vector
+          plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+          output$downloadPlot_hub <- downloadHandler(
+            filename = "Hub.png",
+            content = function(file) {
+              png(file)
+              hs <- hub_score(ntwrk)$vector
+              plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+              dev.off()
+            }) 
+        })
+        
+        output$plotNodeDegree <- renderPlot({            
+          deg <- igraph::degree(ntwrk, mode = "all")
+          dens_deg <- density(x = deg)
+          plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+          polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+          #degree_dataframe <- data.frame(deg)
+          #hist(x = deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab = "Degree")
+          # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+          output$downloadPlot_node_degree <- downloadHandler(
+            filename = "Node-Degree.png",
+            content = function(file) {
+              png(file)
+              deg <- igraph::degree(ntwrk, mode = "all")
+              dens_deg <- density(x = deg)
+              plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+              polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+              # degree_dataframe <- data.frame(deg)
+              #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
+              #ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+              dev.off()
+            })
+        })
+        
+        ###### Download Network
+        output$downloadNetwork <- downloadHandler(
+          filename = function() {
+            "Network.png"
+          },
+          content = function(file) {
+            png(file)
+            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label) 
+            dev.off()
+          }
+        )
+        
+        ##Download All
+        output$downloadAll <- downloadHandler(
+          filename = function() {
+            "Network-Analysis.pdf"
+          },
+          content = function(file) {
+            pdf(file)
+            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            hs <- hub_score(ntwrk)$vector
+            plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            deg <- igraph::degree(ntwrk, mode="all")
+            deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
+            ceb <- cluster_edge_betweenness(ntwrk)
+            plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+            #paste0("community membership for each node", membership(ceb))
+            deg <- igraph::degree(ntwrk, mode = "all") 
+            dens_deg <- density(x = deg)
+            plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+            polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+            # degree_dataframe <- data.frame(deg)
+            #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
+            # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue")# + labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+            dev.off()
+          }
+        )
+   
     
+    })
+ 
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
     generatePlots <- reactive({
@@ -990,7 +1271,7 @@ server <- function(input, output, session) {
       }
       
       #Load gene annotation data for user defined region
-      genes <- readGenes(geneWindow)
+      genes <- readGenes(geneWindow, input)
       
       ######## ATAC Plot Output:
       output$atacPlot <- renderPlot({
@@ -1000,7 +1281,7 @@ server <- function(input, output, session) {
           } else if ( input$atacFormat == "Bed" ){
             plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
           }
-          })
+        })
       })
       
       output$downloadDataAtac <- downloadHandler(
@@ -1026,7 +1307,7 @@ server <- function(input, output, session) {
           } else if ( input$chipFormat == "Bed" ){
             plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
           }
-          })
+        })
       })
       
       output$downloadDataChip <- downloadHandler(
@@ -1071,7 +1352,7 @@ server <- function(input, output, session) {
       )
       
       ####### Cytoscape Network Output:
-      output$cyplot <- renderRcytoscapejs({
+      output$cyplot <- renderPlot({
         isolate({ 
           
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
@@ -1083,14 +1364,12 @@ server <- function(input, output, session) {
               stop("The genomic window does not contain any nodes")
             })
           
-          })
+        })
       })
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
-        
         isolate({
-
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
@@ -1099,8 +1378,7 @@ server <- function(input, output, session) {
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
             })
-
-          })
+        })
       })
       
       output$downloadDataBezier <- downloadHandler(
@@ -1116,65 +1394,31 @@ server <- function(input, output, session) {
       
     })
     
-    
-    ###### REACTIVE FUNCTION: Define reactive function to refresh cytoscape plot by creating a dependency on only input$refreshCytoBtn
-    refreshCytoscape <- reactive({
-      
-      ## Create dependency on input$refreshCytoBtn
-      input$refreshCytoBtn
-      
-      ####### Cytoscape Network Output:
-      output$cyplot <- renderRcytoscapejs({
-        isolate({ 
-          
-          #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
-          tryCatch(
-            {
-              plotCyNetwork()
-            },
-            error=function(e) {
-              stop("The genomic window does not contain any nodes")
-            })
-          
-        })
-      })
-    })
-    
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
     observeEvent(input$submitByCoordinates, {
       submitBy$method = "ByCoord"
+      updateTabsetPanel(session = session,inputId = "MainNetwork", selected  = "Network")
       generatePlots()
       
-      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
-      observeEvent(input$refreshCytoBtn, {
-        refreshCytoscape()
-      })
-      
     })
-    
     
     ######Execute code to Generate Plots Once Press submitByGene actionButton
     observeEvent(input$submitByGene, {
       submitBy$method = "ByGene"
       generatePlots()
       
-      ######Execute code to refresh cytoscape plot Once Press refreshCytoBtn actionButton
-      observeEvent(input$refreshCytoBtn, {
-        refreshCytoscape()
-      })
-      
     })
-    
     
     ####### Download Cytoscape Network as PNG (uses cyjs.js script in UI). From https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
     observeEvent(input$saveImage, {
       # NOTE: Message cannot be an empty string "", nothing will happen    
       session$sendCustomMessage(type="saveImage", message="NULL")
     })
-
-    
   })
-
+  
+  #To enable new-session reconnections, in case the client has disconnected from the server (and has reached a gray-out state)
+  session$allowReconnect(TRUE)
+ 
 }
-
 shinyApp(ui = ui, server = server)
+
