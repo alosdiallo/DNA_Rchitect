@@ -15,12 +15,11 @@ $(document).on('shiny:connected', function(event) {
   });
 
   
- $(document).on('shiny:inputchanged', function(event) {
+/*  $(document).on('shiny:inputchanged', function(event) {
  
 ///////////////////////////////////////////////////////////////
-var x = document.getElementById("genome").value;
+
 var checkBoxCoord = document.getElementById("byCoordinates");
-var checkBoxGenes = document.getElementById("byGenes");
 
 document.getElementById("geneIdDiv").style.display = "inline";
 document.getElementById("searchByCoordinatesDiv").style.visibility = "hidden";
@@ -31,13 +30,13 @@ document.getElementById("searchByCoordinatesDiv").style.display = "inline";
 document.getElementById("geneIdDiv").style.display = "none";
 
 } 
-if (checkBoxGenes.checked == true){
-	document.getElementById("geneIdDiv").style.visibility = "visible";
+else{
+document.getElementById("geneIdDiv").style.visibility = "visible";
 document.getElementById("geneIdDiv").style.display = "inline";
 document.getElementById("searchByCoordinatesDiv").style.display = "none";
 }
 
-  });
+  }); */
 //////////////////////////////////////////////////////////
   
  function isNumberKey(evt)
