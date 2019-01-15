@@ -29,9 +29,6 @@
 
 # # Packages from github
 # library("devtools");
-# if (!require("rcytoscapejs")) devtools::install_github("cytoscape/r-cytoscape.js")
-
-#library("rcytoscapejs", lib.loc="C:/Users/User/Desktop/DNARchitect_Test/www")
 
 #install.packages("stringi")
 #install.packages("shinycssloaders)
