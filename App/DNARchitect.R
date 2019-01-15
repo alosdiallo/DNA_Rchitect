@@ -1094,8 +1094,7 @@ server <- function(input, output, session) {
         }
   
   
-        # NOTE: Reactive variables used as functions networkReactive(). Code block taken verbatim from: https://github.com/cytoscape/r-cytoscape.js/tree/master/inst/examples/shiny
-        # Start code block from: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
+        # NOTE: Reactive variables used as functions networkReactive(). 
         networkReactive <- reactive({
           if(is.null(input$connectedNodes)) {
             return(network)
@@ -1121,7 +1120,7 @@ server <- function(input, output, session) {
         
         output$connectedNodes = renderPrint({
           input$connectedNodes
-        }) #End code block from: From: https://github.com/cytoscape/r-cytoscape.js/tree/master/ins
+        }) 
       })
         
         plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
