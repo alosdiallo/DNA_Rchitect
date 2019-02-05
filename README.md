@@ -112,9 +112,9 @@ The code must be changed in 3 places to accomodate a new species.<br>
 3. `output$searchNamesList`: Each new species requires its own case in the switch statement to render UI for visualizing by gene. Follow the exisintg code and add your new species. <br>
 
 #### The follow species are currently supported by the App
-1. mouse <br>
-2. human <br>
-3. drosophila_melanogaster <br>
+1. mouse mm10 <br>
+2. human Hg38 <br>
+3. drosophila_melanogaster Release 6 <br>
 
 ### References
 This application utilizes the following packages and libraries:<br>
