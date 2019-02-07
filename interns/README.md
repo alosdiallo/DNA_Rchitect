@@ -41,6 +41,12 @@ https://en.wikipedia.org/wiki/Chromosome_conformation_capture <br>
 To understand the bed, bedgraph, and bedpe plots created with Sushi read about: <br>
 https://bioconductor.org/packages/devel/bioc/vignettes/Sushi/inst/doc/Sushi.pdf <br>
 
+To download data from our cloud instance: <br> 
+First download the sdk https://cloud.google.com/sdk/docs/ <br>
+Then run: gcloud init 
+Finally run: "gsutil -m cp -R gs://gencode_ch_data ."
+
+
 ## DNARchitect Development
 
 Comments starting with `# ###-----------` demarcate areas of code that would benefit from improvement <br>
