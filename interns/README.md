@@ -46,6 +46,8 @@ First download the sdk https://cloud.google.com/sdk/docs/ <br>
 Then run: gcloud init 
 Finally run: "gsutil -m cp -R gs://gencode_ch_data ."
 
+To change the permissions to read on all files
+gsutil -m acl set -R -a public-read gs://gencode_ch_data
 
 ## DNARchitect Development
 
