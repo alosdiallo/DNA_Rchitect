@@ -43,6 +43,15 @@
 
 #library(BioNet) #to save network in XGMML file format
 ## Load libraries
+
+library(Rmisc)
+library(Matrix)
+library(tibble)
+library(purrr)
+library(plyr)
+library(XML)
+library(later)
+
 library(shiny)
 library(htmlwidgets)
 library(zoo)
@@ -73,6 +82,7 @@ library(latexpdf)
 
 
 
+
 # Create help data frame with steps for IntroJS introduction/tutorial
 steps <- read.csv(file="www/help.csv",header=TRUE,sep=",",quote='"')
 
@@ -100,14 +110,14 @@ reqRead <- function(input, dataFileType){
       header = FALSE,
       sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
       quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
-    names(data)[1] <- "chrom1"
-    names(data)[2] <- "start1"
-    names(data)[3] <- "end1"
-    names(data)[4] <- "chrom2"
-    names(data)[5] <- "start2"
-    names(data)[6] <- "end2"
-    names(data)[7] <- "score"
-    names(data)[8] <- "samplenumber"
+    #names(data)[1] <- "chrom1"
+    #names(data)[2] <- "start1"
+    #names(data)[3] <- "end1"
+    #names(data)[4] <- "chrom2"
+    #names(data)[5] <- "start2"
+    #names(data)[6] <- "end2"
+    #names(data)[7] <- "score"
+    #names(data)[8] <- "samplenumber"
   }
 
   
@@ -126,7 +136,7 @@ geneNames$drosophila_melanogaster <- read.delim("https://storage.googleapis.com/
 names(geneNames$mouse) <- " "
 names(geneNames$human) <- " "
 names(geneNames$drosophila_melanogaster) <- " "
-
+ColorNames <- c("Blue", "Red", "Green", "Purple", "Orange", "Yellow", "Brown", "Pink", "Gray")
 
 #FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
 HiCdataRead <- function(input){
@@ -367,8 +377,14 @@ makeGenomeLabel <- function(geneWindow){
 
 #FUNCTION: Define color palette for bezier curve samples
 bezierColorPalette <- function(input){
+  ColorHEX <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
+  Col_names <- cbind(ColorHEX, ColorNames)
   # Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3, Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
-  fullPalette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
+  col_hex <- Col_names[which(Col_names[,2] %in% input$selectedColor), 1]
+  fullPalette <- col_hex
+  #fullPalette <- input$selectedColor
+  
+  
   plotPalette <- fullPalette[1:input$numOfSamples]
   return(plotPalette)
 }
@@ -546,12 +562,16 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   column(width = 2,
                          selectInput(inputId = "genome",label = "Genome", choices = c("mouse_mm10","human_Hg38","drosophila_melanogaster_6"))
                   ),
-                  column(width = 2,
-                         tags$br(),
-                         div(id = "helpreload",
-                             actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
-                             actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
-                  )
+                  column(width = 1,
+                        # tags$br(),
+                        # div(id = "helpreload",
+                             actionButton(inputId = "startHelp",label = "Interactive Tutorial", class="btn-info")
+                        
+                         #)
+                  ),
+                  column(width = 1,
+                         actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger")
+                         )
                 ),
                 tabsetPanel(
                   id = "mainTabs",
@@ -623,7 +643,8 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                       column(width =3,
                              div(id="sampleNamesDiv",
                                  uiOutput(outputId = "sampleNames")
-                             )
+                             ),
+                             selectInput(inputId = "selectedColor", label = "Select colors for bezier curves", choices = ColorNames, multiple = TRUE)
                              
                       ),
                       
@@ -745,6 +766,7 @@ server <- function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
   })
   
+
   ## Render appropriate number of textInput based on number of samples
   output$sampleNames <- renderUI({
     Samples <- lapply(1:input$numOfSamples, function(number){
