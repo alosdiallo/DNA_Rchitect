@@ -562,16 +562,19 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   column(width = 2,
                          selectInput(inputId = "genome",label = "Genome", choices = c("mouse_mm10","human_Hg38","drosophila_melanogaster_6"))
                   ),
-                  column(width = 1,
-                        # tags$br(),
-                        # div(id = "helpreload",
-                             actionButton(inputId = "startHelp",label = "Interactive Tutorial", class="btn-info")
+                  column(width = 2,
+                         includeHTML(path = "www/html/buttonDivs.html")
+                      #   div(id = "helpreload",
+                      #       actionButton(inputId = "startHelp",label = "Interactive Tutorial", class="btn-info")
+                      #  
+                        # ),
+                        # div(id = "reload", 
+                        #     actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger")
+                        # )
+                  )
+                  #column(width = 1,
                         
-                         #)
-                  ),
-                  column(width = 1,
-                         actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger")
-                         )
+                            # )
                 ),
                 tabsetPanel(
                   id = "mainTabs",
@@ -665,46 +668,41 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
                     
                     fluidRow(tags$hr()),
+                    
                     fluidRow(
                       column(width =6,
-                             div ( id= "HiCplot", style="display:none" ,
-                                   wellPanel(
-                                     downloadButton(outputId = "downloadDataBezier",label =  "Download Plot"),
-                                     tags$hr(),
-                                     plotOutput(outputId = "bezierplot", height="800px")
-                                   )
-                             )
-                      ),
+                             includeHTML(path = "www/html/HiCtable.html")
+                           ),
                       column(width =6,
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
                                    tabsetPanel( id = "MainNetwork",
                                                 tabPanel(title = "Network",
-                                                         plotOutput(outputId = "cyplot", height="800px"),
+                                                         plotOutput(outputId = "cyplot", height="500px"),
                                                          tags$br(),
                                                          downloadButton(outputId = "downloadNetwork",label =  "Download as PNG"),
                                                          downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
                                                          downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
                                                 ),
                                                 tabPanel(title = "Hubs",
-                                                         plotOutput(outputId = "plotHubs", height = "800px"),
+                                                         plotOutput(outputId = "plotHubs", height = "500px"),
                                                          tags$br(),
                                                          downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
                                                 ),
                                                 tabPanel(title = "Degree Distribution",
-                                                         plotOutput(outputId = "plotdegree", height = "800px"),
+                                                         plotOutput(outputId = "plotdegree", height = "500px"),
                                                          tags$br(), 
                                                          downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
                                                 ),
                                                 tabPanel(title = "Groups",
-                                                         plotOutput(outputId = "plotgroups", height = "800px"),
+                                                         plotOutput(outputId = "plotgroups", height = "500px"),
                                                          tags$br(), 
                                                          downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
                                                          actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
                                                          bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", tableOutput(outputId = "membership_data"))
                                                 ),
                                                 tabPanel(title = "Node Degree",
-                                                         plotOutput(outputId = "plotNodeDegree", height = "800px"),
+                                                         plotOutput(outputId = "plotNodeDegree", height = "500px"),
                                                          tags$br(), 
                                                          downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG')
                                                 )
@@ -713,39 +711,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                  )
                              )
                       )
-                    ),
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(width =6,  
-                             div (id = "ATACPlot", style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataAtac", label = "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "atacPlot", height="800px")  
-                                  )
-                             )
-                      )
-                    ),
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(width =6,
-                             div (id = "ChIPPlot",  style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataChip", label = "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "chipPlot", height="800px")  
-                                  )
-                             )
-                      ),
-                      column(width =6,
-                             div (id = "mRNAPlot",  style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataMrna",label =  "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "mrnaPlot", height="800px")  
-                                  )
-                             )
-                      )
+                      
                     )
                   )
                 )
@@ -821,36 +787,44 @@ server <- function(input, output, session) {
   observeEvent(input$fileTypes, {
     if ("HiC" %in% input$fileTypes){
       shinyjs::show(id = "HiCplot")
+      shinyjs::show(id = "HiCplotdownload")
       shinyjs::show(id = "HiCNetwork ")
     }
     else{
       shinyjs::hide(id = "HiCplot")
+      shinyjs::hide(id = "HiCplotdownload")
       shinyjs::hide(id = "HiCNetwork ")
       shinyjs::hide(id = "HiCcyclic ")
     }
     if ("ATAC" %in% input$fileTypes){
       shinyjs::show(id = "atacFormatPanelDiv")
       shinyjs::show(id = "ATACPlot")
+      shinyjs::show(id = "ATACPlotdownload")
     }
     else{
       shinyjs::hide(id = "atacFormatPanelDiv")
       shinyjs::hide(id = "ATACPlot")
+      shinyjs::hide(id = "ATACPlotdownload")
     }
     if ("ChIP" %in% input$fileTypes){
       shinyjs::show(id = "chipFormatPanelDiv")
       shinyjs::show(id = "ChIPPlot")
+      shinyjs::show(id = "ChIPPlotdownload")
     }
     else{
       shinyjs::hide(id = "chipFormatPanelDiv")
       shinyjs::hide(id = "ChIPPlot")
+      shinyjs::hide(id = "ChIPPlotdownload")
     }
     if ("mRNA" %in% input$fileTypes ){
       shinyjs::show(id = "mrnaFormatPanelDiv")
-      shinyjs::show(id = "mRNAPlot ")
+      shinyjs::show(id = "mRNAPlot")
+      shinyjs::show(id = "mRNAPlotdownload")
     }
     else{
       shinyjs::hide(id = "mrnaFormatPanelDiv")
-      shinyjs::hide(id = "mRNAPlot ")
+      shinyjs::hide(id = "mRNAPlot")
+      shinyjs::hide(id = "mRNAPlotdownload")
     }
   })
   
@@ -991,6 +965,8 @@ server <- function(input, output, session) {
   
   ## START OF ANALYSIS/VISUALIZATION BLOCK
   observeEvent(input$processDataBtn,{
+    
+    
     
     # Define submitBy variable
     submitBy <- reactiveValues(method="ByGene")
@@ -1427,6 +1403,10 @@ server <- function(input, output, session) {
         }
       )
       
+    })
+    
+    observeEvent(input$numOfSamples, {
+      updateSelectizeInput(session = session, inputId = "selectedColor",  options = list(maxItems = input$numOfSamples), selected = NULL)
     })
     
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
