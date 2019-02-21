@@ -325,7 +325,7 @@ parGenes <- function(){
 
 #FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
 subPlotGenes <- function(genes,geneWindow){
-  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.6,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.8,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
 }
 
 #FUNCTION: define plot titles
@@ -396,7 +396,7 @@ bezierLegend <- function(input){
     eval(parse(text = (paste0("input$sNumber", number))))
   })
   color_select <- bezierColorPalette(input)
-  legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.7,text.font=2);
+  legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.8,text.font=2);
 }
 
 
@@ -668,7 +668,22 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
                     
                     fluidRow(tags$hr()),
-                    
+                    fluidRow(
+                      column(width = 6,
+                             div ( id= "HiCplotdownload", style="display:none", 
+                                   downloadButton(outputId = "downloadDataBezier",label =  "Download HiC Plot", style = "float:left")
+                             ),
+                             div (id = "ATACPlotdownload", style="display:none" ,
+                                  downloadButton(outputId = "downloadDataAtac", label = "Download ATAC Plot", style = "float:left")
+                             ),
+                             div (id = "ChIPPlotdownload",  style="display:none" ,
+                                  downloadButton(outputId = "downloadDataChip", label = "Download ChIP Plot", style = "float:left")
+                             ),
+                             div (id = "mRNAPlotdownload",  style="display:none" ,
+                                  downloadButton(outputId = "downloadDataMrna",label =  "Download mRNA Plot", style = "float:left")
+                             ))
+                    ),
+                    tags$br(),
                     fluidRow(
                       column(width =6,
                              includeHTML(path = "www/html/HiCtable.html")
@@ -713,6 +728,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                       )
                       
                     )
+              
                   )
                 )
 )
