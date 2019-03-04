@@ -79,6 +79,8 @@ library(packrat)
 library(MASS)
 library(gridExtra)
 library(latexpdf)
+library(ggplot2)
+library(gtable)
 
 
 
@@ -419,10 +421,14 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   if(max(data$samplenumber) == 1){
     #for only 1 sample in data$samplenumber
     ## USING SUSHI PACKAGE
+   # par(mar = c(0,0,0,0))
+    #par(mfrow=c(1,1),mar=c(0,4,1,1))
     pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data[,7],lwdrange = c(0,2),heights = data[,7],plottype="loops",color="blue");
-  }else{
+  
+    }else{
     #for >= 2 samples in data$samplenumber
     ## USING SUSHI PACKAGE
+    #par(mar = c(1,0,0,0))
     pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data[,7],lwdrange = c(0,2),heights = data[,7],plottype="loops",colorby=data[,8],colorbycol=color_select);
   }
   
@@ -446,7 +452,7 @@ plotBezierCurves <- function(data,input,genes,geneWindow){
     
     #Increment progress
     incProgress(0.6)
-    
+    #par(mar = c(0,0,0,0))
     makeBezierCurves(data, input, genes, geneWindow)
     
     #Increment progress
@@ -471,6 +477,7 @@ plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     #Plot Atac-seq plot
     color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
     ## USING SUSHI PACKAGE
+   # par(mar = c(0,0,0,0))
     plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Read Depth",topTitle=plotTopTitle)
@@ -685,9 +692,41 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                     ),
                     tags$br(),
                     fluidRow(
-                      column(width =6,
+                      column(width =6, 
+                     #        wellPanel(
+                      #       div ( id= "HiCplot", style="display:none; height:350px " ,
+                                  
+                                     #HTML("<div style='height: 380px;'>"),
+                       #              plotOutput(outputId = "bezierplot", height="480px")
+                                     #HTML("</div>")
+                                  # )
+                        #     ),
+                        #     div (id = "ATACPlot", style="display:none; height=350px" ,
+                                  #wellPanel(
+                                    #HTML("<div style='height: 380px;'>"),
+                         #           plotOutput(outputId = "atacPlot", height="480px")
+                                    #HTML("</div>")
+                                  #)
+                         #    ),
+                          #   div (id = "ChIPPlot", style="display:none; height=380px" ,
+                                  #wellPanel(
+                                  #HTML("<div style='height: 380px;'>"),
+                           #       plotOutput(outputId = "chipPlot", height="480px")
+                                  #HTML("</div>")
+                                  #)
+                           #  ),
+                            # div (id = "mRNAPlot", style="display:none; height=380px" ,
+                                  #wellPanel(
+                                  #HTML("<div style='height: 380px;'>"),
+                             #     plotOutput(outputId = "mrnaPlot", height="480px")
+                                  #HTML("</div>")
+                                  #)
+                           #  )
                              includeHTML(path = "www/html/HiCtable.html")
-                           ),
+                        #   )
+                           # column(width = 6,
+                           #)
+                      ),
                       column(width =6,
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
@@ -802,12 +841,15 @@ server <- function(input, output, session) {
   
   observeEvent(input$fileTypes, {
     if ("HiC" %in% input$fileTypes){
-      shinyjs::show(id = "HiCplot")
+      #shinyjs::show(id = "HiCplot")
       shinyjs::show(id = "HiCplotdownload")
       shinyjs::show(id = "HiCNetwork ")
+      shinyjs::show(id = "HiCplot")
+      #shinyjs::show(id = "bezierplot")
     }
     else{
       shinyjs::hide(id = "HiCplot")
+      #shinyjs::hide(id = "bezierplot")
       shinyjs::hide(id = "HiCplotdownload")
       shinyjs::hide(id = "HiCNetwork ")
       shinyjs::hide(id = "HiCcyclic ")
@@ -816,30 +858,36 @@ server <- function(input, output, session) {
       shinyjs::show(id = "atacFormatPanelDiv")
       shinyjs::show(id = "ATACPlot")
       shinyjs::show(id = "ATACPlotdownload")
+      #shinyjs::show(id = "atacPlot")
     }
     else{
       shinyjs::hide(id = "atacFormatPanelDiv")
       shinyjs::hide(id = "ATACPlot")
+      #shinyjs::hide(id = "atacPlot")
       shinyjs::hide(id = "ATACPlotdownload")
     }
     if ("ChIP" %in% input$fileTypes){
       shinyjs::show(id = "chipFormatPanelDiv")
       shinyjs::show(id = "ChIPPlot")
+      #shinyjs::show(id = "chipPlot")
       shinyjs::show(id = "ChIPPlotdownload")
     }
     else{
       shinyjs::hide(id = "chipFormatPanelDiv")
       shinyjs::hide(id = "ChIPPlot")
+      #shinyjs::hide(id = "chipPlot")
       shinyjs::hide(id = "ChIPPlotdownload")
     }
     if ("mRNA" %in% input$fileTypes ){
       shinyjs::show(id = "mrnaFormatPanelDiv")
       shinyjs::show(id = "mRNAPlot")
+      #shinyjs::show(id = "mrnaPlot")
       shinyjs::show(id = "mRNAPlotdownload")
     }
     else{
       shinyjs::hide(id = "mrnaFormatPanelDiv")
       shinyjs::hide(id = "mRNAPlot")
+      #shinyjs::hide(id = "mrnaPlot")
       shinyjs::hide(id = "mRNAPlotdownload")
     }
   })
@@ -1055,8 +1103,17 @@ server <- function(input, output, session) {
       #Increment progress
       incProgress(0.99)
       
+      showModal(modalDialog(
+        title = "Make sure that the uploaded file contains the data in correct index of columns.",
+        tags$p(HTML(" <b>bedpeHeader </b>: Columns 1 to 8 should contain data about (chrom1-start1-end1-chrom2-start2-end2-score-samplenumber) respectively.
+                     <br> </br> <b>bedHeader:</b> Columns 1 to 3 should contain data about (chrom-start-stop) respectively.  <br> </br> <b>bedgraphHeader:</b> Columns 1 to 4 should contain data about ( chrom-start-stop-value) respectively.")),
+        easyClose = TRUE
+      ))
+      
     })
-    
+    bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
+    bedHeader <- c("chrom","start","stop")
+    bedgraphHeader <- c("chrom","start","stop","value")
     ###### REACTIVE FUNCTION: Define reactive function to plot cytoscape network
     plotCyNetwork <- reactive({
       
@@ -1304,8 +1361,10 @@ server <- function(input, output, session) {
       output$atacPlot <- renderPlot({
         isolate({ 
           if( input$atacFormat == "Bedgraph" ){
+           # par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
           } else if ( input$atacFormat == "Bed" ){
+            #par(mar = c(0,0,0,0))
             plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
           }
         })
@@ -1330,8 +1389,10 @@ server <- function(input, output, session) {
       output$chipPlot <- renderPlot({
         isolate({ 
           if( input$chipFormat == "Bedgraph" ){
+          #  par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
           } else if ( input$chipFormat == "Bed" ){
+           # par(mar = c(0,0,0,0))
             plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
           }
         })
@@ -1356,8 +1417,10 @@ server <- function(input, output, session) {
       output$mrnaPlot <- renderPlot({
         isolate({ 
           if( input$mrnaFormat == "Bedgraph" ){
+            #par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
           } else if ( input$mrnaFormat == "Bed" ){
+            #par(mar = c(0,0,0,0))
             plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
           }
         })
@@ -1400,7 +1463,9 @@ server <- function(input, output, session) {
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
-              plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+              #par(mar = c(0,0,0,0))
+              p <- plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+              
             },
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
