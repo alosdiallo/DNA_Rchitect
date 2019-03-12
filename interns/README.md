@@ -46,12 +46,12 @@ First download the sdk https://cloud.google.com/sdk/docs/ <br>
 Then run: gcloud init 
 Finally run: "gsutil -m cp -R gs://gencode_ch_data ."
 
-To change the permissions to read on all files
+To change the permissions to read on all files <br>
 gsutil -m acl set -R -a public-read gs://gencode_ch_data
 
-To change permissions for files in a dir:
-gsutil acl ch -u AllUsers:R gs://gencode_ch_data/folder_name/*.txt
-Example: gsutil acl ch -u AllUsers:R gs://gencode_ch_data/human_Hg19/*.txt
+To change permissions for files in a dir:<br>
+gsutil acl ch -u AllUsers:R gs://gencode_ch_data/folder_name/*.txt<br>
+Example: gsutil acl ch -u AllUsers:R gs://gencode_ch_data/human_Hg19/*.txt<br>
 
 ## DNARchitect Development
 
