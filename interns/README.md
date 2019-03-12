@@ -49,6 +49,10 @@ Finally run: "gsutil -m cp -R gs://gencode_ch_data ."
 To change the permissions to read on all files
 gsutil -m acl set -R -a public-read gs://gencode_ch_data
 
+To change permissions for files in a dir:
+gsutil acl ch -u AllUsers:R gs://gencode_ch_data/folder_name/*.txt
+Example: gsutil acl ch -u AllUsers:R gs://gencode_ch_data/human_Hg19/*.txt
+
 ## DNARchitect Development
 
 Comments starting with `# ###-----------` demarcate areas of code that would benefit from improvement <br>
