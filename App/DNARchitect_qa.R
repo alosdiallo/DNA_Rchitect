@@ -415,7 +415,7 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   
   #Call color palette
   color_palette <- bezierColorPalette(input)
-  color_select <-colorRampPalette(color_palette)
+  color_select <- colorRampPalette(color_palette)
   
   #Call plot layout
   plotLayout()
@@ -686,10 +686,10 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                ),
                                downloadButton(outputId = "downloadDataBezierPDF",label =  "Download Bezier curves as PDF"),
                                downloadButton(outputId = "downloadDataBezierSVG",label =  "Download Bezier curves as SVG")
-                              # downloadButton(outputId = "downloadDataBezierHiC",label =  "HiC Plot as SVG"),
-                              # downloadButton(outputId = "downloadDataBezierATAC",label =  "ATAC Plot as SVG"),
-                              # downloadButton(outputId = "downloadDataBezierChIP",label =  "ChIP Plot as SVG"),
-                              # downloadButton(outputId = "downloadDataBeziermRNA",label =  "mRNA Plot as SVG")
+                               # downloadButton(outputId = "downloadDataBezierHiC",label =  "HiC Plot as SVG"),
+                               # downloadButton(outputId = "downloadDataBezierATAC",label =  "ATAC Plot as SVG"),
+                               # downloadButton(outputId = "downloadDataBezierChIP",label =  "ChIP Plot as SVG"),
+                               # downloadButton(outputId = "downloadDataBeziermRNA",label =  "mRNA Plot as SVG")
                                
                              )
                       ),
@@ -828,7 +828,7 @@ server <- function(input, output, session) {
     if ("ChIP" %in% input$fileTypes){
       shinyjs::show(id = "chipFormatPanelDiv")
       shinyjs::show(id = "ChIPPlot")
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("FoxP3_5047_Peaks"), options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("FoxP3_ChIP-seq_Peaks.bed"), options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
       #shinyjs::show(id = "chipPlot")
     }
     else{
@@ -847,10 +847,10 @@ server <- function(input, output, session) {
       #shinyjs::hide(id = "mrnaPlot")
     }
     if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_5047_Peaks"), 
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
                            options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
     }
-   
+    
   })
   
   ## Generate dynamic upload UI based on fileTypes selected
@@ -875,7 +875,7 @@ server <- function(input, output, session) {
                    tags$hr(),
                    
                    selectizeInput(inputId = "Load", label = "Load Sample Data",
-                                  choices = c("FoxP3_5047_Peaks", "K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
+                                  choices = c("FoxP3_ChIP-seq_Peaks.bed", "K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
                                   options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }'))),
                    
                    # Horizontal line ----
@@ -1031,21 +1031,21 @@ server <- function(input, output, session) {
     submitBy <- reactiveValues(method="ByGene")
     
     # Warning messages if user processes data before files are uploaded
-  #    if("HiC" %in% input$fileTypes &&  is.null(input$HiCdata)) {
-  #      showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
-  #    }
+    #    if("HiC" %in% input$fileTypes &&  is.null(input$HiCdata)) {
+    #      showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
+    #    }
     
-  #  if("ATAC" %in% input$fileTypes && is.null(input$ATACdata)){
-  #    showNotification(ui="Upload incomplete, please upload ATAC file before proceeding",duration=5,closeButton=TRUE,type="error")
-  #  }
+    #  if("ATAC" %in% input$fileTypes && is.null(input$ATACdata)){
+    #    showNotification(ui="Upload incomplete, please upload ATAC file before proceeding",duration=5,closeButton=TRUE,type="error")
+    #  }
     
-  #  if("ChIP" %in% input$fileTypes && is.null(input$ChIPdata)){
-  #    showNotification(ui="Upload incomplete, please upload ChIP file before proceeding",duration=5,closeButton=TRUE,type="error")
-  #  }
+    #  if("ChIP" %in% input$fileTypes && is.null(input$ChIPdata)){
+    #    showNotification(ui="Upload incomplete, please upload ChIP file before proceeding",duration=5,closeButton=TRUE,type="error")
+    #  }
     
-  #  if("mRNA" %in% input$fileTypes && is.null(input$mRNAdata)){
-  #    showNotification(ui="Upload incomplete, please upload mRNA file before proceeding",duration=5,closeButton=TRUE,type="error")
-  #  }
+    #  if("mRNA" %in% input$fileTypes && is.null(input$mRNAdata)){
+    #    showNotification(ui="Upload incomplete, please upload mRNA file before proceeding",duration=5,closeButton=TRUE,type="error")
+    #  }
     
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
@@ -1092,19 +1092,19 @@ server <- function(input, output, session) {
         #checkHeader(data=HiCdata, dataFileType="HiC", input)
       }
       
-    
       
-   
+      
+      
       
       #Increment progress
       incProgress(0.50)
       if("ChIP" %in% input$fileTypes){
         if(is.null(input$ChIPFile)){
           #switch (input$Load,
-                 # "FoxP3_5047_Peaks" = {
-                    ChIPdata <- sampleData1
-                #  }
-         # )
+          # "FoxP3_5047_Peaks" = {
+          ChIPdata <- sampleData1
+          #  }
+          # )
           output$ChIPTable <- renderTable({
             head(ChIPdata)
           })
@@ -1203,7 +1203,7 @@ server <- function(input, output, session) {
       withProgress(message = 'Making cytoscape plot', value = 0, {
         
         
-         
+        
         
         
         
@@ -1237,7 +1237,7 @@ server <- function(input, output, session) {
       })
       
       # plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-
+      
     })
     
     ##Download All
@@ -1323,8 +1323,7 @@ server <- function(input, output, session) {
     
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
-    generatePlots <- eventReactive({c(input$selectedColor, input$geneId, input$chromNumber, input$cStart, input$cStop, input$leftDistance, input$rightDistance)}, {
-      
+    generatePlots <- eventReactive({c(input$selectedColor, input$geneId, input$chromNumber, input$cStart, input$cStop, input$leftDistance, input$rightDistance)}, {   
       
       
       # Wait for file data (if selected in fileTypes) to exist before proceeding...
@@ -1394,105 +1393,113 @@ server <- function(input, output, session) {
           dev.off()
         }
       )
-     # Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+      # Sys.setenv(R_ZIPCMD="/usr/bin/zip")
       output$downloadDataBezierSVG <- downloadHandler(
         filename = function() {
           "zippedPlots.zip"
         },
-          content = function(fname) {
+        content = function(fname) {
           #  owd <- setwd(tempdir())
-           # on.exit(setwd(owd))
-            
-            allFileNames <- NULL
-            
-            #fs <- c("rock.svg", "pressure.svg")
-          #if ("HiC" %in% input$fileTypes){
-          #  if ("HiC" %in% input$fileTypes){
-              
-              fileName <- paste0("12", ".svg")
-              svg(fileName)
-              plotBezierCurves(data=HiCdata, input, genes, geneWindow)
-              dev.off()
-              allFileNames <- c(fileName, allFileNames)
-           # }else{
-            #  fileName <- NULL
-            #}
-            #  if (is.null(HiCdata) == FALSE){
-              
-            #  }
-              
-              
-           # }
-         #   if ("ATAC" %in% input$fileTypes){
-              fileName1 <- paste0("23", ".svg")
-              svg(fileName1)
-            #  if( input$atacFormat == "Bedgraph" ){
-             #   plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
-              #   } else if ( input$atacFormat == "Bed" ){
-             #   if (is.null(ATACdata) == FALSE){
-                plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
-              #  }
-              dev.off()
-              allFileNames <- c(fileName1, allFileNames)
-           # }
-          #  else{
-          #    fileName1 <- NULL
-          #  }
-            zip(zipfile=fname, files=allFileNames)  
-            #if(file.exists(paste0(fname, ".zip"))) {file.rename(paste0(fname, ".zip"), fname)}
+          # on.exit(setwd(owd))
+          tmpdir <- tempdir()
+          setwd(tempdir())
+          allFileNames <- NULL
+          
+          if ("HiC" %in% input$fileTypes){
+            fileName <- paste0("HiC", ".svg")
+            svg(fileName)
+            plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+            dev.off()
+            allFileNames <- c(fileName, allFileNames)
+          }
+          if ("ATAC" %in% input$fileTypes){
+            fileName1 <- paste0("ATAC", ".svg")
+            svg(fileName1)
+            if( input$atacFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
+            } else if ( input$atacFormat == "Bed" ){
+              plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName1, allFileNames)
+          }
+          if ("ChIP" %in% input$fileTypes){
+            fileName2 <- paste0("ChIP", ".svg")
+            svg(fileName2)
+            if( input$chipFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
+            } else if ( input$chipFormat == "Bed" ){
+              plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName2, allFileNames)
+          }
+          if ("mRNA" %in% input$fileTypes){
+            fileName2 <- paste0("mRNA", ".svg")
+            svg(fileName3)
+            if( input$mrnaFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
+            } else if ( input$mrnaFormat == "Bed" ){
+              plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName3, allFileNames)
+          }
+          zip::zipr(zipfile=fname, files=allFileNames, recurse = TRUE)  
+          #if(file.exists(paste0(fname, ".zip"))) {file.rename(paste0(fname, ".zip"), fname)}
           
         }
         #  contentType = "application/zip"
       )
-    #  output$downloadDataBezierATAC <- downloadHandler(
-    #    filename = function() {
-    #      "bezier_plot.svg"
-    #    },
-    #    content = function(file) {
-    #      svg(file)
-    #      if ("ATAC" %in% input$fileTypes){
-    #        if( input$atacFormat == "Bedgraph" ){
-    #          plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
-    #        } else if ( input$atacFormat == "Bed" ){
-    #          plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
-    #        }
-    #      }
-    #      dev.off()
-    #    }
-    #  )
-    #  output$downloadDataBezierChIP <- downloadHandler(
-    #    filename = function() {
-    #      "bezier_plot.svg"
-    #    },
-    #    content = function(file) {
-    #      svg(file)
-    #      if ("ChIP" %in% input$fileTypes){
-    #        if( input$chipFormat == "Bedgraph" ){
-    #          plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
-    #        } else if ( input$chipFormat == "Bed" ){
-    #          plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
-    #        }
-    #      }
-    #      dev.off()
-    #    }
-    #  )
-    #  output$downloadDataBeziermRNA <- downloadHandler(
-    #    filename = function() {
-    #      "bezier_plot.svg"
-    #    },
-    #    content = function(file) {
-    #      svg(file)
-    #      if ("mRNA" %in% input$fileTypes){
-    #        if( input$mrnaFormat == "Bedgraph" ){
-    #          plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
-    #        } else if ( input$mrnaFormat == "Bed" ){
-    #          plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
-    #        }
-    #      }
-    #      dev.off()
-    #    }
-    #  )
- 
+      #  output$downloadDataBezierATAC <- downloadHandler(
+      #    filename = function() {
+      #      "bezier_plot.svg"
+      #    },
+      #    content = function(file) {
+      #      svg(file)
+      #      if ("ATAC" %in% input$fileTypes){
+      #        if( input$atacFormat == "Bedgraph" ){
+      #          plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
+      #        } else if ( input$atacFormat == "Bed" ){
+      #          plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+      #        }
+      #      }
+      #      dev.off()
+      #    }
+      #  )
+      #  output$downloadDataBezierChIP <- downloadHandler(
+      #    filename = function() {
+      #      "bezier_plot.svg"
+      #    },
+      #    content = function(file) {
+      #      svg(file)
+      #      if ("ChIP" %in% input$fileTypes){
+      #        if( input$chipFormat == "Bedgraph" ){
+      #          plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
+      #        } else if ( input$chipFormat == "Bed" ){
+      #          plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
+      #        }
+      #      }
+      #      dev.off()
+      #    }
+      #  )
+      #  output$downloadDataBeziermRNA <- downloadHandler(
+      #    filename = function() {
+      #      "bezier_plot.svg"
+      #    },
+      #    content = function(file) {
+      #      svg(file)
+      #      if ("mRNA" %in% input$fileTypes){
+      #        if( input$mrnaFormat == "Bedgraph" ){
+      #          plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
+      #        } else if ( input$mrnaFormat == "Bed" ){
+      #          plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
+      #        }
+      #      }
+      #      dev.off()
+      #    }
+      #  )
+      
       ######## ChIP Plot Output:
       output$chipPlot <- renderPlot({
         isolate({ 
