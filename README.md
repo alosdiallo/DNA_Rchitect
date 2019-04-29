@@ -60,7 +60,7 @@ There is an interactive tutorial accessible through the help button on the app. 
 ### Errors and Troubleshooting
 
 #### Incorrect headers
-If you upload a file with the wrong headers, a dialog box will appear after pressing the **Process Data** button indicating that the file does not contain the appropriate headers. Adjust your file's headers appropriately and re-upload then re-process the file. If you specified the wrong separator or quote type in the upload panel for that file, the data will process incorrectly and the displayed table will appear without appropriate separation between columns. This will lead the App to believe that the headers are wrong (because all header columns will be combined into a single column) and give you the 'incorrect header' warning -- to fix this error correct your separator or quote selections and re-upload then re-process the file.
+If the user's data contains a header they should make sure they check "Does your data contain a header?" on the home screen. Custom headers or files without a header as both allowed.
 
 #### HiC Plotting Error
 `Error: Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit` <br>
@@ -91,7 +91,9 @@ If this does not resolve the issue, close the App file and try the following (or
 6. Try to deploy/publish the App
 
 ### Sample data
-Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data). You can download this entire github repository (including the **sample_data** folder) by clicking on the green **Clone or Download** button at the top of this page.
+Sample bedpe, bed, and bedgraph data sets for testing with this App are available [here]
+The web version of the application also contains sample data that can be used.  
+(https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/sample_data). You can download this entire github repository (including the **sample_data** folder) by clicking on the green **Clone or Download** button at the top of this page.
 
 ### Adding gene annotation for a new species
 Use the [speciesTool](https://github.com/alosdiallo/HiC_Network_Viz_tool/tree/master/speciesTool) to generate the required files for adding gene annotation for a new species to the DNARchitect app. The files for each species must be stored using the following convention at the google storage bucket: <br>
@@ -124,6 +126,9 @@ This application utilizes the following packages and libraries:<br>
 [`Sushi`](https://bioconductor.org/packages/release/bioc/html/Sushi.html)<br>
 [`DT`](https://cran.r-project.org/web/packages/DT/index.html)<br>
 [`RColorBrewer`](https://cran.r-project.org/web/packages/RColorBrewer/index.html)<br>
+[`visnetwork`](https://github.com/datastorm-open/visNetwork)<br>
+[`igraph`](https://igraph.org/)<br>
+[`BioNet`](https://bioconductor.org/packages/release/bioc/html/BioNet.html)<br>
 
 Authors
 --------------------
