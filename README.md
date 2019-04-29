@@ -46,7 +46,7 @@ A [web version](http://shiny.immgen.org/DNARchitect/) of the App is available fo
 - Microsoft Edge
 
 ### Header requirements
-All files must have the following standard headers. Missing or misspelled headers will lead to processing errors. Non-required headers will be ignored<br>
+DNA Rchitect works with both custom headers or no headers at all. In cases where the user is unsure as to what header to use we recommend the following:<br>
 
 | File Format   | Required headers                                                |
 | ------------- |:---------------------------------------------------------------:|
