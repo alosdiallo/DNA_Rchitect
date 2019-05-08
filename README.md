@@ -55,7 +55,7 @@ DNA Rchitect works with both custom headers or no headers at all. In cases where
 | bedgraph      | chrom, start, stop, value                                       |
 
 ### Tutorial
-There is an interactive tutorial accessible through the help button on the app. Access a [PDF version](App/guideGoogleChrome.pdf) of the tutorial here.
+There is an interactive tutorial accessible through the help button on the app. Access a [PDF version](https://github.com/alosdiallo/DNA_Rchitect/blob/master/App/guideGoogleChrome.pdf) of the tutorial here.
 
 ### Errors and Troubleshooting
 
