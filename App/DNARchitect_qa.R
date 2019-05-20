@@ -479,7 +479,9 @@ plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     # Atac curve plot
     parPlot()
     #Plot Atac-seq plot
-    color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    #color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    color_s <- bezierColorPalette(input)
+    color_select <-colorRampPalette(color_s)
     ## USING SUSHI PACKAGE
     # par(mar = c(0,0,0,0))
     plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
@@ -505,12 +507,12 @@ plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     
     #Call plot layout
     plotLayout()
-    
+    color_select <- bezierColorPalette(input)
     # ChIP curve plot
     parPlot()
     #Plot ChIP-seq plot
     ## USING SUSHI PACKAGE
-    plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color=data$color,row="given",rowlabels=unique(data$name), rowlabelcol=unique(data$color),rowlabelcex=0.75)
+    plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color= color_select,row="given",rowlabels=unique(data$name), rowlabelcol=unique(color_select),rowlabelcex=0.75)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Peaks",topTitle=plotTopTitle)
     
@@ -566,7 +568,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 # The main app code goes here
                 fluidRow(
                   column(width = 8,
-                         img(id = "image", src="DNARchitect_Logo.png"),
+                         img(id = "image", src="DNARchitect_logo.jpeg"),
                          tags$p("")
                   ),
                   column(width = 2,
@@ -686,11 +688,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                ),
                                downloadButton(outputId = "downloadDataBezierPDF",label =  "Download Bezier curves as PDF"),
                                downloadButton(outputId = "downloadDataBezierSVG",label =  "Download Bezier curves as SVG")
-                               # downloadButton(outputId = "downloadDataBezierHiC",label =  "HiC Plot as SVG"),
-                               # downloadButton(outputId = "downloadDataBezierATAC",label =  "ATAC Plot as SVG"),
-                               # downloadButton(outputId = "downloadDataBezierChIP",label =  "ChIP Plot as SVG"),
-                               # downloadButton(outputId = "downloadDataBeziermRNA",label =  "mRNA Plot as SVG")
-                               
                              )
                       ),
                       column(width =6,
@@ -778,20 +775,20 @@ server <- function(input, output, session) {
   })
   
   # Display help modal
-  observeEvent(input$startHelp,{
+  ##observeEvent(input$startHelp,{
     
     # The tutorial via IntroJS uses the HiC and ATAC use case scenario, so updateSelectizeInput is used to update fileTypes appropriately 
-    updateSelectizeInput(session, inputId="fileTypes",choices=dataTypes,selected=dataTypes[1:2])
+  ##  updateSelectizeInput(session, inputId="fileTypes",choices=dataTypes,selected=dataTypes[1:2])
     # Tutorial starts on the Upload File tab
-    updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Upload File")
-    showModal(modalDialog(
-      title = "Help",
-      tags$p(HTML("Click <b>Start Tutorial</b> to
-                  begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
-      footer = actionButton(inputId = "startTutorial","Start Tutorial"),
-      easyClose = TRUE
-      ))
-  })
+  ##  updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Upload File")
+  ##  showModal(modalDialog(
+  ##    title = "Help",
+  ##    tags$p(HTML("Click <b>Start Tutorial</b> to
+  ##                begin an interactive introduction to using this app. Sample data, source code and documentation are available at our <a href='https://github.com/alosdiallo/HiC_Network_Viz_tool' target='_blank'>github</a>. <br /><br />Want to analyze more data files simultaneously than this app supports? Just fire up the app in another browser and look at the windows side-by-side! Or download the source code and customize the app to your needs! Hint: the ATAC, ChIP, and mRNA data types actually plot in the same way, so you can plot any bed or bedgraph format data using these options. We are working on allowing the user to define the data type labels themselves, just have not gotten there yet! <br /><br />To exit this help menu click outside the dialog box")),
+  ##    footer = actionButton(inputId = "startTutorial","Start Tutorial"),
+  ##    easyClose = TRUE
+  ##    ))
+  ##})
   
   # Initiate IntroJS tutorial
   observeEvent(input$startTutorial,{
@@ -809,6 +806,7 @@ server <- function(input, output, session) {
       shinyjs::show(id = "HiCplot")
       #shinyjs::show(id = "HiCplotdownload")
       shinyjs::show(id = "HiCNetwork ")
+      shinyjs::show(id = "aa")
       updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"), 
                            options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')), selected = NULL)
     }
@@ -816,10 +814,12 @@ server <- function(input, output, session) {
       shinyjs::hide(id = "HiCplot")
       shinyjs::hide(id = "HiCNetwork ")
       shinyjs::hide(id = "HiCcyclic ")
+      shinyjs::hide(id = "aa")
     }
     if ("ATAC" %in% input$fileTypes){
       shinyjs::show(id = "atacFormatPanelDiv")
       shinyjs::show(id = "ATACPlot")
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), options = list(maxOptions = 2, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
     }
     else{
       shinyjs::hide(id = "atacFormatPanelDiv")
@@ -846,10 +846,14 @@ server <- function(input, output, session) {
       shinyjs::hide(id = "mRNAPlot")
       #shinyjs::hide(id = "mrnaPlot")
     }
-    if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
-                           options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
-    }
+   # if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
+  #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
+  #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+  #  }
+  #  if ("HiC" %in% input$fileTypes && "ATAC" %in% input$fileTypes){
+  #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), 
+  #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+  #  }
     
   })
   
@@ -875,8 +879,8 @@ server <- function(input, output, session) {
                    tags$hr(),
                    
                    selectizeInput(inputId = "Load", label = "Load Sample Data",
-                                  choices = c("FoxP3_ChIP-seq_Peaks.bed", "K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
-                                  options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }'))),
+                                  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg","FoxP3_ChIP-seq_Peaks.bed","K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
+                                  options = list(maxOptions = 6, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }'))),
                    
                    # Horizontal line ----
                    tags$hr(),
@@ -920,7 +924,12 @@ server <- function(input, output, session) {
                  mainPanel(id=paste0(input$fileTypes[i],"MainPanelDiv"),
                            
                            # # Output: Data file ----
-                           tableOutput(paste0(input$fileTypes[i],"Table"))
+                           tableOutput(paste0(input$fileTypes[i],"Table")),
+                           div(id = "aa", style="display:none",
+                              # wellPanel(
+                                 htmlOutput(outputId = "InfoData")
+                              #)
+                           )
                  )
                )
       )
@@ -1030,35 +1039,17 @@ server <- function(input, output, session) {
     # Define submitBy variable
     submitBy <- reactiveValues(method="ByGene")
     
-    # Warning messages if user processes data before files are uploaded
-    #    if("HiC" %in% input$fileTypes &&  is.null(input$HiCdata)) {
-    #      showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
-    #    }
-    
-    #  if("ATAC" %in% input$fileTypes && is.null(input$ATACdata)){
-    #    showNotification(ui="Upload incomplete, please upload ATAC file before proceeding",duration=5,closeButton=TRUE,type="error")
-    #  }
-    
-    #  if("ChIP" %in% input$fileTypes && is.null(input$ChIPdata)){
-    #    showNotification(ui="Upload incomplete, please upload ChIP file before proceeding",duration=5,closeButton=TRUE,type="error")
-    #  }
-    
-    #  if("mRNA" %in% input$fileTypes && is.null(input$mRNAdata)){
-    #    showNotification(ui="Upload incomplete, please upload mRNA file before proceeding",duration=5,closeButton=TRUE,type="error")
-    #  }
-    
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
-      
-      if("ATAC" %in% input$fileTypes){
-        req(input$ATACFile)
-        ATACdata <- ATACdataRead(input);
-        output$ATACTable <- renderTable({
-          displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
+
+      if("mRNA" %in% input$fileTypes){
+        req(input$mRNAFile)
+        mRNAdata <- mRNAdataRead(input);
+        output$mRNATable <- renderTable({
+          displayUploadedFile(data=mRNAdata, input, dataFileType="mRNA")
         })
-        #checkHeader(data=ATACdata, dataFileType="ATAC", input)
+        #checkHeader(data=mRNAdata, dataFileType="mRNA", input)
       }
-      
       #Increment progress
       incProgress(0.25)
       
@@ -1067,18 +1058,55 @@ server <- function(input, output, session) {
           switch (input$Load,
                   "K562_NHEK_GM12878-loops" = {
                     HiCdata <- sampleData2
+                   # div(id = "aa",
+                    output$InfoData <- renderUI({
+                      tags$p(HTML("<hr></hr> <h5><b>Title:</b> A three-dimensional map of the human genome at kilobase resolution reveals prinicples of chromatin looping</h5>
+                                  <b>Summary:</b>
+                                  We use in situ Hi-C to probe the three-dimensional architecture of genomes, constructing haploid and diploid maps of nine cell types. The densest, in human lymphoblastoid cells, contains 4.9 billion contacts, achieving 1-kilobase resolution. We find that genomes are partitioned into local domains, which are associated with distinct patterns of histone marks and segregate into six subcompartments. We identify ~10,000 loops. These loops frequently link promoters and enhancers, correlate with gene activation, and show conservation across cell types and species. Loop anchors typically occur at domain boundaries and bind CTCF. CTCF sites at loop anchors occur predominantly (>90%) in a convergent orientation, with the asymmetric motifs ‘facing’ one another. The inactive X-chromosome splits into two massive domains and contains large loops anchored at CTCF-binding repeats.
+                                  <br></br>
+                                  <b>Link to GEO:</b>
+                                  <a href = 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525</a>
+                                  <br></br>
+                                  <b>Publications:</b> <br></br>
+                                  Rao, Suhas S.P., et al. A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping. Cell 2014;159(7):1665-1680.<br></br>
+                                  Sanborn, A.L., et al. Chromatin extrusion explains key features of loop and domain formation in wild-type and engineered genomes. Proceedings of the National Academy of Sciences 2015;112(47):E6456-E6465."))
+                    })
+                   # )
                   },
                   "GSM1704495_GMPro_Cap_rep1_filt5" = {
                     HiCdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/GSM1704495_GMPro_Cap_rep1_filt5.bedpe")
+                    output$InfoData <- renderUI({
+                      tags$p(HTML("<hr></hr> <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                                  <b>Summary:</b>
+                                  Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                                  <br></br>
+                                  <b>Link to GEO:</b>
+                                  <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                                  <br></br>
+                                  <b>Publications:</b> <br></br>
+                                  Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                                  Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069."))
+                    })
                   },
                   "GSM1704494_JKProCap_Rep1_Filt5" = {
                     HiCdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/GSM1704494_JKProCap_Rep1_Filt5.bedpe")
+                    output$InfoData <- renderUI({
+                      tags$p(HTML("<hr></hr> <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                                  <b>Summary:</b>
+                                  Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                                  <br></br>
+                                  <b>Link to GEO:</b>
+                                  <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                                  <br></br>
+                                  <b>Publications:</b> <br></br>
+                                  Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                                  Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069."))
+                    })
                   }
           )
           output$HiCTable <- renderTable({
-            head(HiCdata)  
+            head(HiCdata)
           })
-          
         }
         else{
           req(input$HiCFile)
@@ -1093,11 +1121,37 @@ server <- function(input, output, session) {
       }
       
       
-      
-      
-      
       #Increment progress
       incProgress(0.50)
+      if("ATAC" %in% input$fileTypes){
+        if(is.null(input$ATACFile)){
+          switch (input$Load,
+                  "ImmGen_T.Nve.Sp.ATAC.bg" = {
+                    ATACdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/Tcon_Immgen_3.bg")
+                  },
+                  "ImmGen_Treg.Sp.ATAC.bg" = {
+                    ATACdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/Treg_Immgen_3.bg")
+                  }
+          )
+          output$ATACTable <- renderTable({
+            head(ATACdata)  
+          })
+          
+        }
+        else{
+          req(input$ATACFile)
+          ATACdata <- ATACdataRead(input);
+          output$ATACTable <- renderTable({
+            displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
+          })
+        }
+        #checkHeader(data=ATACdata, dataFileType="ATAC", input)
+      }
+
+      
+      #Increment progress
+      incProgress(0.75)
+
       if("ChIP" %in% input$fileTypes){
         if(is.null(input$ChIPFile)){
           #switch (input$Load,
@@ -1121,26 +1175,7 @@ server <- function(input, output, session) {
       }
       
       #Increment progress
-      incProgress(0.75)
-      
-      if("mRNA" %in% input$fileTypes){
-        req(input$mRNAFile)
-        mRNAdata <- mRNAdataRead(input);
-        output$mRNATable <- renderTable({
-          displayUploadedFile(data=mRNAdata, input, dataFileType="mRNA")
-        })
-        #checkHeader(data=mRNAdata, dataFileType="mRNA", input)
-      }
-      
-      #Increment progress
       incProgress(0.99)
-      
-      showModal(modalDialog(
-        title = "Make sure that the uploaded file contains the data in correct index of columns.",
-        tags$p(HTML(" <b>bedpeHeader </b>: Columns 1 to 8 should contain data about (chrom1-start1-end1-chrom2-start2-end2-score-samplenumber) respectively.
-                    <br> </br> <b>bedHeader:</b> Columns 1 to 3 should contain data about (chrom-start-stop) respectively.  <br> </br> <b>bedgraphHeader:</b> Columns 1 to 4 should contain data about ( chrom-start-stop-value) respectively.")),
-        easyClose = TRUE
-        ))
       
     })
     bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
@@ -1396,7 +1431,7 @@ server <- function(input, output, session) {
       # Sys.setenv(R_ZIPCMD="/usr/bin/zip")
       output$downloadDataBezierSVG <- downloadHandler(
         filename = function() {
-          "zippedPlots.zip"
+          "BezierPlots.zip"
         },
         content = function(fname) {
           #  owd <- setwd(tempdir())
@@ -1451,54 +1486,6 @@ server <- function(input, output, session) {
         }
         #  contentType = "application/zip"
       )
-      #  output$downloadDataBezierATAC <- downloadHandler(
-      #    filename = function() {
-      #      "bezier_plot.svg"
-      #    },
-      #    content = function(file) {
-      #      svg(file)
-      #      if ("ATAC" %in% input$fileTypes){
-      #        if( input$atacFormat == "Bedgraph" ){
-      #          plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
-      #        } else if ( input$atacFormat == "Bed" ){
-      #          plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
-      #        }
-      #      }
-      #      dev.off()
-      #    }
-      #  )
-      #  output$downloadDataBezierChIP <- downloadHandler(
-      #    filename = function() {
-      #      "bezier_plot.svg"
-      #    },
-      #    content = function(file) {
-      #      svg(file)
-      #      if ("ChIP" %in% input$fileTypes){
-      #        if( input$chipFormat == "Bedgraph" ){
-      #          plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
-      #        } else if ( input$chipFormat == "Bed" ){
-      #          plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
-      #        }
-      #      }
-      #      dev.off()
-      #    }
-      #  )
-      #  output$downloadDataBeziermRNA <- downloadHandler(
-      #    filename = function() {
-      #      "bezier_plot.svg"
-      #    },
-      #    content = function(file) {
-      #      svg(file)
-      #      if ("mRNA" %in% input$fileTypes){
-      #        if( input$mrnaFormat == "Bedgraph" ){
-      #          plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
-      #        } else if ( input$mrnaFormat == "Bed" ){
-      #          plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
-      #        }
-      #      }
-      #      dev.off()
-      #    }
-      #  )
       
       ######## ChIP Plot Output:
       output$chipPlot <- renderPlot({
