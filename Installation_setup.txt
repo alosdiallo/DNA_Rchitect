@@ -15,7 +15,13 @@ rcytoscapejs
 jsonlite
 shinyBS
 shiny
+shinyjs
 bioconductor
+BioNet
+visNetwork
+zip
+XML
+igraph
 ****************************************************************************************
 ****                           Installtion                                          ****
 ****                           Windows, macOS                                       ****
