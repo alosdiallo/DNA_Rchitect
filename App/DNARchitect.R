@@ -43,10 +43,19 @@
 
 #library(BioNet) #to save network in XGMML file format
 ## Load libraries
+
+library(Rmisc)
+library(Matrix)
+library(tibble)
+library(purrr)
+library(plyr)
+library(XML)
+library(later)
+
 library(shiny)
 library(htmlwidgets)
 library(zoo)
-library(biomaRt)
+#library(biomaRt)
 library(graph)   #to save the network
 library(BioNet)  #to save the network
 library(methods)
@@ -57,7 +66,6 @@ library(shinyjs) #Use JavaScript operations in Shiny apps
 library(jsonlite) # Load jsonlite for JSON communication in IntroJS
 library(Sushi) #Load sushi for plot functions (BioconductoR)
 library(igraph)
-library(graph)
 library(ggplot2)
 library(shinyBS)
 library(iotools)
@@ -65,11 +73,16 @@ library(devtools)
 library(data.table)
 library(shinycssloaders)
 library(shinycustomloader)
-library(biomaRt)
+#library(biomaRt)
 library(packrat)
 library(MASS)
 library(gridExtra)
 library(latexpdf)
+library(ggplot2)
+library(gtable)
+library(visNetwork)
+library(zip)
+
 
 
 
@@ -87,29 +100,54 @@ reqRead <- function(input, dataFileType){
   
   #Wait until input$HiCFile exists before proceeding...
   req(eval(parse(text = (paste0("input$", dataFileType, "File")))))
+  if (eval(parse(text = (paste0("input$", dataFileType, "Header")))) == TRUE){
+    data <- read.delim(
+      file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
+      header = TRUE,
+      sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
+      quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
+  }
+  else{
+    data <- read.delim(
+      file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
+      header = FALSE,
+      sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
+      quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
+    #names(data)[1] <- "chrom1"
+    #names(data)[2] <- "start1"
+    #names(data)[3] <- "end1"
+    #names(data)[4] <- "chrom2"
+    #names(data)[5] <- "start2"
+    #names(data)[6] <- "end2"
+    #names(data)[7] <- "score"
+    #names(data)[8] <- "samplenumber"
+  }
   
-  data <- read.delim(
-    file =eval(parse(text = (paste0("input$", dataFileType, "File", "$datapath")))), #ByKarni: added attr file to be more clear about the attributes that (read.delim function) has
-    header = eval(parse(text = (paste0("input$", dataFileType, "Header")))),
-    sep = eval(parse(text = (paste0("input$", dataFileType, "Sep")))),
-    quote = eval(parse(text = (paste0("input$", dataFileType, "Quote")))))
   
   return(data)
 }
 
 #Read geneNames file for search function
-#geneNames <- NULL
-#geneNames$mouse <- read.delim("https://storage.googleapis.com/gencode_ch_data/mouse/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-#geneNames$human <- read.delim("https://storage.googleapis.com/gencode_ch_data/human/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
-#geneNames$drosophila_melanogaster <- read.delim("https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames <- NULL
+geneNames$mouse_mm9 <- read.delim("https://storage.googleapis.com/gencode_ch_data/mouse_mm9/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$mouse_mm10 <- read.delim("https://storage.googleapis.com/gencode_ch_data/mouse_mm10/mouse_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$human_Hg19 <- read.delim("https://storage.googleapis.com/gencode_ch_data/human_Hg19/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$human_Hg38 <- read.delim("https://storage.googleapis.com/gencode_ch_data/human_Hg38/human_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+geneNames$drosophila_melanogaster <- read.delim("https://storage.googleapis.com/gencode_ch_data/drosophila_melanogaster/drosophila_searchNames.txt",header=FALSE,stringsAsFactors = FALSE, sep="\t")
+sampleData1 <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/FoxP3_5047_Peaks.txt")
+sampleData2 <- read.delim(file = "https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/K562_NHEK_GM12878-loops.txt")
 
-mousegenes <- read.csv.raw(file = "www/mouse_searchNames.txt", header = FALSE)
-humangenes <- read.csv.raw(file = "www/human_searchNames.txt", header = FALSE)
-drosophilagenes <- read.csv.raw(file = "www/drosophila_searchNames.txt", header = FALSE)
-names(mousegenes) <- " "
-names(humangenes) <- " "
-names(drosophilagenes) <- " "
 
+
+#mousegenes <- read.csv.raw(file = "www/mouse_searchNames.txt", header = FALSE)
+#humangenes <- read.csv.raw(file = "www/human_searchNames.txt", header = FALSE)
+#drosophilagenes <- read.csv.raw(file = "www/drosophila_searchNames.txt", header = FALSE)
+names(geneNames$mouse_mm9) <- " "
+names(geneNames$mouse_mm10) <- " "
+names(geneNames$human_Hg19) <- " "
+names(geneNames$human_Hg38) <- " "
+names(geneNames$drosophila_melanogaster) <- " "
+ColorNames <- c("Blue", "Red", "Green", "Purple", "Orange", "Yellow", "Brown", "Pink", "Gray")
 
 #FUNCTION: Define function to handle HiC data reading. Note dataFileType must be specified because the reqRead function is general and requires specification of dataFileType
 HiCdataRead <- function(input){
@@ -282,30 +320,30 @@ readGenes <- function(geneWindow, input){
 
 #FUNCTION: define spatial layout for plots
 plotLayout <- function(){
-  nf <- layout(matrix(c(1,2),2,1,byrow = TRUE), width=c(4), height=c(2,1), respect=TRUE)
-  layout.show(nf)
+  nf <- layout(matrix(c(1,2),2,1,byrow = TRUE), width=c(4.5), height=c(2,1), respect=TRUE)
+  # layout.show(nf)
 }
 
 #FUNCTION: define margina parameters for data subplot
 parPlot <- function(){
-  par(mar=c(2,4,4,2));
+  par(mar=c(3,4,4,2));
 }
 
 #FUNCTION: define margin parameters for genes subplot
 parGenes <- function(){
-  par(mar=c(2,4,0,2));
+  par(mar=c(1,4,0,2));
 }
 
 #FUNCTION: plotGenes subplot: maxrows=2, packrow=TRUE vs. packrow=FALSE
 subPlotGenes <- function(genes,geneWindow){
-  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.6,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
+  plotGenes(geneinfo =  genes,chrom =  geneWindow$chrom,chromstart =  geneWindow$chromstart,chromend =  geneWindow$chromend, types=genes$type,plotgenetype="arrow",packrow=FALSE,bheight=0.02,bentline=FALSE,labeloffset=0.1,fontsize=0.4,arrowlength = 0.0025,labelat = "start",labeltext=TRUE,colorby = genes$strand,colorbycol = SushiColors(2))
 }
 
 #FUNCTION: define plot titles
 plotTitles <- function(yAxis="Y title",topTitle="Top title"){
   axis(side=2,las=2,tcl=.2);
-  mtext(yAxis,side=2,line=1.75,cex=.75,font=2);
-  mtext(topTitle,side=3,line=1.75,cex=0.75,font=2);
+  mtext(yAxis,side=2,line=2.35,cex=1.0,font=2);
+  mtext(topTitle,side=3,line=2,cex=1.0,font=2);
 }
 
 #FUNCTION: convert gene window parameters by coordinates (ByCoord) to numeric values
@@ -350,8 +388,12 @@ makeGenomeLabel <- function(geneWindow){
 
 #FUNCTION: Define color palette for bezier curve samples
 bezierColorPalette <- function(input){
+  ColorHEX <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
+  Col_names <- cbind(ColorHEX, ColorNames)
   # Blue = #377eb8, Red = #e41a1c, Green = #4daf4a, Purple = #984ea3, Orange = #ff7f00, Yellow = #ffff33, Brown = #a65628, Pink = #f781bf, Gray = #999999
-  fullPalette <- c("#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
+  col_hex <- Col_names[which(Col_names[,2] %in% input$selectedColor), 1]
+  fullPalette <- col_hex
+  #fullPalette <- input$selectedColor
   plotPalette <- fullPalette[1:input$numOfSamples]
   return(plotPalette)
 }
@@ -363,7 +405,7 @@ bezierLegend <- function(input){
     eval(parse(text = (paste0("input$sNumber", number))))
   })
   color_select <- bezierColorPalette(input)
-  legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.7,text.font=2);
+  legend("topleft",inset =0.1,legend=legendNames,col=color_select,pch=19,bty='n',cex=0.8,text.font=2);
 }
 
 
@@ -373,7 +415,7 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   
   #Call color palette
   color_palette <- bezierColorPalette(input)
-  color_select <-colorRampPalette(color_palette)
+  color_select <- colorRampPalette(color_palette)
   
   #Call plot layout
   plotLayout()
@@ -386,23 +428,24 @@ makeBezierCurves <- function(data,input,genes,geneWindow){
   if(max(data$samplenumber) == 1){
     #for only 1 sample in data$samplenumber
     ## USING SUSHI PACKAGE
-    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",color="blue");
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend, heights = data[,7],plottype="loops",color=bezierColorPalette(input));
+    
   }else{
     #for >= 2 samples in data$samplenumber
-    ## USING SUSHI PACKAGE
-    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,lwdby = data$score,lwdrange = c(0,2),heights = data$score,plottype="loops",colorby=data$samplenumber,colorbycol=color_select);
+    pbpe = plotBedpe(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,heights = data[,7],plottype="loops",colorby=data[,8],colorbycol=color_select);
   }
   
   makeGenomeLabel(geneWindow);
   bezierLegend(input);
-  plotTitles(yAxis="Interaction intensity",topTitle="HiC")
+  plotTitles(yAxis="Interaction Intensity",topTitle="HiC")
+  ##mtext("Interaction Intensity",side=2,line=3.5,cex=1,font=2)
   
   
   ## Genes features plot
   parGenes()
- # if (input$genome == "mouse" || "human"){
-    subPlotGenes(genes,geneWindow)
-#  }
+  # if (input$genome == "mouse" || "human"){
+  subPlotGenes(genes,geneWindow)
+  #  }
 }
 
 
@@ -413,7 +456,7 @@ plotBezierCurves <- function(data,input,genes,geneWindow){
     
     #Increment progress
     incProgress(0.6)
-    
+    #par(mar = c(0,0,0,0))
     makeBezierCurves(data, input, genes, geneWindow)
     
     #Increment progress
@@ -436,8 +479,11 @@ plotBedgraphWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     # Atac curve plot
     parPlot()
     #Plot Atac-seq plot
-    color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    #color_select <-colorRampPalette(c("#FEE0D2", "#FCBBA1", "#FC9272", "#FB6A4A", "#EF3B2C", "#CB181D", "#A50F15", "#67000D"))
+    color_s <- bezierColorPalette(input)
+    color_select <-colorRampPalette(color_s)
     ## USING SUSHI PACKAGE
+    # par(mar = c(0,0,0,0))
     plotBedgraph(data,geneWindow$chrom,geneWindow$chromstart,geneWindow$chromend,colorbycol= color_select)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Read Depth",topTitle=plotTopTitle)
@@ -461,12 +507,12 @@ plotBedWrapper <- function(data, input, genes, geneWindow, plotTopTitle){
     
     #Call plot layout
     plotLayout()
-    
+    color_select <- bezierColorPalette(input)
     # ChIP curve plot
     parPlot()
     #Plot ChIP-seq plot
     ## USING SUSHI PACKAGE
-    plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color=data$color,row="given",rowlabels=unique(data$name), rowlabelcol=unique(data$color),rowlabelcex=0.75)
+    plotBed(beddata = data,geneWindow$chrom, geneWindow$chromstart,geneWindow$chromend, rownumber = data$row, type = "region", color= color_select,row="given",rowlabels=unique(data$name), rowlabelcol=unique(color_select),rowlabelcex=0.75)
     makeGenomeLabel(geneWindow);
     plotTitles(yAxis="Peaks",topTitle=plotTopTitle)
     
@@ -505,7 +551,6 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   id = "loading-content",
                   h2("Loading...")
                 ),
-                
                 #JS script for Introduction by IntroJS
                 # Include IntroJS library
                 includeScript("www/js/intro.js"),
@@ -523,17 +568,15 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 # The main app code goes here
                 fluidRow(
                   column(width = 8,
-                         img(id = "image", src="DNARchitect_Logo.png"),
+                         img(id = "image", src="DNARchitect_logo.jpeg"),
                          tags$p("")
                   ),
                   column(width = 2,
-                         selectInput(inputId = "genome",label = "Genome", choices = c("mouse","human","drosophila_melanogaster"), selected = "mouse")
+                         selectInput(inputId = "genome",label = "Genome", choices = c("mouse_mm9", "mouse_mm10", "human_Hg19", "human_Hg38","drosophila_melanogaster_6"))
                   ),
                   column(width = 2,
-                         tags$br(),
-                         div(id = "helpreload",
-                             actionButton(inputId = "startHelp",label = "Help", class="btn-info"), 
-                             actionButton(inputId = "reloadApp",label = "Reload App", class="btn-danger"))
+                         includeHTML(path = "www/html/buttonDivs.html")
+                         #actionButton(inputId = "pdf", label = "Help", onclick="window.open('guideGoogleChrome.pdf')")
                   )
                 ),
                 tabsetPanel(
@@ -602,131 +645,169 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                              choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                              tags$br(),
                              radioButtons(inputId = "searchby", label = "Search By: ", choices =  c("Coordinates", "Genes"), selected = "Coordinates")
-                             ),
+                      ),
                       column(width =3,
                              div(id="sampleNamesDiv",
                                  uiOutput(outputId = "sampleNames")
-                             )
+                             ),
+                             selectInput(inputId = "selectedColor", label = "Select colors for bezier curves", choices = c("Blue", "Red", "Green", "Purple", "Orange", "Yellow", "Brown", "Pink", "Gray"), multiple = TRUE)
                              
                       ),
                       
-                             div(id="searchByCoordinatesDiv", 
-                                 column(width =3,
+                      div(id="searchByCoordinatesDiv", 
+                          column(width =3,
                                  uiOutput(outputId = "chromNumberUI"),
                                  includeHTML(path = "www/html/numericCoord.html")         
-                                 )
-                             ),
-                     
+                          )
+                      ),
+                      
                       div(id="geneIdDiv",
                           column(width=3, 
                                  withLoader(ui_element = uiOutput("searchNamesList"), type = "image", loader = "Loading.png", proxy.height = "100px"),
-                                  # uiOutput("searchNamesList"),
+                                 # uiOutput("searchNamesList"),
                                  includeHTML(path = "www/html/numericDistance.html")
                           )
                       )
-                             ),
+                    ),
                     
                     fluidRow(tags$hr()),
+                    tags$br(),
                     fluidRow(
-                      column(width =6,
-                             div ( id= "HiCplot", style="display:none" ,
-                                   wellPanel(
-                                     downloadButton(outputId = "downloadDataBezier",label =  "Download Plot"),
-                                     tags$hr(),
-                                     plotOutput(outputId = "bezierplot", height="800px")
-                                   )
+                      column(width =6, 
+                             wellPanel(
+                               div ( id= "HiCplot", style="display:none;  " ,
+                                     plotOutput(outputId = "bezierplot", height = "450px" ) #height = "450px"
+                               ),
+                               div (id = "ATACPlot", style="display:none; " ,
+                                    plotOutput(outputId = "atacPlot", height = "450px") 
+                               ),
+                               div (id = "ChIPPlot", style="display:none; " ,
+                                    plotOutput(outputId = "chipPlot", height = "450px") 
+                               ),
+                               div (id = "mRNAPlot", style="display:none; " ,
+                                    plotOutput(outputId = "mrnaPlot", height = "450px") 
+                               ),
+                               downloadButton(outputId = "downloadDataBezierPDF",label =  "Download Bezier curves as PDF"),
+                               downloadButton(outputId = "downloadDataBezierSVG",label =  "Download Bezier curves as SVG")
                              )
                       ),
                       column(width =6,
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
                                    tabsetPanel( id = "MainNetwork",
-                                     tabPanel(title = "Network",
-                                              plotOutput(outputId = "cyplot", height="800px"),
-                                              tags$br(),
-                                              downloadButton(outputId = "downloadNetwork",label =  "Download as PNG"),
-                                              downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
-                                              downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
-                                              ),
-                                     tabPanel(title = "Hubs",
-                                              plotOutput(outputId = "plotHubs", height = "800px"),
-                                              tags$br(),
-                                              downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
-                                              ),
-                                     tabPanel(title = "Degree Distribution",
-                                              plotOutput(outputId = "plotdegree", height = "800px"),
-                                              tags$br(), 
-                                              downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
-                                              ),
-                                     tabPanel(title = "Groups",
-                                              plotOutput(outputId = "plotgroups", height = "800px"),
-                                              tags$br(), 
-                                              downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
-                                              actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
-                                              bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", tableOutput(outputId = "membership_data"))
-                                              ),
-                                     tabPanel(title = "Node Degree",
-                                              plotOutput(outputId = "plotNodeDegree", height = "800px"),
-                                              tags$br(), 
-                                              downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG')
-                                              )
+                                                tabPanel(title = "Network",
+                                                         visNetworkOutput(outputId = "cyplot", height="500px"),
+                                                         tags$br(),
+                                                         downloadButton(outputId = "downloadNetwork",label =  "Download as HTML"),
+                                                         downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
+                                                         downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
+                                                ),
+                                                tabPanel(title = "Hubs",
+                                                         plotOutput(outputId = "plotHubs", height = "500px"),
+                                                         tags$br(),
+                                                         downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
+                                                ),
+                                                tabPanel(title = "Degree Distribution",
+                                                         plotOutput(outputId = "plotdegree", height = "500px"),
+                                                         tags$br(), 
+                                                         downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
+                                                ),
+                                                tabPanel(title = "Groups",
+                                                         plotOutput(outputId = "plotgroups", height = "500px"),
+                                                         tags$br(), 
+                                                         downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
+                                                         actionButton(inputId = "Extract_info", label = "Membership Data", style = "float:right"), 
+                                                         bsModal(id = "extract_labels", title = "Community Membership for each node", trigger = "Extract_info", size = "large", tableOutput(outputId = "membership_data"))
+                                                ),
+                                                tabPanel(title = "Node Degree",
+                                                         plotOutput(outputId = "plotNodeDegree", height = "500px"),
+                                                         tags$br(), 
+                                                         downloadButton(outputId = 'downloadPlot_node_degree', label = 'Download as PNG')
+                                                )
                                    )
-
+                                   
                                  )
                              )
                       )
-                    ),
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(width =6,  
-                             div (id = "ATACPlot", style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataAtac", label = "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "atacPlot", height="800px")  
-                                  )
-                             )
-                      )
-                    ),
-                    fluidRow(tags$hr()),
-                    fluidRow(
-                      column(width =6,
-                             div (id = "ChIPPlot",  style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataChip", label = "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "chipPlot", height="800px")  
-                                  )
-                             )
-                      ),
-                      column(width =6,
-                             div (id = "mRNAPlot",  style="display:none" ,
-                                  wellPanel(
-                                    downloadButton(outputId = "downloadDataMrna",label =  "Download Plot"),
-                                    tags$hr(),
-                                    plotOutput(outputId = "mrnaPlot", height="800px")  
-                                  )
-                             )
-                      )
+                      
                     )
-                             )
-                             )
+                    
+                  ),
+                  tabPanel(title = "About Sample Data",
+                           htmlOutput(outputId = "InfoData")
+                  ),
+                  tabPanel(title = "Help",
+                           htmlOutput('pdfviewer')
+                  )
                 )
+)
 
 server <- function(input, output, session) {
   
   # Hide the loading message when the rest of the server function has executed
   hide(id = "loading-content", anim = TRUE, animType = "fade") 
-  
   # Reload App
   observeEvent(input$reloadApp, {
     session$reload()
+  })
+  output$pdfviewer <- renderText({
+    return(paste('<iframe style="height:1000px; width:100%" src="https://storage.googleapis.com/gencode_ch_data/DNA_Rchitect_Tutorial.pdf"></iframe>', sep = ""))
+  })
+  output$InfoData <- renderUI({
+    tags$p(HTML("<hr></hr> <h3><b>K562_NHEK_GM12878-loops</h3></b><h5>Organism: Homo sapiens; Mus musculus</h5> <h5><b>Title:</b> A three-dimensional map of the human genome at kilobase resolution reveals prinicples of chromatin looping</h5>
+                <b>Summary:</b>
+                We use in situ Hi-C to probe the three-dimensional architecture of genomes, constructing haploid and diploid maps of nine cell types. The densest, in human lymphoblastoid cells, contains 4.9 billion contacts, achieving 1-kilobase resolution. We find that genomes are partitioned into local domains, which are associated with distinct patterns of histone marks and segregate into six subcompartments. We identify ~10,000 loops. These loops frequently link promoters and enhancers, correlate with gene activation, and show conservation across cell types and species. Loop anchors typically occur at domain boundaries and bind CTCF. CTCF sites at loop anchors occur predominantly (>90%) in a convergent orientation, with the asymmetric motifs 'facing' one another. The inactive X-chromosome splits into two massive domains and contains large loops anchored at CTCF-binding repeats.
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href = 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525</a>
+                <br></br>
+                <b>Publications:</b> <br></br>
+                Rao, Suhas S.P., et al. A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping. Cell 2014;159(7):1665-1680.<br></br>
+                Sanborn, A.L., et al. Chromatin extrusion explains key features of loop and domain formation in wild-type and engineered genomes. Proceedings of the National Academy of Sciences 2015;112(47):E6456-E6465.
+                
+                <hr></hr> <h3><b>GSM1704495_GMPro_Cap_rep1_filt5</b></h3>  <h5>Organism: Homo sapiens</h5> <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                <b>Summary:</b>
+                Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                <br></br>
+                <b>Publications:</b> <br></br>
+                Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
+                
+                <hr></hr> <h3><b>GSM1704494_JKProCap_Rep1_Filt5</b></h3>  <h5>Organism: Homo sapiens</h5>  <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                <b>Summary:</b>
+                Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                <br></br>
+                <b>Publications:</b> <br></br>
+                Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
+                
+                
+                <hr></hr> <h3><b>ImmGen_T.Nve.Sp.ATAC.bg | ImmGen_Treg.Sp.ATAC.bg</b></h3> <h5>Organism: Mus musculus</h5> <h5><b>Title:</b> ImmGen ATAC-seq data</h5>
+                <b>Summary:</b>
+                Immunological Genome Project chromatin accessibility maps for 86 different immunocytes (ATAC-seq). Immune cell populations were isolated in high-purity by flow cytometry.
+                
+                <h5>Overall Design:</h5> Immune cell populations encompassing all major lineages were isolated by flow cytometry to high-purity according to ImmGen SOP (<a href='https://www.immgen.org/' target='_blank'>https://www.immgen.org/</a>). 10,000 cells (except some rare cell populations) were used to construct each ATAC-seq library, using the Fast-ATAC protocol. Libraries were dual-indexed and pooled for high-throughput sequencing. Highly purified cell samples were isolated in parallel from the same populations for gene expression profiling by low-input RNAseq (ImmGen protocol, per umbrella GSE126267). These corresponding RNAseq datasets are available at GSE109125. 
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE100738' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE100738</a>
+                <br></br>
+                <b>Publications:</b><br></br>
+                Yoshida, H., Lareau, C. A., Ramirez, R. N., Rose, S. A., Maier, B., Wroblewska, A., . . . Benoist, C. (2019). The cis-Regulatory Atlas of the Mouse Immune System. Cell, 176(4), 897-912.e820. doi:<a href='https://doi.org/10.1016/j.cell.2018.12.036' target='_blank'>https://doi.org/10.1016/j.cell.2018.12.036</a>
+                "
+    ))
   })
   
   ## Go to the "Plots" tab when click "goToPlots" button
   observeEvent(input$goToPlots, {
     updateTabsetPanel(session = session, inputId = "mainTabs", selected = "Plots")
   })
+  
   
   ## Render appropriate number of textInput based on number of samples
   output$sampleNames <- renderUI({
@@ -782,16 +863,22 @@ server <- function(input, output, session) {
   observeEvent(input$fileTypes, {
     if ("HiC" %in% input$fileTypes){
       shinyjs::show(id = "HiCplot")
+      #shinyjs::show(id = "HiCplotdownload")
       shinyjs::show(id = "HiCNetwork ")
+      shinyjs::show(id = "aa")
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"), 
+                           options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')), selected = NULL)
     }
     else{
       shinyjs::hide(id = "HiCplot")
       shinyjs::hide(id = "HiCNetwork ")
       shinyjs::hide(id = "HiCcyclic ")
+      shinyjs::hide(id = "aa")
     }
     if ("ATAC" %in% input$fileTypes){
       shinyjs::show(id = "atacFormatPanelDiv")
       shinyjs::show(id = "ATACPlot")
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), options = list(maxOptions = 4, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
     }
     else{
       shinyjs::hide(id = "atacFormatPanelDiv")
@@ -800,19 +887,33 @@ server <- function(input, output, session) {
     if ("ChIP" %in% input$fileTypes){
       shinyjs::show(id = "chipFormatPanelDiv")
       shinyjs::show(id = "ChIPPlot")
+      updateSelectizeInput(session = session, inputId = "Load",  choices = c("FoxP3_ChIP-seq_Peaks.bed"), options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+      #shinyjs::show(id = "chipPlot")
     }
     else{
       shinyjs::hide(id = "chipFormatPanelDiv")
       shinyjs::hide(id = "ChIPPlot")
+      #shinyjs::hide(id = "chipPlot")
     }
     if ("mRNA" %in% input$fileTypes ){
       shinyjs::show(id = "mrnaFormatPanelDiv")
-      shinyjs::show(id = "mRNAPlot ")
+      shinyjs::show(id = "mRNAPlot")
+      #shinyjs::show(id = "mrnaPlot")
     }
     else{
       shinyjs::hide(id = "mrnaFormatPanelDiv")
-      shinyjs::hide(id = "mRNAPlot ")
+      shinyjs::hide(id = "mRNAPlot")
+      #shinyjs::hide(id = "mrnaPlot")
     }
+    # if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
+    #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
+    #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+    #  }
+    #  if ("HiC" %in% input$fileTypes && "ATAC" %in% input$fileTypes){
+    #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), 
+    #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+    #  }
+    
   })
   
   ## Generate dynamic upload UI based on fileTypes selected
@@ -834,13 +935,18 @@ server <- function(input, output, session) {
                                             "text/comma-separated-values,text/plain",
                                             ".csv",".bg"))
                    ),
+                   tags$hr(),
+                   
+                   selectizeInput(inputId = "Load", label = "Load Sample Data",
+                                  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg", "FoxP3_ChIP-seq_Peaks.bed","K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
+                                  options = list(maxOptions = 6, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }'))),
                    
                    # Horizontal line ----
                    tags$hr(),
                    
                    # Input: Checkbox if file has header ----
                    div(id=paste0(input$fileTypes[i],"HeaderDiv"),
-                       checkboxInput(paste0(input$fileTypes[i],"Header"), "Header", TRUE)
+                       checkboxInput(paste0(input$fileTypes[i],"Header"), "Does your data contain a header?", TRUE)
                    ),
                    
                    # Input: Select separator ----
@@ -878,69 +984,103 @@ server <- function(input, output, session) {
                            
                            # # Output: Data file ----
                            tableOutput(paste0(input$fileTypes[i],"Table"))
+                           ##\ div(id = "aa", style="display:none",
+                           # wellPanel(
+                           ##       htmlOutput(outputId = "InfoData")
+                           #)
+                           ## )
                  )
                )
       )
     })
     do.call(tabsetPanel, dataTabs)
   })
-  #outputOptions(output, "dataTabs", suspendWhenHidden = FALSE) 
   
+  #outputOptions(output, "dataTabs", suspendWhenHidden = FALSE) 
+  observeEvent(input$numOfSamples, {
+    updateSelectizeInput(session = session, inputId = "selectedColor",  options = list(maxItems = input$numOfSamples), selected = NULL)
+  })
   ## Render appropriate selection of chromosomes for chosen genome when using the 'Search by Coordinates' option to plot data
   # To add chromosome options for a new species, create a new case for the switch expression
   observeEvent(input$searchby, {
-  if (input$searchby == "Coordinates"){ 
-    shinyjs::show(id = "searchByCoordinatesDiv")
-  output$chromNumberUI <- renderUI({
-    switch(input$genome,
-           mouse = {
-             selectInput(inputId = "chromNumber",
-                         label = "Chr Number",
-                         choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chrX","chrY"), multiple = FALSE,
-                         selectize = TRUE, width = NULL, size = NULL)
-           },
-           human = {
-             selectInput(inputId = "chromNumber",
-                         label = "Chr Number",
-                         choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY"), multiple = FALSE,
-                         selectize = TRUE, width = NULL, size = NULL)
-           },
-           drosophila_melanogaster = {
-             selectInput(inputId = "chromNumber",
-                         label = "Chr Number",
-                         choices = c("3R","3L","2R","2L","X","Y","4"), multiple = FALSE,
-                         selectize = TRUE, width = NULL, size = NULL)
-           }
-    )
-  })
-  outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
-  }
+    if (input$searchby == "Coordinates"){ 
+      shinyjs::show(id = "searchByCoordinatesDiv")
+      output$chromNumberUI <- renderUI({
+        switch(input$genome,
+               "mouse_mm9" = {
+                 selectInput(inputId = "chromNumber",
+                             label = "Chr Number",
+                             choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chrX","chrY"), multiple = FALSE,
+                             selectize = TRUE, width = NULL, size = NULL)
+               },
+               "mouse_mm10" = {
+                 selectInput(inputId = "chromNumber",
+                             label = "Chr Number",
+                             choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chrX","chrY"), multiple = FALSE,
+                             selectize = TRUE, width = NULL, size = NULL)
+               },
+               "human_Hg19" = {
+                 selectInput(inputId = "chromNumber",
+                             label = "Chr Number",
+                             choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY"), multiple = FALSE,
+                             selectize = TRUE, width = NULL, size = NULL)
+               },
+               "human_Hg38" = {
+                 selectInput(inputId = "chromNumber",
+                             label = "Chr Number",
+                             choices = c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY"), multiple = FALSE,
+                             selectize = TRUE, width = NULL, size = NULL)
+               },
+               "drosophila_melanogaster_6" = {
+                 selectInput(inputId = "chromNumber",
+                             label = "Chr Number",
+                             choices = c("3R","3L","2R","2L","X","Y","4"), multiple = FALSE,
+                             selectize = TRUE, width = NULL, size = NULL)
+               }
+        )
+      })
+      outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
+    }
     shinyjs::hide(id = "geneIdDiv")
-    })
+  })
   observeEvent(input$searchby, { 
     if (input$searchby == "Genes"){
       shinyjs::hide(id = "searchByCoordinatesDiv")
       shinyjs::show(id = "geneIdDiv")
       output$searchNamesList <- renderUI({
         switch(input$genome,
-               mouse = {
+               "mouse_mm10" = {
                  selectizeInput(inputId = 'geneId', 
                                 label = 'Type gene name: (backspace to clear)', 
-                                choices = mousegenes,
+                                choices = geneNames$mouse_mm10,
                                 options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                  )
                },
-               human = {
+               "mouse_mm9" = {
                  selectizeInput(inputId = 'geneId', 
                                 label = 'Type gene name: (backspace to clear)', 
-                                choices = humangenes,
+                                choices = geneNames$mouse_mm9,
                                 options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                  )
                },
-               drosophila_melanogaster = {
+               "human_Hg19" = {
                  selectizeInput(inputId = 'geneId', 
                                 label = 'Type gene name: (backspace to clear)', 
-                                choices= drosophilagenes,
+                                choices = geneNames$human_Hg19,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               "human_Hg38" = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices = geneNames$human_Hg38,
+                                options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
+                 )
+               },
+               "drosophila_melanogaster_6" = {
+                 selectizeInput(inputId = 'geneId', 
+                                label = 'Type gene name: (backspace to clear)', 
+                                choices= geneNames$drosophila_melanogaster,
                                 options = list(maxOptions = 5, placeholder = 'Type gene name', onInitialize = I('function() { this.setValue(""); }'))
                  )
                }
@@ -948,69 +1088,14 @@ server <- function(input, output, session) {
       })
     }
   })
- # outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
-  
+  # outputOptions(output, "chromNumberUI", suspendWhenHidden = FALSE) 
   ## START OF ANALYSIS/VISUALIZATION BLOCK
   observeEvent(input$processDataBtn,{
-    
     # Define submitBy variable
     submitBy <- reactiveValues(method="ByGene")
     
-    # Warning messages if user processes data before files are uploaded
-    if("HiC" %in% input$fileTypes && is.null(input$HiCFile)){
-      showNotification(ui="Upload incomplete, please upload HiC file before proceeding",duration=5,closeButton=TRUE,type="error")
-    }
-    
-    if("ATAC" %in% input$fileTypes && is.null(input$ATACFile)){
-      showNotification(ui="Upload incomplete, please upload ATAC file before proceeding",duration=5,closeButton=TRUE,type="error")
-    }
-    
-    if("ChIP" %in% input$fileTypes && is.null(input$ChIPFile)){
-      showNotification(ui="Upload incomplete, please upload ChIP file before proceeding",duration=5,closeButton=TRUE,type="error")
-    }
-    
-    if("mRNA" %in% input$fileTypes && is.null(input$mRNAFile)){
-      showNotification(ui="Upload incomplete, please upload mRNA file before proceeding",duration=5,closeButton=TRUE,type="error")
-    }
-    
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
-      
-      if("HiC" %in% input$fileTypes){
-        req(input$HiCFile)
-        HiCdata <- HiCdataRead(input);
-        output$HiCTable <- renderTable({
-          displayUploadedFile(data=HiCdata, input, dataFileType="HiC")
-        })
-        checkHeader(data=HiCdata, dataFileType="HiC", input)
-      }
-      
-      #Increment progress
-      incProgress(0.25)
-      
-      if("ATAC" %in% input$fileTypes){
-        req(input$ATACFile)
-        ATACdata <- ATACdataRead(input);
-        output$ATACTable <- renderTable({
-          displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
-        })
-        checkHeader(data=ATACdata, dataFileType="ATAC", input)
-      }
-      
-      #Increment progress
-      incProgress(0.50)
-      
-      if("ChIP" %in% input$fileTypes){
-        req(input$ChIPFile)
-        ChIPdata <- ChIPdataRead(input);
-        output$ChIPTable <- renderTable({
-          displayUploadedFile(data=ChIPdata, input, dataFileType="ChIP")
-        })
-        checkHeader(data=ChIPdata, dataFileType="ChIP", input)
-      }
-      
-      #Increment progress
-      incProgress(0.75)
       
       if("mRNA" %in% input$fileTypes){
         req(input$mRNAFile)
@@ -1018,20 +1103,219 @@ server <- function(input, output, session) {
         output$mRNATable <- renderTable({
           displayUploadedFile(data=mRNAdata, input, dataFileType="mRNA")
         })
-        checkHeader(data=mRNAdata, dataFileType="mRNA", input)
+        #checkHeader(data=mRNAdata, dataFileType="mRNA", input)
+      }
+      #Increment progress
+      incProgress(0.25)
+      
+      if("HiC" %in% input$fileTypes){
+        if(is.null(input$HiCFile)){
+          switch (input$Load,
+                  "K562_NHEK_GM12878-loops" = {
+                    HiCdata <- sampleData2
+                    # div(id = "aa",
+                    # )
+                  },
+                  "GSM1704495_GMPro_Cap_rep1_filt5" = {
+                    HiCdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/GSM1704495_GMPro_Cap_rep1_filt5.bedpe")
+                  },
+                  "GSM1704494_JKProCap_Rep1_Filt5" = {
+                    HiCdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/GSM1704494_JKProCap_Rep1_Filt5.bedpe")
+                  }
+          )
+          output$HiCTable <- renderTable({
+            if(eval(parse(text = (paste0("input$", "HiC", "Disp")))) == "head") {
+              head(HiCdata) 
+            }
+            else {
+              tail(HiCdata) 
+            }
+          })
+        }
+        else{
+          req(input$HiCFile)
+          HiCdata <- HiCdataRead(input);
+          #  HiCdata1 <- read.delim(file = "hic_bedpe.txt")
+          output$HiCTable <- renderTable({
+            displayUploadedFile(data=HiCdata, input, dataFileType="HiC")
+          })
+        }
+        
+        #checkHeader(data=HiCdata, dataFileType="HiC", input)
+      }
+      
+      
+      #Increment progress
+      incProgress(0.50)
+      if("ATAC" %in% input$fileTypes){
+        if(is.null(input$ATACFile)){
+          switch (input$Load,
+                  "ImmGen_T.Nve.Sp.ATAC.bg" = {
+                    ATACdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/Tcon_Immgen_3.bg")
+                  },
+                  "ImmGen_Treg.Sp.ATAC.bg" = {
+                    ATACdata <- read.delim("https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/Treg_Immgen_3.bg")
+                  }
+          )
+          output$ATACTable <- renderTable({
+            if(eval(parse(text = (paste0("input$", "ATAC", "Disp")))) == "head") {
+              head(ATACdata) 
+            }
+            else {
+              tail(ATACCdata) 
+            } 
+          })
+          
+        }
+        else{
+          req(input$ATACFile)
+          ATACdata <- ATACdataRead(input);
+          output$ATACTable <- renderTable({
+            displayUploadedFile(data=ATACdata, input, dataFileType="ATAC")
+          })
+        }
+        #checkHeader(data=ATACdata, dataFileType="ATAC", input)
+      }
+      
+      
+      #Increment progress
+      incProgress(0.75)
+      
+      if("ChIP" %in% input$fileTypes){
+        if(is.null(input$ChIPFile)){
+          #switch (input$Load,
+          # "FoxP3_5047_Peaks" = {
+          ChIPdata <- sampleData1
+          #  }
+          # )
+          output$ChIPTable <- renderTable({
+            if(eval(parse(text = (paste0("input$", "ChIP", "Disp")))) == "head") {
+              head(ChIPdata) 
+            }
+            else {
+              tail(ChIPdata) 
+            }
+          })
+        }
+        else{
+          req(input$ChIPFile)
+          ChIPdata <- ChIPdataRead(input);
+          output$ChIPTable <- renderTable({
+            displayUploadedFile(data=ChIPdata, input, dataFileType="ChIP")
+          })
+        }
+        
+        #checkHeader(data=HiCdata, dataFileType="HiC", input)
       }
       
       #Increment progress
       incProgress(0.99)
       
     })
-    
+    bedpeHeader <- c("chrom1","start1","end1","chrom2","start2","end2","score","samplenumber")
+    bedHeader <- c("chrom","start","stop")
+    bedgraphHeader <- c("chrom","start","stop","value")
     ###### REACTIVE FUNCTION: Define reactive function to plot cytoscape network
+    reactTONet <- reactive({
+      #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
+      if( submitBy$method == "ByCoord" ){
+        geneWindow <- defineGeneWindowByCoord(input);
+      } else if ( submitBy$method == "ByGene" ) {
+        geneWindow <- defineGeneWindowByGene(input)
+      }
+      
+      chrom = geneWindow$chrom;
+      cStart = geneWindow$chromstart;
+      cStop = geneWindow$chromend;
+      
+      #Trim HiCdata by chrom, cStart, and cStop data
+      trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+      trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+      trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+      trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+      trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+      
+      # Update HiCdata to equal trimmedData
+      HiCdata <- trimmedData
+      
+      #Make column for color and change color based on samplenumber;
+      color_palette <- bezierColorPalette(input)
+      HiCdata$color <- HiCdata[,8]
+      for (i in 1:input$numOfSamples){
+        HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+      }
+      
+      #Define node1
+      HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+      #Define node2
+      HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+      #Define unique nodes (by appending node1 and node2)
+      nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+      
+      id <- nodes
+      name <- id
+      nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+      
+      source <- HiCdata$node1
+      target <- HiCdata$node2
+      edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+      edgeData$color <- HiCdata$color
+      
+      ## Code for displaying reactive network of selected node with connected nodes
+      # Define network that will be used for displaying connected nodes as = edgeData
+      network <- edgeData
+      
+      ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+    })
     plotCyNetwork <- reactive({
       
-          withProgress(message = 'Making cytoscape plot', value = 0, {
+      withProgress(message = 'Making cytoscape plot', value = 0, {
         
-        #Load geneWindow from user defined parameters if input$submitByCoordinates is invalidated, else load by search coordinates if input$submitByGene is invalidated
+        
+        
+        
+        
+        
+        # NOTE: Reactive variables used as functions networkReactive(). 
+        networkReactive <- reactive({
+          if(is.null(input$connectedNodes)) {
+            return(network)
+          } else {
+            t1 <- which(network$source %in% input$connectedNodes)
+            t2 <- which(network$target %in% input$connectedNodes)
+            idx <- unique(c(t1, t2))
+            return(network[idx,])
+          }
+        })
+        output$nodeDataTable <- DT::renderDataTable({
+          tmp <- nodeData[which(id == input$clickedNode),]
+          DT::datatable(tmp, filter='bottom', style='bootstrap', options=list(pageLength=5))
+        })
+        
+        output$edgeDataTable <- DT::renderDataTable({
+          DT::datatable(networkReactive(), filter='bottom', style='bootstrap', options=list(pageLength=5))
+        })
+        
+        output$clickedNode = renderPrint({
+          input$clickedNode
+        })
+        
+        output$connectedNodes = renderPrint({
+          input$connectedNodes
+        }) 
+      })
+      
+      # plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+      
+    })
+    
+    ##Download All
+    output$downloadAll <- downloadHandler(
+      filename = function() {
+        "Network-Analysis.pdf"
+      },
+      content = function(file) {
+        pdf(file)
         if( submitBy$method == "ByCoord" ){
           geneWindow <- defineGeneWindowByCoord(input);
         } else if ( submitBy$method == "ByGene" ) {
@@ -1080,7 +1364,6 @@ server <- function(input, output, session) {
         network <- edgeData
         
         ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
-        
         number_nodes <- vcount(ntwrk)
         if (number_nodes > 30){
           node_size = 6
@@ -1089,161 +1372,28 @@ server <- function(input, output, session) {
           node_size = 18
           node_label = name
         }
-  
-  
-        # NOTE: Reactive variables used as functions networkReactive(). 
-        networkReactive <- reactive({
-          if(is.null(input$connectedNodes)) {
-            return(network)
-          } else {
-            t1 <- which(network$source %in% input$connectedNodes)
-            t2 <- which(network$target %in% input$connectedNodes)
-            idx <- unique(c(t1, t2))
-            return(network[idx,])
-          }
-        })
-        output$nodeDataTable <- DT::renderDataTable({
-          tmp <- nodeData[which(id == input$clickedNode),]
-          DT::datatable(tmp, filter='bottom', style='bootstrap', options=list(pageLength=5))
-        })
-        
-        output$edgeDataTable <- DT::renderDataTable({
-          DT::datatable(networkReactive(), filter='bottom', style='bootstrap', options=list(pageLength=5))
-        })
-        
-        output$clickedNode = renderPrint({
-          input$clickedNode
-        })
-        
-        output$connectedNodes = renderPrint({
-          input$connectedNodes
-        }) 
-      })
-        
-        plot(ntwrk, vertex.color = "#CDD1BE", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-        
-        output$plotdegree <- renderPlot({ 
-          deg <- igraph::degree(ntwrk, mode="all")
-          deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
-          output$plotdegree = renderPlot({ 
-            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
-            
-            output$downloadPlot_degree <- downloadHandler(
-              filename = "Degree_Distribution.png",
-              content = function(file) {
-                png(file)
-                deg <- igraph::degree(ntwrk, mode="all")
-                deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
-                plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
-                dev.off()
-              }) 
-          })
-        })
-        
-        output$plotgroups <- renderPlot({ 
-          ceb <- cluster_edge_betweenness(ntwrk)
-          plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
-          output$membership_data <- renderTable({
-            memb_info = membership(ceb)
-            Membership = as.character(membership(ceb))
-            Node = names(memb_info)
-            df = data.frame(Membership, Node)
-            print(df)
-          #  paste (Membership, Node)
-          })
-          
-          
-          output$downloadPlot_groups <- downloadHandler(
-            filename = "Community_Detecion.png",
-            content = function(file) {
-              png(file)
-              ceb <- cluster_edge_betweenness(ntwrk)
-              plot(ceb, ntwrk, vertex.label = node_label,  main = "Community Detection")
-              dev.off()
-            }) 
-        })
-        
-        output$plotHubs <- renderPlot({
-          hs <- hub_score(ntwrk)$vector
-          plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-          output$downloadPlot_hub <- downloadHandler(
-            filename = "Hub.png",
-            content = function(file) {
-              png(file)
-              hs <- hub_score(ntwrk)$vector
-              plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-              dev.off()
-            }) 
-        })
-        
-        output$plotNodeDegree <- renderPlot({            
-          deg <- igraph::degree(ntwrk, mode = "all")
-          dens_deg <- density(x = deg)
-          plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
-          polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
-          #degree_dataframe <- data.frame(deg)
-          #hist(x = deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab = "Degree")
-          # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
-          output$downloadPlot_node_degree <- downloadHandler(
-            filename = "Node-Degree.png",
-            content = function(file) {
-              png(file)
-              deg <- igraph::degree(ntwrk, mode = "all")
-              dens_deg <- density(x = deg)
-              plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
-              polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
-              # degree_dataframe <- data.frame(deg)
-              #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
-              #ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
-              dev.off()
-            })
-        })
-        
-        ###### Download Network
-        output$downloadNetwork <- downloadHandler(
-          filename = function() {
-            "Network.png"
-          },
-          content = function(file) {
-            png(file)
-            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label) 
-            dev.off()
-          }
-        )
-        
-        ##Download All
-        output$downloadAll <- downloadHandler(
-          filename = function() {
-            "Network-Analysis.pdf"
-          },
-          content = function(file) {
-            pdf(file)
-            plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-            hs <- hub_score(ntwrk)$vector
-            plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
-            deg <- igraph::degree(ntwrk, mode="all")
-            deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
-            plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
-            ceb <- cluster_edge_betweenness(ntwrk)
-            plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
-            #paste0("community membership for each node", membership(ceb))
-            deg <- igraph::degree(ntwrk, mode = "all") 
-            dens_deg <- density(x = deg)
-            plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
-            polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
-            # degree_dataframe <- data.frame(deg)
-            #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
-            # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue")# + labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
-            dev.off()
-          }
-        )
-   
+        plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        hs <- hub_score(ntwrk)$vector
+        plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        deg <- igraph::degree(ntwrk, mode="all")
+        deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+        plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
+        ceb <- cluster_edge_betweenness(ntwrk)
+        plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+        #paste0("community membership for each node", membership(ceb))
+        deg <- igraph::degree(ntwrk, mode = "all") 
+        dens_deg <- density(x = deg)
+        plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+        polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+        # degree_dataframe <- data.frame(deg)
+        dev.off()
+      }
+    )
     
-    })
- 
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
-    generatePlots <- reactive({
+    generatePlots <- eventReactive({c(input$selectedColor, input$geneId, input$chromNumber, input$cStart, input$cStop, input$leftDistance, input$rightDistance)}, {   
+      
       
       # Wait for file data (if selected in fileTypes) to exist before proceeding...
       if("HiC" %in% input$fileTypes){
@@ -1273,88 +1423,191 @@ server <- function(input, output, session) {
       output$atacPlot <- renderPlot({
         isolate({ 
           if( input$atacFormat == "Bedgraph" ){
+            # par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
           } else if ( input$atacFormat == "Bed" ){
+            #par(mar = c(0,0,0,0))
             plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
           }
         })
       })
-      
-      output$downloadDataAtac <- downloadHandler(
+      output$downloadDataBezierPDF <- downloadHandler(
         filename = function() {
-          "atac_plot.svg"
+          "bezier_plot.pdf"
         },
         content = function(file) {
-          svg(file)
-          if( input$atacFormat == "Bedgraph" ){
-            plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
-          } else if ( input$atacFormat == "Bed" ){
-            plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+          pdf(file)
+          if ("HiC" %in% input$fileTypes){ plotBezierCurves(data=HiCdata, input, genes, geneWindow) }
+          if ("ATAC" %in% input$fileTypes){
+            if( input$atacFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
+            } else if ( input$atacFormat == "Bed" ){
+              plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+            }
+          }
+          if ("ChIP" %in% input$fileTypes){
+            if( input$chipFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
+            } else if ( input$chipFormat == "Bed" ){
+              plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
+            }
+          }
+          if ("mRNA" %in% input$fileTypes){
+            if( input$mrnaFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
+            } else if ( input$mrnaFormat == "Bed" ){
+              plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
+            }
           }
           dev.off()
         }
+      )
+      # Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+      output$downloadDataBezierSVG <- downloadHandler(
+        filename = function() {
+          "BezierPlots.zip"
+        },
+        content = function(fname) {
+          #  owd <- setwd(tempdir())
+          # on.exit(setwd(owd))
+          tmpdir <- tempdir()
+          setwd(tempdir())
+          allFileNames <- NULL
+          
+          if ("HiC" %in% input$fileTypes){
+            fileName <- paste0("HiC", ".svg")
+            svg(fileName)
+            plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+            dev.off()
+            allFileNames <- c(fileName, allFileNames)
+          }
+          if ("ATAC" %in% input$fileTypes){
+            fileName1 <- paste0("ATAC", ".svg")
+            svg(fileName1)
+            if( input$atacFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
+            } else if ( input$atacFormat == "Bed" ){
+              plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName1, allFileNames)
+          }
+          if ("ChIP" %in% input$fileTypes){
+            fileName2 <- paste0("ChIP", ".svg")
+            svg(fileName2)
+            if( input$chipFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
+            } else if ( input$chipFormat == "Bed" ){
+              plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName2, allFileNames)
+          }
+          if ("mRNA" %in% input$fileTypes){
+            fileName2 <- paste0("mRNA", ".svg")
+            svg(fileName3)
+            if( input$mrnaFormat == "Bedgraph" ){
+              plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
+            } else if ( input$mrnaFormat == "Bed" ){
+              plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
+            }
+            dev.off()
+            allFileNames <- c(fileName3, allFileNames)
+          }
+          zip::zipr(zipfile=fname, files=allFileNames, recurse = TRUE)  
+          #if(file.exists(paste0(fname, ".zip"))) {file.rename(paste0(fname, ".zip"), fname)}
+          
+        }
+        #  contentType = "application/zip"
       )
       
       ######## ChIP Plot Output:
       output$chipPlot <- renderPlot({
         isolate({ 
           if( input$chipFormat == "Bedgraph" ){
+            #  par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
           } else if ( input$chipFormat == "Bed" ){
+            # par(mar = c(0,0,0,0))
             plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
           }
         })
       })
-      
-      output$downloadDataChip <- downloadHandler(
-        filename = function() {
-          "chip_plot.svg"
-        },
-        content = function(file) {
-          svg(file)
-          if( input$chipFormat == "Bedgraph" ){
-            plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
-          } else if ( input$chipFormat == "Bed" ){
-            plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
-          }
-          dev.off()
-        }
-      )
       
       ######## mRNA Plot Output:
       output$mrnaPlot <- renderPlot({
         isolate({ 
           if( input$mrnaFormat == "Bedgraph" ){
+            #par(mar = c(0,0,0,0))
             plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
           } else if ( input$mrnaFormat == "Bed" ){
+            #par(mar = c(0,0,0,0))
             plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
           }
         })
       })
       
-      output$downloadDataMrna <- downloadHandler(
-        filename = function() {
-          "mrna_plot.svg"
-        },
-        content = function(file) {
-          svg(file)
-          if( input$mrnaFormat == "Bedgraph" ){
-            plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
-          } else if ( input$mrnaFormat == "Bed" ){
-            plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
-          }
-          dev.off()
-        }
-      )
-      
       ####### Cytoscape Network Output:
-      output$cyplot <- renderPlot({
+      output$cyplot <- renderVisNetwork({
         isolate({ 
           
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
-              plotCyNetwork()
+              #reactTONet()
+              if( submitBy$method == "ByCoord" ){
+                geneWindow <- defineGeneWindowByCoord(input);
+              } else if ( submitBy$method == "ByGene" ) {
+                geneWindow <- defineGeneWindowByGene(input)
+              }
+              
+              chrom = geneWindow$chrom;
+              cStart = geneWindow$chromstart;
+              cStop = geneWindow$chromend;
+              
+              #Trim HiCdata by chrom, cStart, and cStop data
+              trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+              trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+              trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+              trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+              trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+              
+              # Update HiCdata to equal trimmedData
+              HiCdata <- trimmedData
+              
+              #Make column for color and change color based on samplenumber;
+              color_palette <- bezierColorPalette(input)
+              HiCdata$color <- HiCdata[,8]
+              for (i in 1:input$numOfSamples){
+                HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+              }
+              
+              #Define node1
+              HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+              #Define node2
+              HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+              #Define unique nodes (by appending node1 and node2)
+              nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+              
+              id <- nodes
+              name <- id
+              nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+              
+              source <- HiCdata$node1
+              target <- HiCdata$node2
+              edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+              edgeData$color <- HiCdata$color
+              
+              ## Code for displaying reactive network of selected node with connected nodes
+              # Define network that will be used for displaying connected nodes as = edgeData
+              network <- edgeData
+              
+              ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+              
+              colnames(edgeData) <- c("from", "to", "color")
+              colnames(nodeData) <- c("id", "label")
+              visNetwork(nodeData, edgeData,  height = "150%", width = "150%",main = "") %>% 
+                visIgraphLayout(layout = "layout_with_fr") 
             },
             error=function(e) {
               stop("The genomic window does not contain any nodes")
@@ -1362,6 +1615,416 @@ server <- function(input, output, session) {
           
         })
       })
+      ###### Download Network
+      output$downloadNetwork <- downloadHandler(
+        filename = function() {
+          "Network.html"
+        },
+        content = function(file) {
+          html(file)
+          if( submitBy$method == "ByCoord" ){
+            geneWindow <- defineGeneWindowByCoord(input);
+          } else if ( submitBy$method == "ByGene" ) {
+            geneWindow <- defineGeneWindowByGene(input)
+          }
+          
+          chrom = geneWindow$chrom;
+          cStart = geneWindow$chromstart;
+          cStop = geneWindow$chromend;
+          
+          #Trim HiCdata by chrom, cStart, and cStop data
+          trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+          trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+          trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+          trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+          trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+          
+          # Update HiCdata to equal trimmedData
+          HiCdata <- trimmedData
+          
+          #Make column for color and change color based on samplenumber;
+          color_palette <- bezierColorPalette(input)
+          HiCdata$color <- HiCdata[,8]
+          for (i in 1:input$numOfSamples){
+            HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+          }
+          
+          #Define node1
+          HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+          #Define node2
+          HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+          #Define unique nodes (by appending node1 and node2)
+          nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+          
+          id <- nodes
+          name <- id
+          nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+          
+          source <- HiCdata$node1
+          target <- HiCdata$node2
+          edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+          edgeData$color <- HiCdata$color
+          
+          ## Code for displaying reactive network of selected node with connected nodes
+          # Define network that will be used for displaying connected nodes as = edgeData
+          network <- edgeData
+          
+          ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+          colnames(edgeData) <- c("from", "to", "color")
+          colnames(nodeData) <- c("id", "label")
+          network <- visNetwork(nodeData, edgeData,height = "600px", main = " Network") %>% 
+            visIgraphLayout(layout = "layout_with_fr") 
+          #plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label) 
+          visSave(network, file = file)
+          # dev.off()
+        }
+      )
+      output$download_xgmml <- downloadHandler(	
+        filename = "Network.xgmml",
+        content = function(file) {
+          #reactTONet()
+          if( submitBy$method == "ByCoord" ){
+            geneWindow <- defineGeneWindowByCoord(input);
+          } else if ( submitBy$method == "ByGene" ) {
+            geneWindow <- defineGeneWindowByGene(input)
+          }
+          
+          chrom = geneWindow$chrom;
+          cStart = geneWindow$chromstart;
+          cStop = geneWindow$chromend;
+          
+          #Trim HiCdata by chrom, cStart, and cStop data
+          trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+          trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+          trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+          trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+          trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+          
+          # Update HiCdata to equal trimmedData
+          HiCdata <- trimmedData
+          
+          #Make column for color and change color based on samplenumber;
+          color_palette <- bezierColorPalette(input)
+          HiCdata$color <- HiCdata[,8]
+          for (i in 1:input$numOfSamples){
+            HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+          }
+          
+          #Define node1
+          HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+          #Define node2
+          HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+          #Define unique nodes (by appending node1 and node2)
+          nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+          
+          id <- nodes
+          name <- id
+          nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+          
+          source <- HiCdata$node1
+          target <- HiCdata$node2
+          edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+          edgeData$color <- HiCdata$color
+          
+          ## Code for displaying reactive network of selected node with connected nodes
+          # Define network that will be used for displaying connected nodes as = edgeData
+          network <- edgeData
+          
+          ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+          saveNetwork(network = ntwrk, name="network", file = file, type="XGMML")	
+          # showNotification(ui="Network Saved as XGMML file in the directory of the app",duration=5,closeButton=TRUE,type="message")	
+          
+        })
+      output$plotgroups <- renderPlot({ 
+        #reactTONet()
+        if( submitBy$method == "ByCoord" ){
+          geneWindow <- defineGeneWindowByCoord(input);
+        } else if ( submitBy$method == "ByGene" ) {
+          geneWindow <- defineGeneWindowByGene(input)
+        }
+        
+        chrom = geneWindow$chrom;
+        cStart = geneWindow$chromstart;
+        cStop = geneWindow$chromend;
+        
+        #Trim HiCdata by chrom, cStart, and cStop data
+        trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+        trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+        trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+        
+        # Update HiCdata to equal trimmedData
+        HiCdata <- trimmedData
+        
+        #Make column for color and change color based on samplenumber;
+        color_palette <- bezierColorPalette(input)
+        HiCdata$color <- HiCdata[,8]
+        for (i in 1:input$numOfSamples){
+          HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+        }
+        
+        #Define node1
+        HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+        #Define node2
+        HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+        #Define unique nodes (by appending node1 and node2)
+        nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+        
+        id <- nodes
+        name <- id
+        nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+        
+        source <- HiCdata$node1
+        target <- HiCdata$node2
+        edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+        edgeData$color <- HiCdata$color
+        
+        ## Code for displaying reactive network of selected node with connected nodes
+        # Define network that will be used for displaying connected nodes as = edgeData
+        network <- edgeData
+        
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        number_nodes <- vcount(ntwrk)
+        if (number_nodes > 30){
+          node_size = 6
+          node_label = NA
+        }else {
+          node_size = 18
+          node_label = name
+        }
+        ceb <- cluster_edge_betweenness(ntwrk)
+        plot(ceb, ntwrk, vertex.label = node_label, main = "Community Detection")
+        output$membership_data <- renderTable({
+          memb_info = membership(ceb)
+          Membership = as.character(membership(ceb))
+          Node = names(memb_info)
+          df = data.frame(Membership, Node)
+          print(df)
+          #  paste (Membership, Node)
+        })
+        
+        output$downloadPlot_groups <- downloadHandler(
+          filename = "Community_Detecion.png",
+          content = function(file) {
+            png(file)
+            ceb <- cluster_edge_betweenness(ntwrk)
+            plot(ceb, ntwrk, vertex.label = node_label,  main = "Community Detection")
+            dev.off()
+          }) 
+      })
+      
+      output$plotdegree <- renderPlot({ 
+        #reactTONet()
+        if( submitBy$method == "ByCoord" ){
+          geneWindow <- defineGeneWindowByCoord(input);
+        } else if ( submitBy$method == "ByGene" ) {
+          geneWindow <- defineGeneWindowByGene(input)
+        }
+        
+        chrom = geneWindow$chrom;
+        cStart = geneWindow$chromstart;
+        cStop = geneWindow$chromend;
+        
+        #Trim HiCdata by chrom, cStart, and cStop data
+        trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+        trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+        trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+        
+        # Update HiCdata to equal trimmedData
+        HiCdata <- trimmedData
+        
+        #Make column for color and change color based on samplenumber;
+        color_palette <- bezierColorPalette(input)
+        HiCdata$color <- HiCdata[,8]
+        for (i in 1:input$numOfSamples){
+          HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+        }
+        
+        #Define node1
+        HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+        #Define node2
+        HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+        #Define unique nodes (by appending node1 and node2)
+        nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+        
+        id <- nodes
+        name <- id
+        nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+        
+        source <- HiCdata$node1
+        target <- HiCdata$node2
+        edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+        edgeData$color <- HiCdata$color
+        
+        ## Code for displaying reactive network of selected node with connected nodes
+        # Define network that will be used for displaying connected nodes as = edgeData
+        network <- edgeData
+        
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        deg <- igraph::degree(ntwrk, mode="all")
+        deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+        output$plotdegree = renderPlot({ 
+          plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+          
+          output$downloadPlot_degree <- downloadHandler(
+            filename = "Degree_Distribution.png",
+            content = function(file) {
+              png(file)
+              deg <- igraph::degree(ntwrk, mode="all")
+              deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
+              plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency")
+              dev.off()
+            }) 
+        })
+      })
+      
+      output$plotHubs <- renderPlot({
+        # reactTONet()
+        if( submitBy$method == "ByCoord" ){
+          geneWindow <- defineGeneWindowByCoord(input);
+        } else if ( submitBy$method == "ByGene" ) {
+          geneWindow <- defineGeneWindowByGene(input)
+        }
+        
+        chrom = geneWindow$chrom;
+        cStart = geneWindow$chromstart;
+        cStop = geneWindow$chromend;
+        
+        #Trim HiCdata by chrom, cStart, and cStop data
+        trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+        trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+        trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+        
+        # Update HiCdata to equal trimmedData
+        HiCdata <- trimmedData
+        
+        #Make column for color and change color based on samplenumber;
+        color_palette <- bezierColorPalette(input)
+        HiCdata$color <- HiCdata[,8]
+        for (i in 1:input$numOfSamples){
+          HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+        }
+        
+        #Define node1
+        HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+        #Define node2
+        HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+        #Define unique nodes (by appending node1 and node2)
+        nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+        
+        id <- nodes
+        name <- id
+        nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+        
+        source <- HiCdata$node1
+        target <- HiCdata$node2
+        edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+        edgeData$color <- HiCdata$color
+        
+        ## Code for displaying reactive network of selected node with connected nodes
+        # Define network that will be used for displaying connected nodes as = edgeData
+        network <- edgeData
+        
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        number_nodes <- vcount(ntwrk)
+        if (number_nodes > 30){
+          node_size = 6
+          node_label = NA
+        }else {
+          node_size = 18
+          node_label = name
+        }
+        hs <- hub_score(ntwrk)$vector
+        plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        output$downloadPlot_hub <- downloadHandler(
+          filename = "Hub.png",
+          content = function(file) {
+            png(file)
+            hs <- hub_score(ntwrk)$vector
+            plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            dev.off()
+          }) 
+      })
+      
+      output$plotNodeDegree <- renderPlot({ 
+        # reactTONet()
+        if( submitBy$method == "ByCoord" ){
+          geneWindow <- defineGeneWindowByCoord(input);
+        } else if ( submitBy$method == "ByGene" ) {
+          geneWindow <- defineGeneWindowByGene(input)
+        }
+        
+        chrom = geneWindow$chrom;
+        cStart = geneWindow$chromstart;
+        cStop = geneWindow$chromend;
+        
+        #Trim HiCdata by chrom, cStart, and cStop data
+        trimmedData <- HiCdata[which(HiCdata[1] == chrom),]
+        trimmedData <- trimmedData[which(trimmedData[2] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[3] < cStop),]
+        trimmedData <- trimmedData[which(trimmedData[5] > cStart),]
+        trimmedData <- trimmedData[which(trimmedData[6] < cStop),]
+        
+        # Update HiCdata to equal trimmedData
+        HiCdata <- trimmedData
+        
+        #Make column for color and change color based on samplenumber;
+        color_palette <- bezierColorPalette(input)
+        HiCdata$color <- HiCdata[,8]
+        for (i in 1:input$numOfSamples){
+          HiCdata <- within(HiCdata, color[HiCdata[,8] == i] <- color_palette[i])
+        }
+        
+        #Define node1
+        HiCdata$node1 <- paste(HiCdata[,1],":",HiCdata[,2],"-",HiCdata[,3], sep = "")
+        #Define node2
+        HiCdata$node2 <- paste(HiCdata[,4],":",HiCdata[,5],"-",HiCdata[,6], sep = "")
+        #Define unique nodes (by appending node1 and node2)
+        nodes <- unique(append(HiCdata$node1,HiCdata$node2))
+        
+        id <- nodes
+        name <- id
+        nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
+        
+        source <- HiCdata$node1
+        target <- HiCdata$node2
+        edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+        edgeData$color <- HiCdata$color
+        
+        ## Code for displaying reactive network of selected node with connected nodes
+        # Define network that will be used for displaying connected nodes as = edgeData
+        network <- edgeData
+        
+        ntwrk <- graph_from_data_frame(d = edgeData, vertices = nodeData, directed = F)
+        deg <- igraph::degree(ntwrk, mode = "all")
+        dens_deg <- density(x = deg)
+        plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+        polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+        #degree_dataframe <- data.frame(deg)
+        #hist(x = deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab = "Degree")
+        # ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+        output$downloadPlot_node_degree <- downloadHandler(
+          filename = "Node-Degree.png",
+          content = function(file) {
+            png(file)
+            deg <- igraph::degree(ntwrk, mode = "all")
+            dens_deg <- density(x = deg)
+            plot(dens_deg, xlab = "Degree", main = "Node Degree Density Plot")
+            polygon(dens_deg, col="#DCF7F3", border="#45AAB8")
+            # degree_dataframe <- data.frame(deg)
+            #hist(deg, breaks=1:vcount(ntwrk)-1, main="Histogram of node degree", col = c("#62A9FF"), xlab  = "Degree")
+            #ggplot(degree_dataframe, aes(x=deg)) + geom_density(color = "darkblue", fill = "skyblue") #+ labs(title =  "Node Degree Density Plot", x = "Degree", y = "Density")
+            dev.off()
+          })
+      })
+      
+      
+      
       
       ######## Bezier Curve Plot Output:
       output$bezierplot <- renderPlot({
@@ -1369,7 +2032,9 @@ server <- function(input, output, session) {
           #tryCatch error handling for "Error: replacement has 1 row, data has 0", which occurs when the genome window contains no nodes
           tryCatch(
             {
-              plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+              #par(mar = c(0,0,0,0))
+              p <- plotBezierCurves(data=HiCdata, input, genes, geneWindow)
+              
             },
             error=function(e) {
               stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
@@ -1377,18 +2042,11 @@ server <- function(input, output, session) {
         })
       })
       
-      output$downloadDataBezier <- downloadHandler(
-        filename = function() {
-          "bezier_plot.svg"
-        },
-        content = function(file) {
-          svg(file)
-          plotBezierCurves(data=HiCdata, input, genes, geneWindow)
-          dev.off()
-        }
-      )
+      
       
     })
+    
+    
     
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
     observeEvent(input$submitByCoordinates, {
@@ -1414,7 +2072,9 @@ server <- function(input, output, session) {
   
   #To enable new-session reconnections, in case the client has disconnected from the server (and has reached a gray-out state)
   session$allowReconnect(TRUE)
- 
-}
+  options(rsconnect.error.trace = TRUE)
+  
+  }
 shinyApp(ui = ui, server = server)
+
 
