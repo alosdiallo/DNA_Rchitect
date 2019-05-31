@@ -26,7 +26,8 @@ Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated
 Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.<br>
 
 ###  Title: ImmGen ATAC-seq data
-Files: Tcon_Immgen_3.bg Treg_Immgen_3.bg
+Files: Tcon_Immgen_3.bg Treg_Immgen_3.bg <br>
+       Tcon_Immgen_3_chr1.rar <br>
 
 Summary: Immunological Genome Project chromatin accessibility maps for 86 different immunocytes (ATAC-seq). Immune cell populations were isolated in high-purity by flow cytometry.
 Overall Design: Immune cell populations encompassing all major lineages were isolated by flow cytometry to high-purity according to ImmGen SOP (https://www.immgen.org/). 10,000 cells (except some rare cell populations) were used to construct each ATAC-seq library, using the Fast-ATAC protocol. Libraries were dual-indexed and pooled for high-throughput sequencing.
