@@ -43,8 +43,9 @@ These files are too large to include here so we are including a link to the goog
 [`Treg_Immgen_3.bg`](https://storage.googleapis.com/gencode_ch_data/Sample_Data/datasets/Treg_Immgen_3.bg)<br>
 
 ###  Title: FoxP3_5047 data
-Files: FoxP3_5047_Peaks.txt
-FoxP3_5047_Peaks - no headers.txt
+Files: FoxP3_5047.rar <br>
+FoxP3_5047_Peaks.txt <br>
+FoxP3_5047_Peaks - no headers.txt <br>
 
 Abstract: FoxP3 conditions the transcriptional signature and functional facets of regulatory T cells (Treg cells). Its mechanism of action, whether as an activator or a repressor, has remained unclear. Here, chromatin analysis showed that FoxP3 bound active enhancer elements, not repressed chromatin, around loci over- or under-expressed in Treg cells. We evaluated the impact of a panel of FoxP3 mutants on its transcriptional activity and interactions with DNA, transcriptional cofactors and chromatin. Computational integration, confirmed by biochemical interaction and size analyses, showed that FoxP3 existed in distinct multimolecular complexes. It was active and primarily an activator when complexed with the transcriptional factors RELA, IKZF2 and KAT5. In contrast, FoxP3 was inactive when complexed with the histone methyltransferase EZH2 and transcription factors YY1 and IKZF3. The latter complex partitioned to a peripheral region of the nucleus, as shown by super-resolution microscopy. Thus, FoxP3 acts in multimodal fashion to directly activate or repress transcription, in a context- and partner-dependent manner, to govern Treg cell phenotypes.<br> <br>
 Link to Paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5679728/ <br>
