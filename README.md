@@ -1,4 +1,4 @@
-![DNA Rchitect](App/www/DNARchitect_Logo.png)  
+![DNA Rchitect](App/www/DNARchitect_logo.jpeg)  
 
 ## Welcome to the github repository for DNA Rchitect, a Shiny App for visualizing genomic data. 
 Start using the [web version](http://shiny.immgen.org/DNARchitect/) of this application, or download the [source code](https://github.com/alosdiallo/DNA_Rchitect/tree/master/Appp) and run locally. 
