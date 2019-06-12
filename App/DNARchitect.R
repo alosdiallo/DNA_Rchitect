@@ -82,6 +82,7 @@ library(ggplot2)
 library(gtable)
 library(visNetwork)
 library(zip)
+library(shinyalert)
 
 
 
@@ -545,6 +546,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                 
                 useShinyjs(),
                 inlineCSS(appCSS),
+                useShinyalert(),
                 
                 # Loading Screen message
                 div(
@@ -644,13 +646,16 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                              label = "Number of Samples in HiC Dataset",
                                              choices = c(1,2,3,4,5,6,7,8,9), multiple = FALSE, selectize = TRUE, width = NULL, size = NULL)),
                              tags$br(),
+                             div(id = "searchbyDiv",
                              radioButtons(inputId = "searchby", label = "Search By: ", choices =  c("Coordinates", "Genes"), selected = "Coordinates")
-                      ),
+                             )
+                              ),
                       column(width =3,
                              div(id="sampleNamesDiv",
                                  uiOutput(outputId = "sampleNames")
                              ),
-                             selectInput(inputId = "selectedColor", label = "Select colors for bezier curves", choices = c("Blue", "Red", "Green", "Purple", "Orange", "Yellow", "Brown", "Pink", "Gray"), multiple = TRUE)
+                             #includeHTML(path="www/html/test.html")
+                             selectInput(inputId = "selectedColor", label = "Select colors for data", choices = c("Blue", "Red", "Green", "Purple", "Orange", "Yellow", "Brown", "Pink", "Gray"), multiple = TRUE, selected = "Blue")
                              
                       ),
                       
@@ -695,14 +700,14 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                              div(id = "HiCNetwork", style="display:none" ,
                                  wellPanel(
                                    tabsetPanel( id = "MainNetwork",
-                                                tabPanel(title = "Network",
+                                                tabPanel(title = "Genomic Network",
                                                          visNetworkOutput(outputId = "cyplot", height="500px"),
                                                          tags$br(),
                                                          downloadButton(outputId = "downloadNetwork",label =  "Download as HTML"),
                                                          downloadButton(outputId = "downloadAll",label =  "Download All as PDF", style = "float:right"),
                                                          downloadButton(outputId = "download_xgmml", label = "Download Network as XGMML")
                                                 ),
-                                                tabPanel(title = "Hubs",
+                                                tabPanel(title = "Network Hubs",
                                                          plotOutput(outputId = "plotHubs", height = "500px"),
                                                          tags$br(),
                                                          downloadButton(outputId = 'downloadPlot_hub', label = 'Download as PNG')
@@ -712,7 +717,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                                                          tags$br(), 
                                                          downloadButton(outputId = 'downloadPlot_degree', label = 'Download as PNG')
                                                 ),
-                                                tabPanel(title = "Groups",
+                                                tabPanel(title = "Community Detection",
                                                          plotOutput(outputId = "plotgroups", height = "500px"),
                                                          tags$br(), 
                                                          downloadButton(outputId = 'downloadPlot_groups', label = 'Download as PNG'),
@@ -735,7 +740,7 @@ ui <- fluidPage(title = "Genomic Data Browser", style = "margin:15px;",
                   ),
                   tabPanel(title = "About Sample Data",
                            htmlOutput(outputId = "InfoData")
-                           ),
+                  ),
                   tabPanel(title = "Help",
                            htmlOutput('pdfviewer')
                   )
@@ -754,9 +759,9 @@ server <- function(input, output, session) {
     return(paste('<iframe style="height:1000px; width:100%" src="https://storage.googleapis.com/gencode_ch_data/DNA_Rchitect_Tutorial.pdf"></iframe>', sep = ""))
   })
   output$InfoData <- renderUI({
-    tags$p(HTML("<hr></hr> <h3><b>K562_NHEK_GM12878-loops</h3></b><h5>Organism: Homo sapiens; Mus musculus</h5> <h5><b>Title:</b> A three-dimensional map of the human genome at kilobase resolution reveals prinicples of chromatin looping</h5>
+    tags$p(HTML("<hr></hr> <h3><b>K562_NHEK_GM12878-loops</h3></b><h5>Organism: Homo sapiens hg19; Mus musculus</h5> <h5><b>Title:</b> A three-dimensional map of the human genome at kilobase resolution reveals prinicples of chromatin looping</h5>
                 <b>Summary:</b>
-                We use in situ Hi-C to probe the three-dimensional architecture of genomes, constructing haploid and diploid maps of nine cell types. The densest, in human lymphoblastoid cells, contains 4.9 billion contacts, achieving 1-kilobase resolution. We find that genomes are partitioned into local domains, which are associated with distinct patterns of histone marks and segregate into six subcompartments. We identify ~10,000 loops. These loops frequently link promoters and enhancers, correlate with gene activation, and show conservation across cell types and species. Loop anchors typically occur at domain boundaries and bind CTCF. CTCF sites at loop anchors occur predominantly (>90%) in a convergent orientation, with the asymmetric motifs ‘facing’ one another. The inactive X-chromosome splits into two massive domains and contains large loops anchored at CTCF-binding repeats.
+                We use in situ Hi-C to probe the three-dimensional architecture of genomes, constructing haploid and diploid maps of nine cell types. The densest, in human lymphoblastoid cells, contains 4.9 billion contacts, achieving 1-kilobase resolution. We find that genomes are partitioned into local domains, which are associated with distinct patterns of histone marks and segregate into six subcompartments. We identify ~10,000 loops. These loops frequently link promoters and enhancers, correlate with gene activation, and show conservation across cell types and species. Loop anchors typically occur at domain boundaries and bind CTCF. CTCF sites at loop anchors occur predominantly (>90%) in a convergent orientation, with the asymmetric motifs 'facing' one another. The inactive X-chromosome splits into two massive domains and contains large loops anchored at CTCF-binding repeats.
                 <br></br>
                 <b>Link to GEO:</b>
                 <a href = 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525</a>
@@ -765,30 +770,30 @@ server <- function(input, output, session) {
                 Rao, Suhas S.P., et al. A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping. Cell 2014;159(7):1665-1680.<br></br>
                 Sanborn, A.L., et al. Chromatin extrusion explains key features of loop and domain formation in wild-type and engineered genomes. Proceedings of the National Academy of Sciences 2015;112(47):E6456-E6465.
                 
-                <hr></hr> <h3><b>GSM1704495_GMPro_Cap_rep1_filt5</b></h3>  <h5>Organism: Homo sapiens</h5> <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
-                  <b>Summary:</b>
-                  Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                <hr></hr> <h3><b>GSM1704495_GMPro_Cap_rep1_filt5</b></h3>  <h5>Organism: Homo sapiens hg19</h5> <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                <b>Summary:</b>
+                Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
                 <br></br>
-                  <b>Link to GEO:</b>
-                  <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
-                  <br></br>
-                  <b>Publications:</b> <br></br>
-                  Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
-                  Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
-                  
-                  <hr></hr> <h3><b>GSM1704494_JKProCap_Rep1_Filt5</b></h3>  <h5>Organism: Homo sapiens</h5>  <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
-                  <b>Summary:</b>
-                  Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
-                  <br></br>
-                  <b>Link to GEO:</b>
-                  <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
-                   <br></br>
-                   <b>Publications:</b> <br></br>
-                   Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
-                   Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
-                   
-
-                <hr></hr> <h3><b>ImmGen_T.Nve.Sp.ATAC.bg | ImmGen_Treg.Sp.ATAC.bg</b></h3> <h5>Organism: Mus musculus</h5> <h5><b>Title:</b> ImmGen ATAC-seq data</h5>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                <br></br>
+                <b>Publications:</b> <br></br>
+                Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
+                
+                <hr></hr> <h3><b>GSM1704494_JKProCap_Rep1_Filt5</b></h3>  <h5>Organism: Homo sapiens hg19</h5>  <h5><b>Title:</b> Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci</h5>
+                <b>Summary:</b>
+                Genome-wide association studies have been tremendously successful in identifying genetic variants associated with complex diseases. The majority of association signals are intergenic and evidence is accumulating that a high proportion of signals lie in enhancer regions.We use Capture Hi-C to investigate, for the first time, the interactions between associated variants for four autoimmune diseases and their functional targets in B- and T-cell lines. Here we report numerous looping interactions and provide evidence that only a minority of interactions are common to both B- and T-cell lines, suggesting interactions may be highly cell-type specific; some disease-associated SNPs do not interact with the nearest gene but with more compelling candidate genes (for example, FOXO1, AZI2) often situated several megabases away; and finally, regions associated with different autoimmune diseases interact with each other and the same promoter suggesting common autoimmune gene targets (for example, PTPRC, DEXI and ZFP36L1).
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600' target='_blank'>https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69600</a>
+                <br></br>
+                <b>Publications:</b> <br></br>
+                Martin, P., et al. Identifying Causal Genes at the Multiple Sclerosis Associated Region 6q23 Using Capture Hi-C. PLOS ONE 2016;11(11):e0166923.<br></br>
+                Martin, P., et al. Capture Hi-C reveals novel candidate genes and complex long-range interactions with related autoimmune risk loci. Nature Communications 2015;6:10069.
+                
+                
+                <hr></hr> <h3><b>ImmGen_T.Nve.Sp.ATAC.bg | ImmGen_Treg.Sp.ATAC.bg</b></h3> <h5>Organism: Mus musculus mm10</h5> <h5><b>Title:</b> ImmGen ATAC-seq data</h5>
                 <b>Summary:</b>
                 Immunological Genome Project chromatin accessibility maps for 86 different immunocytes (ATAC-seq). Immune cell populations were isolated in high-purity by flow cytometry.
                 
@@ -799,9 +804,25 @@ server <- function(input, output, session) {
                 <br></br>
                 <b>Publications:</b><br></br>
                 Yoshida, H., Lareau, C. A., Ramirez, R. N., Rose, S. A., Maier, B., Wroblewska, A., . . . Benoist, C. (2019). The cis-Regulatory Atlas of the Mouse Immune System. Cell, 176(4), 897-912.e820. doi:<a href='https://doi.org/10.1016/j.cell.2018.12.036' target='_blank'>https://doi.org/10.1016/j.cell.2018.12.036</a>
+                
+                
+                
+                <hr></hr> <h3><b> FoxP3_ChIP-seq_Peaks.bed </b></h3>
+                <h5>Organism: Mus musculus mm10</h5>
+                <h5><b>Files:</b> FoxP3_5047_Peaks.txt</h5>
+                
+                <h5><b>Abstract:</b></h5> FoxP3 conditions the transcriptional signature and functional facets of regulatory T cells (Treg cells). Its mechanism of action, whether as an activator or a repressor, has remained unclear. Here, chromatin analysis showed that FoxP3 bound active enhancer elements, not repressed chromatin, around loci over- or under-expressed in Treg cells. We evaluated the impact of a panel of FoxP3 mutants on its transcriptional activity and interactions with DNA, transcriptional cofactors and chromatin. Computational integration, confirmed by biochemical interaction and size analyses, showed that FoxP3 existed in distinct multimolecular complexes. It was active and primarily an activator when complexed with the transcriptional factors RELA, IKZF2 and KAT5. In contrast, FoxP3 was inactive when complexed with the histone methyltransferase EZH2 and transcription factors YY1 and IKZF3. The latter complex partitioned to a peripheral region of the nucleus, as shown by super-resolution microscopy. Thus, FoxP3 acts in multimodal fashion to directly activate or repress transcription, in a context- and partner-dependent manner, to govern Treg cell phenotypes.
+                <br></br>
+                <b>Link to GEO:</b>
+                <a href='https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5679728/'>https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5679728/</a>
+                <br></br>
+                <b>Publications:</b><br></br>
+                Kwon, H.-K., Chen, H.-M., Mathis, D., & Benoist, C. (2017). Different molecular complexes that mediate transcriptional induction and repression by FoxP3. Nature Immunology, 18(11), 1238-1248. doi:10.1038/ni.3835
+                
+                
                 "
-                ))
-    })
+    ))
+  })
   
   ## Go to the "Plots" tab when click "goToPlots" button
   observeEvent(input$goToPlots, {
@@ -866,8 +887,8 @@ server <- function(input, output, session) {
       #shinyjs::show(id = "HiCplotdownload")
       shinyjs::show(id = "HiCNetwork ")
       shinyjs::show(id = "aa")
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"), 
-                           options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')), selected = NULL)
+     # updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"), 
+    #                       options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')), selected = NULL)
     }
     else{
       shinyjs::hide(id = "HiCplot")
@@ -878,7 +899,7 @@ server <- function(input, output, session) {
     if ("ATAC" %in% input$fileTypes){
       shinyjs::show(id = "atacFormatPanelDiv")
       shinyjs::show(id = "ATACPlot")
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), options = list(maxOptions = 4, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+      #updateSelectizeInput(session = session, inputId = "Load",  choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), options = list(maxOptions = 4, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
     }
     else{
       shinyjs::hide(id = "atacFormatPanelDiv")
@@ -887,7 +908,7 @@ server <- function(input, output, session) {
     if ("ChIP" %in% input$fileTypes){
       shinyjs::show(id = "chipFormatPanelDiv")
       shinyjs::show(id = "ChIPPlot")
-      updateSelectizeInput(session = session, inputId = "Load",  choices = c("FoxP3_ChIP-seq_Peaks.bed"), options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+      #updateSelectizeInput(session = session, inputId = "Load",  choices = c("FoxP3_ChIP-seq_Peaks.bed"), options = list(maxOptions = 1, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
       #shinyjs::show(id = "chipPlot")
     }
     else{
@@ -905,14 +926,14 @@ server <- function(input, output, session) {
       shinyjs::hide(id = "mRNAPlot")
       #shinyjs::hide(id = "mrnaPlot")
     }
-   # if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
-  #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
-  #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
-  #  }
-  #  if ("HiC" %in% input$fileTypes && "ATAC" %in% input$fileTypes){
-  #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), 
-  #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
-  #  }
+    # if ("HiC" %in% input$fileTypes && "ChIP" %in% input$fileTypes){
+    #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "FoxP3_ChIP-seq_Peaks.bed"), 
+    #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+    #  }
+    #  if ("HiC" %in% input$fileTypes && "ATAC" %in% input$fileTypes){
+    #    updateSelectizeInput(session = session, inputId = "Load",  choices = c("K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5", "ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg"), 
+    #                         options = list(maxOptions = 3, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')),selected = NULL)
+    #  }
     
   })
   
@@ -937,10 +958,11 @@ server <- function(input, output, session) {
                    ),
                    tags$hr(),
                    
+                   div(id = "sampleDataDiv",
                    selectizeInput(inputId = "Load", label = "Load Sample Data",
                                   choices = c("ImmGen_T.Nve.Sp.ATAC.bg", "ImmGen_Treg.Sp.ATAC.bg", "FoxP3_ChIP-seq_Peaks.bed","K562_NHEK_GM12878-loops", "GSM1704495_GMPro_Cap_rep1_filt5", "GSM1704494_JKProCap_Rep1_Filt5"),
-                                  options = list(maxOptions = 6, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }'))),
-                   
+                                  options = list(maxOptions = 6, placeholder = 'Type file name', onInitialize = I('function() { this.setValue(""); }')))
+                   ),
                    # Horizontal line ----
                    tags$hr(),
                    
@@ -984,11 +1006,11 @@ server <- function(input, output, session) {
                            
                            # # Output: Data file ----
                            tableOutput(paste0(input$fileTypes[i],"Table"))
-                          ##\ div(id = "aa", style="display:none",
-                              # wellPanel(
-                          ##       htmlOutput(outputId = "InfoData")
-                              #)
-                          ## )
+                           ##\ div(id = "aa", style="display:none",
+                           # wellPanel(
+                           ##       htmlOutput(outputId = "InfoData")
+                           #)
+                           ## )
                  )
                )
       )
@@ -1096,7 +1118,7 @@ server <- function(input, output, session) {
     
     #Read all data files into memory...
     withProgress(message = "Processing Data", value = 0.10, {
-
+      
       if("mRNA" %in% input$fileTypes){
         req(input$mRNAFile)
         mRNAdata <- mRNAdataRead(input);
@@ -1197,11 +1219,11 @@ server <- function(input, output, session) {
         }
         #checkHeader(data=ATACdata, dataFileType="ATAC", input)
       }
-
+      
       
       #Increment progress
       incProgress(0.75)
-
+      
       if("ChIP" %in% input$fileTypes){
         if(is.null(input$ChIPFile)){
           #switch (input$Load,
@@ -1395,7 +1417,7 @@ server <- function(input, output, session) {
         }
         plot(ntwrk, vertex.color = "pink", vertex.size =  node_size, edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
         hs <- hub_score(ntwrk)$vector
-        plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        plot(ntwrk, vertex.size = hs*35, main = "Network Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
         deg <- igraph::degree(ntwrk, mode="all")
         deg.dist <- degree_distribution(ntwrk, cumulative=T, mode="all")
         plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.6, col="orange", xlab="Degree", ylab="Cumulative Frequency", main = "Degree Distribution")
@@ -1413,9 +1435,7 @@ server <- function(input, output, session) {
     
     
     ###### REACTIVE FUNCTION: Define reactive function to make all plot calls to appropriate outputs. This was made a reactive function to allow multiple "submit" scenarios (ie byGene or byCoordinates)
-    generatePlots <- eventReactive({c(input$selectedColor, input$geneId, input$chromNumber, input$cStart, input$cStop, input$leftDistance, input$rightDistance)}, {   
-      
-      
+    generatePlots <- eventReactive({c(input$selectedColor, input$geneId, input$chromNumber, input$cStart, input$cStop, input$leftDistance, input$rightDistance, input$sNumber1, input$sNumber2, input$sNumber3, input$sNumber4, input$sNumber5, input$sNumber6, input$sNumber7,input$sNumber8,input$sNumber9)}, {   
       # Wait for file data (if selected in fileTypes) to exist before proceeding...
       if("HiC" %in% input$fileTypes){
         req(HiCdata)
@@ -1439,17 +1459,22 @@ server <- function(input, output, session) {
       
       #Load gene annotation data for user defined region
       genes <- readGenes(geneWindow, input)
-      
       ######## ATAC Plot Output:
       output$atacPlot <- renderPlot({
         isolate({ 
-          if( input$atacFormat == "Bedgraph" ){
-            # par(mar = c(0,0,0,0))
-            plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
-          } else if ( input$atacFormat == "Bed" ){
-            #par(mar = c(0,0,0,0))
-            plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
-          }
+          tryCatch(
+            {
+              if( input$atacFormat == "Bedgraph" ){
+                # par(mar = c(0,0,0,0))
+                plotBedgraphWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data") 
+              } else if ( input$atacFormat == "Bed" ){
+                #par(mar = c(0,0,0,0))
+                plotBedWrapper(data=ATACdata, input, genes, geneWindow, plotTopTitle = "ATAC-seq Data")
+              }
+            },
+            error=function(e) {
+              stop(safeError("An error has occurred. Please make sure that the settings for your genes/area of interest are correct."))
+            })
         })
       })
       output$downloadDataBezierPDF <- downloadHandler(
@@ -1545,26 +1570,38 @@ server <- function(input, output, session) {
       ######## ChIP Plot Output:
       output$chipPlot <- renderPlot({
         isolate({ 
-          if( input$chipFormat == "Bedgraph" ){
-            #  par(mar = c(0,0,0,0))
-            plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
-          } else if ( input$chipFormat == "Bed" ){
-            # par(mar = c(0,0,0,0))
-            plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
-          }
+          tryCatch(
+            {
+              if( input$chipFormat == "Bedgraph" ){
+                #  par(mar = c(0,0,0,0))
+                plotBedgraphWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data") 
+              } else if ( input$chipFormat == "Bed" ){
+                # par(mar = c(0,0,0,0))
+                plotBedWrapper(data=ChIPdata, input, genes, geneWindow, plotTopTitle = "ChIP-seq Data")
+              }
+            },
+            error=function(e) {
+              stop(safeError("An error has occurred. Please make sure that the settings for your genes/area of interest are correct."))
+            })
         })
       })
       
       ######## mRNA Plot Output:
       output$mrnaPlot <- renderPlot({
         isolate({ 
-          if( input$mrnaFormat == "Bedgraph" ){
-            #par(mar = c(0,0,0,0))
-            plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
-          } else if ( input$mrnaFormat == "Bed" ){
-            #par(mar = c(0,0,0,0))
-            plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
-          }
+          tryCatch(
+            {
+              if( input$mrnaFormat == "Bedgraph" ){
+                #par(mar = c(0,0,0,0))
+                plotBedgraphWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data") 
+              } else if ( input$mrnaFormat == "Bed" ){
+                #par(mar = c(0,0,0,0))
+                plotBedWrapper(data=mRNAdata, input, genes, geneWindow, plotTopTitle = "mRNA-seq Data")
+              }
+            },
+            error=function(e) {
+              stop(safeError("An error has occurred. Please make sure that the settings for your genes/area of interest are correct."))
+            })
         })
       })
       
@@ -1616,7 +1653,7 @@ server <- function(input, output, session) {
               
               source <- HiCdata$node1
               target <- HiCdata$node2
-              edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
+              edgeData <- data.frame(from = source, to = target, stringsAsFactors=FALSE)
               edgeData$color <- HiCdata$color
               
               ## Code for displaying reactive network of selected node with connected nodes
@@ -1628,10 +1665,12 @@ server <- function(input, output, session) {
               colnames(edgeData) <- c("from", "to", "color")
               colnames(nodeData) <- c("id", "label")
               visNetwork(nodeData, edgeData,  height = "150%", width = "150%",main = "") %>% 
-                visIgraphLayout(layout = "layout_with_fr") 
+                visIgraphLayout(layout = "layout_with_fr") %>% 
+                visInteraction(navigationButtons = TRUE)%>% 
+                visOptions(nodesIdSelection = TRUE)
             },
             error=function(e) {
-              stop("The genomic window does not contain any nodes")
+              stop(safeError("The genomic window does not contain any nodes"))
             })
           
         })
@@ -1639,7 +1678,7 @@ server <- function(input, output, session) {
       ###### Download Network
       output$downloadNetwork <- downloadHandler(
         filename = function() {
-          "Network.html"
+          "Gemonic_Network.html"
         },
         content = function(file) {
           html(file)
@@ -1961,13 +2000,13 @@ server <- function(input, output, session) {
           node_label = name
         }
         hs <- hub_score(ntwrk)$vector
-        plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+        plot(ntwrk, vertex.size = hs*35, main = "Network Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
         output$downloadPlot_hub <- downloadHandler(
           filename = "Hub.png",
           content = function(file) {
             png(file)
             hs <- hub_score(ntwrk)$vector
-            plot(ntwrk, vertex.size = hs*35, main = "Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
+            plot(ntwrk, vertex.size = hs*35, main = "Network Hubs", vertex.color = "#CDD1BE", edge.width = 1, vertex.label.font = 2, vertex.label = node_label)
             dev.off()
           }) 
       })
@@ -2058,7 +2097,7 @@ server <- function(input, output, session) {
               
             },
             error=function(e) {
-              stop("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit")
+              stop(safeError("Current genomic window cannot be plotted, probably because an anchor crosses the plot boundary. Adjust genomic window coordinates (zoom in or out) and re-submit"))
             })
         })
       })
@@ -2072,14 +2111,49 @@ server <- function(input, output, session) {
     ######Execute code to Generate Plots Once Press submitByCoordinates actionButton
     observeEvent(input$submitByCoordinates, {
       submitBy$method = "ByCoord"
+      if(is.null(input$selectedColor)){
+        shinyalert(
+          title = " ",
+          text = "Please select color for data",
+          closeOnEsc = TRUE,
+          closeOnClickOutside = FALSE,
+          html = FALSE,
+          type = "error",
+          showConfirmButton = TRUE,
+          showCancelButton = FALSE,
+          confirmButtonText = "OK",
+          confirmButtonCol = "#AEDEF4",
+          timer = 0,
+          imageUrl = "",
+          animation = TRUE
+        )
+      }
       updateTabsetPanel(session = session,inputId = "MainNetwork", selected  = "Network")
+      req(input$selectedColor)
       generatePlots()
-      
     })
     
     ######Execute code to Generate Plots Once Press submitByGene actionButton
     observeEvent(input$submitByGene, {
       submitBy$method = "ByGene"
+      if(is.null(input$selectedColor)){
+        shinyalert(
+          title = " ",
+          text = "Please select color for data",
+          closeOnEsc = TRUE,
+          closeOnClickOutside = FALSE,
+          html = FALSE,
+          type = "error",
+          showConfirmButton = TRUE,
+          showCancelButton = FALSE,
+          confirmButtonText = "OK",
+          confirmButtonCol = "#AEDEF4",
+          timer = 0,
+          imageUrl = "",
+          animation = TRUE
+        )
+      }
+      req(input$selectedColor)
       generatePlots()
       
     })
@@ -2094,8 +2168,10 @@ server <- function(input, output, session) {
   #To enable new-session reconnections, in case the client has disconnected from the server (and has reached a gray-out state)
   session$allowReconnect(TRUE)
   options(rsconnect.error.trace = TRUE)
+  #options(shiny.sanitize.errors = FALSE)
+  options(shiny.sanitize.errors = TRUE)
   
-}
+  }
 shinyApp(ui = ui, server = server)
 
 
