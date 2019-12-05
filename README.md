@@ -2,6 +2,8 @@
 
 ## Welcome to the github repository for DNA Rchitect, a Shiny App for visualizing genomic data. 
 Start using the [web version](http://shiny.immgen.org/DNARchitect/) of this application, or download the [source code](https://github.com/alosdiallo/DNA_Rchitect/tree/master/Appp) and run locally. 
+Please cite if used for publication: DNA Rchitect: an R based visualizer for network analysis of chromatin interaction data
+RN Ramirez, K Bedirian, SM Gray, A Diallo - Bioinformatics, 2019. PMID: 31373608 DOI: 10.1093/bioinformatics/btz608.
 
 ## Table of Contents
 [Introduction](#introduction)<br>
