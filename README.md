@@ -142,6 +142,6 @@ Authors
 	
 Copyright © 2018 the President and Fellows of Harvard College.
 ![Blavatnikimmunology](https://github.com/alosdiallo/DNA_Rchitect/blob/master/App/www/Blavatnikimmunology.jpg)
-![Immgen](https://storage.googleapis.com/gencode_ch_data/immgen.png)  
+![Immgen](https://github.com/alosdiallo/DNA_Rchitect/blob/master/App/www/immgen.png)  
 
 ### [MIT License](https://github.com/alosdiallo/HiC_Network_Viz_tool/blob/master/Licence.txt)
