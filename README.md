@@ -141,6 +141,7 @@ Authors
 	Alos Diallo - Department of Immunology, Harvard Medical School
 	
 Copyright © 2018 the President and Fellows of Harvard College.
+
 ![Blavatnikimmunology](https://github.com/alosdiallo/DNA_Rchitect/blob/master/App/www/Blavatnikimmunology.jpg)
 ![Immgen](https://github.com/alosdiallo/DNA_Rchitect/blob/master/App/www/immgen.png)  
 
